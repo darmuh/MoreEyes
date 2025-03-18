@@ -19,11 +19,9 @@ namespace MoreEyes
             GameObject cat_iris = assetBundle.LoadAsset<GameObject>("cat_iris");
             CustomEyePatch catEyePatch = new(cat_iris, cat_iris);
             customEyePatches.Add(catEyePatch);
-
         }
         public static void Postfix(PlayerAvatar __instance)
         {
-            //make sure we are an actual player and not in the menus
             if (SemiFunc.RunIsLobbyMenu() || RunManager.instance.levelCurrent == RunManager.instance.levelMainMenu)
                 return;
 
@@ -31,13 +29,12 @@ namespace MoreEyes
 
             allPlayers.Do(p => GetPlayerEyes(p));
         }
-
         internal static void GetPlayerEyes(PlayerAvatar player)
         {
             Transform pupilLeft = player.playerAvatarVisuals.playerEyes.pupilLeft;
             Transform pupilRight = player.playerAvatarVisuals.playerEyes.pupilRight;
 
-            if (pupilLeft.childCount == 0 || pupilRight.childCount == 0) //throw an error that pupil could not be found
+            if (pupilLeft.childCount == 0 || pupilRight.childCount == 0)
                 return;
 
             GameObject leftPupilObject = pupilLeft.GetChild(0).gameObject;
