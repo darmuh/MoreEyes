@@ -31,14 +31,14 @@ public class PatchedEyes : MonoBehaviour
 
         if(newLeft != selectedLeft)
         {
-            SingleEyeReplace(LeftPupilObject, oldLeftEye, newLeft.Iris);
+            SingleEyeReplace(LeftPupilObject, oldLeftEye, newLeft.Pupil);
             selectedLeft = newLeft;
             Plugin.logger.LogMessage($"Replaced left pupil with {newLeft.Name}");
         }  
         
         if(newRight != selectedRight)
         {
-            SingleEyeReplace(RightPupilObject, oldRightEye, newRight.Iris);
+            SingleEyeReplace(RightPupilObject, oldRightEye, newRight.Pupil);
             selectedRight = newRight;
             Plugin.logger.LogMessage($"Replaced right pupil with {newRight.Name}");
         }
