@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace MoreEyes
 {
-    //logger class
+    // Logger class
     [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
     public class Plugin : BaseUnityPlugin
     {
@@ -31,7 +31,7 @@ namespace MoreEyes
 
         internal static void Spam(string message)
         {
-            //config item to disable dev logging here
+            // Config item to disable dev logging here
             logger.LogDebug(message);
         }
     }
@@ -51,7 +51,7 @@ namespace MoreEyes
             patchedEyes.playerID = PlayerAvatar.instance.steamID;
 
 
-            //have to reset each time menu is opened unfortunately
+            // Have to reset each time menu is opened unfortunately
             patchedEyes.selectedLeft = null!;
             patchedEyes.selectedRight = null!;
 
@@ -70,10 +70,10 @@ namespace MoreEyes
 
             Plugin.AllEyeTypes.RemoveAll(t => t == null);
 
-            //keep reference to vanilla eyes type
+            // Keep reference to vanilla eyes type
             GetVanilla(__instance);
 
-            //get all custom eye types
+            // Get all custom eye types
             CustomEyeType.GetAllTypes();
         }
         
@@ -108,7 +108,7 @@ namespace MoreEyes
             PatchedEyes patchedEyes = player.gameObject.GetComponent<PatchedEyes>() ?? player.gameObject.AddComponent<PatchedEyes>();
             patchedEyes.playerID = player.steamID;
 
-            //UpdateObjectRefs playervisual eyes
+            // UpdateObjectRefs playervisual eyes
             Transform pupilLeft = player.playerAvatarVisuals.playerEyes.pupilLeft;
             Transform pupilRight = player.playerAvatarVisuals.playerEyes.pupilRight;
             patchedEyes.CommonEyeMethod(player.playerName, pupilLeft, pupilRight);

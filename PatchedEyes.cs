@@ -31,6 +31,10 @@ public class PatchedEyes : MonoBehaviour
 
         if(newLeft != selectedLeft)
         {
+            if (selectedLeft != null)
+            {
+                CustomEyeType.MarkPupilsAsUnused(selectedLeft.Name);
+            }
             SingleEyeReplace(LeftPupilObject, oldLeftEye, newLeft.Pupil);
             selectedLeft = newLeft;
             Plugin.logger.LogMessage($"Replaced left pupil with {newLeft.Name}");
@@ -38,6 +42,11 @@ public class PatchedEyes : MonoBehaviour
         
         if(newRight != selectedRight)
         {
+            // I don't particularly like nested if's but oh well this isn't too bad
+            if (selectedRight != null)
+            {
+                CustomEyeType.MarkPupilsAsUnused(selectedLeft.Name);
+            }
             SingleEyeReplace(RightPupilObject, oldRightEye, newRight.Pupil);
             selectedRight = newRight;
             Plugin.logger.LogMessage($"Replaced right pupil with {newRight.Name}");
@@ -48,6 +57,7 @@ public class PatchedEyes : MonoBehaviour
     public void SingleEyeReplace(GameObject PatchedGameObject, GameObject oldEye, GameObject newEye)
     {
         Plugin.Spam("SingleEyeReplace");
+
         // Destroy any existing eye patches
         Destroy(PatchedGameObject);
         Plugin.Spam("destroy any existing custom pupil");
