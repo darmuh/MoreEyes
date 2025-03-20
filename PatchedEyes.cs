@@ -1,109 +1,180 @@
 ﻿using MoreEyes;
-using UnityEngine;
+using System;
+using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
+using static MoreEyes.CustomEyeManager;
 
 
 public class PatchedEyes : MonoBehaviour
 {
     internal string playerID = "";
-    public GameObject LeftPupilObject { get; private set; }
-    public GameObject RightPupilObject { get; private set; }
-    internal CustomEyeType selectedRight = null!;
-    internal CustomEyeType selectedLeft = null!;
+    internal PlayerAvatar playerRef = null!;
 
-    public PatchedEyes()
+    //Objects
+    public GameObject LeftPupilObject = null!; //these have to be explicitly set in order to use them with ref
+    public GameObject RightPupilObject = null!; //these have to be explicitly set in order to use them with ref
+    public GameObject LeftIrisObject = null!;
+    public GameObject RightIrisObject = null!;
+    
+    //Refs to current selections
+    internal CustomPupilType pupilRight = null!;
+    internal CustomPupilType pupilLeft = null!;
+    internal CustomIrisType irisRight = null!;
+    internal CustomIrisType irisLeft = null!;
+
+    //Created this to try to standardize the creation of the component
+    //also to get references to existing components attached to any players
+    //added the playerref bit so that it's a little easier to find by code
+    public static PatchedEyes GetPatchedEyes(PlayerAvatar player)
     {
-        Plugin.AllPatchedEyes.Add(this);
-        Plugin.AllPatchedEyes.Distinct();
-        
-    }
+        AllPatchedEyes.RemoveAll(p => p.playerRef == null);
+        PatchedEyes TryGetFromID = AllPatchedEyes.FirstOrDefault(p => p.playerID == PlayerAvatar.instance.steamID);
 
-    public void UpdateObjectRefs(GameObject leftPupilObject, GameObject rightPupilObject)
-    {
-        LeftPupilObject = leftPupilObject;
-        RightPupilObject = rightPupilObject;
-        Plugin.Spam($"PatchedEyes created for {leftPupilObject.name} and {rightPupilObject.name}");
-    }
-
-    public void ReplaceEyePatches(GameObject oldLeftEye, GameObject oldRightEye, CustomEyeType newLeft, CustomEyeType newRight)
-    {
-        Plugin.Spam("ReplaceEyePatches");
-
-        if(newLeft != selectedLeft)
+        if (TryGetFromID == null)
         {
-            if (selectedLeft != null)
+            PatchedEyes tryGetComponent = player.gameObject.GetComponent<PatchedEyes>();
+
+            if (tryGetComponent != null)
+                return tryGetComponent;
+            else
             {
-                CustomEyeType.MarkPupilsAsUnused(selectedLeft.Name);
-            }
-            SingleEyeReplace(LeftPupilObject, oldLeftEye, newLeft.Pupil);
-            selectedLeft = newLeft;
-            Plugin.logger.LogMessage($"Replaced left pupil with {newLeft.Name}");
-        }  
-        
-        if(newRight != selectedRight)
-        {
-            // I don't particularly like nested if's but oh well this isn't too bad
-            if (selectedRight != null)
-            {
-                CustomEyeType.MarkPupilsAsUnused(selectedLeft.Name);
-            }
-            SingleEyeReplace(RightPupilObject, oldRightEye, newRight.Pupil);
-            selectedRight = newRight;
-            Plugin.logger.LogMessage($"Replaced right pupil with {newRight.Name}");
+                tryGetComponent = player.gameObject.AddComponent<PatchedEyes>();
+                tryGetComponent.playerID = player.steamID;
+                tryGetComponent.playerRef = player;
+                AllPatchedEyes.Add(tryGetComponent);
+                return tryGetComponent;
+            } 
         }
-            
+        else
+            return TryGetFromID;
     }
 
-    public void SingleEyeReplace(GameObject PatchedGameObject, GameObject oldEye, GameObject newEye)
+    public void OnePupilReplace(ref GameObject PupilGameObject, GameObject oldEye, CustomPupilType newPupil)
     {
-        Plugin.Spam("SingleEyeReplace");
+        // Destroy any existing pupil
+        Destroy(PupilGameObject);
+        Plugin.Spam("destroyed any existing custom pupil");
 
-        // Destroy any existing eye patches
-        Destroy(PatchedGameObject);
-        Plugin.Spam("destroy any existing custom pupil");
-
-        // Instantiate the new eye patches
-        PatchedGameObject = Instantiate(newEye, oldEye.transform.parent);
+        // Instantiate the new pupil
+        PupilGameObject = Instantiate(newPupil.Pupil, oldEye.transform.parent);
+        PupilGameObject.SetActive(true);
         Plugin.Spam("Instantiated new pupil");
 
-        Transform pupilTransform = PatchedGameObject.GetComponent<Transform>();
+        Transform pupilTransform = PupilGameObject.GetComponent<Transform>();
         pupilTransform.SetPositionAndRotation(oldEye.transform.position, oldEye.transform.rotation);
 
-        // Destroy old eyes
-        Destroy(oldEye);
-        Plugin.Spam("destroying the old eye object");
+        MarkedForDeletion.Add(oldEye);
+        Plugin.Spam($"{oldEye.name} marked for deletion");
+    }
+
+    public void OneIrisAdd(ref GameObject IrisGameObject, Transform pupil, CustomIrisType newIris)
+    {
+        if (newIris.Iris == null)
+        {
+            Plugin.Spam("NO IRIS GAME OBJECT");
+            return;
+        }
+            
+        // Destroy any existing iris
+        // Destroy has a null check to prevent NREs where iris doesn't exist
+        Destroy(IrisGameObject);
+        Plugin.Spam("destroyed any existing custom iris");
+
+        IrisGameObject = Instantiate(newIris.Iris, pupil);
+        IrisGameObject.SetActive(true);
+        Plugin.Spam("Instantiated new iris");
+
+        Transform irisTransform = IrisGameObject.GetComponent<Transform>();
+        irisTransform.SetPositionAndRotation(pupil.position, pupil.rotation);
     }
 
     private void Destroy(GameObject gameObject)
     {
         if(gameObject != null)
-            Object.Destroy(gameObject);
+            UnityEngine.Object.Destroy(gameObject);
     }
 
-    private void Hide(GameObject gameObject)
+    internal void SelectPupil(ref CustomPupilType current, CustomPupilType newSelection, ref GameObject PupilObject, Transform original)
     {
-        if (gameObject != null)
-            gameObject.SetActive(false);
-    }
-
-    internal void CommonEyeMethod(string Name, Transform pupilLeft, Transform pupilRight)
-    {
-        if (pupilLeft.childCount == 0 || pupilRight.childCount == 0)
+        if (!TryGetPupil(original, out GameObject originalPupilObject))
             return;
 
-        Plugin.Spam($"{Name} pupils have been detected!");
+        current?.MarkPupilUnused();
+        if(newSelection.Pupil == null)
+        {
+            Plugin.logger.LogWarning("Invalid Selection! Pupil reference object is null");
+            PupilObject = originalPupilObject;
+            return;
+        }
 
-        GameObject leftPupilObject = pupilLeft.GetChild(0).gameObject;
-        GameObject rightPupilObject = pupilRight.GetChild(0).gameObject;
+        OnePupilReplace(ref PupilObject, originalPupilObject, newSelection);
+        current = newSelection;
+        Plugin.logger.LogMessage($"Selected pupil {newSelection.Name}");
+    }
 
-        Plugin.Spam($"{Name} pupils have been updated!");
+    internal void SelectIris(ref CustomIrisType current, CustomIrisType newSelection, ref GameObject IrisObject, GameObject PupilObject)
+    {
+        current?.MarkIrisUnused();
+        if (newSelection.Iris == null)
+        {
+            Plugin.Spam($"No iris selected! {newSelection.Name}");
+            return;
+        }
 
-        //since we don't have a method for selecting a particular iris, setting one manually
-        CustomEyeType selected = Plugin.AllEyeTypes.FirstOrDefault(t => !t.isVanilla);
-        CustomEyeType vanilla = Plugin.AllEyeTypes.Find(t => t.Name == "vanillaRight");
+        if (PupilObject == null)
+        {
+            Plugin.logger.LogError($"PupilObject is null! Cannot set Iris for {newSelection.Name}");
+            return;
+        }
 
-        //We will need to track each player's individual selections in this class
+        OneIrisAdd(ref IrisObject, PupilObject.transform, newSelection);
+        current = newSelection;
+        Plugin.logger.LogMessage($"Added iris with {newSelection.Name}");
+    }
 
-        ReplaceEyePatches(leftPupilObject, rightPupilObject, selected, vanilla);
+    internal static bool TryGetPupil(Transform pupil, out GameObject pupilObject)
+    {
+        pupilObject = null!;
+        if (pupil.childCount == 0)
+            return false;
+
+        pupilObject = pupil.GetChild(0).gameObject;
+        return true;
+    }
+
+    // broke this out into a couple of different methods
+    // there might be a cleaner way of handling this once we have menus and stuff
+    internal void CommonEyeMethod(string Name, Transform leftTransform, Transform rightTransform)
+    {
+        Plugin.Spam($"1 - {Name} pupils have been detected!");
+
+        //There's prob a better way of doing this
+        List<CustomPupilType> NoRightPupils = AllPupilTypes.FindAll(p => !p.Name.EndsWith("_right"));
+        List<CustomPupilType> NoLeftPupils = AllPupilTypes.FindAll(p => !p.Name.EndsWith("_left"));
+
+        List<CustomIrisType> NoRightIris = AllIrisTypes.FindAll(i => !i.Name.EndsWith("_right"));
+        List<CustomIrisType> NoLeftIris = AllIrisTypes.FindAll(i => !i.Name.EndsWith("_left"));
+
+
+        //since we don't have a method for selecting a particular iris/pupil, setting them manually/randomly
+        CustomPupilType randomL = NoRightPupils[Plugin.Rand.Next(0, NoRightPupils.Count)];
+        CustomPupilType randomR = NoLeftPupils[Plugin.Rand.Next(0, NoLeftPupils.Count)];
+        CustomIrisType irisL = NoRightIris[Plugin.Rand.Next(0, NoRightIris.Count)];
+        CustomIrisType irisR = NoLeftIris[Plugin.Rand.Next(0, NoLeftIris.Count)];
+
+        // We will need to track each player's individual selections in CustomEyeManager probably
+        // This can be done using the playerID (steamID) property
+
+        SelectPupil(ref pupilLeft, randomL, ref LeftPupilObject, leftTransform);
+        SelectPupil(ref pupilRight, randomR, ref RightPupilObject, rightTransform);
+        Plugin.Spam($"2 - {Name} pupils have been updated!");
+
+        SelectIris(ref irisLeft, irisL, ref LeftIrisObject, LeftPupilObject);
+        SelectIris(ref irisRight, irisR, ref RightIrisObject, RightPupilObject);
+        Plugin.Spam($"3 - {Name} iris have been updated!");
+
+        //Delete oldeyes gameobjects
+        CustomEyeManager.EmptyTrash();
     }
 }

@@ -1,11 +1,12 @@
 ﻿using UnityEngine;
 using BepInEx;
 using HarmonyLib;
-using System.Collections.Generic;
 using System.IO;
 using BepInEx.Logging;
 using System.Reflection;
 using System.Linq;
+using Photon.Realtime;
+using System.Collections.Generic;
 
 namespace MoreEyes
 {
@@ -14,16 +15,14 @@ namespace MoreEyes
     public class Plugin : BaseUnityPlugin
     {
         internal static ManualLogSource logger;
-        internal static AssetBundle Assets;
-        internal static List<PatchedEyes> AllPatchedEyes = [];
-        internal static List<CustomEyeType> AllEyeTypes = [];
+        internal static System.Random Rand = new();
 
         public void Awake()
         {
             logger = base.Logger;
             string pluginFolderPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             string assetBundleFilePath = Path.Combine(pluginFolderPath, "eyes");
-            Assets = AssetBundle.LoadFromFile(assetBundleFilePath);
+            AssetManager.DefaultAssets = AssetManager.InitBundle(assetBundleFilePath);
             
             Spam("Plugin initialized!");
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
@@ -47,14 +46,9 @@ namespace MoreEyes
             Plugin.Spam("Getting menu player eyes, local player can't see their own pupils");
             Transform pupilLeft = __instance.playerEyes.pupilLeft;
             Transform pupilRight = __instance.playerEyes.pupilRight;
-            PatchedEyes patchedEyes = PlayerAvatar.instance.gameObject.GetComponent<PatchedEyes>() ?? PlayerAvatar.instance.gameObject.AddComponent<PatchedEyes>();
-            patchedEyes.playerID = PlayerAvatar.instance.steamID;
 
-
-            // Have to reset each time menu is opened unfortunately
-            patchedEyes.selectedLeft = null!;
-            patchedEyes.selectedRight = null!;
-
+            CustomEyeManager.AllPatchedEyes.RemoveAll(p => p.playerRef == null);
+            PatchedEyes patchedEyes = PatchedEyes.GetPatchedEyes(PlayerAvatar.instance);
             patchedEyes.CommonEyeMethod(PlayerAvatar.instance.playerName, pupilLeft, pupilRight);
         }
     }
@@ -63,50 +57,51 @@ namespace MoreEyes
     [HarmonyPatch(typeof(PlayerAvatar), "Spawn")]
     public class PlayerSpawnPatch
     {
-        public static void Postfix(PlayerAvatar __instance)
+        public static void Postfix()
         {
-            if (SemiFunc.RunIsLobbyMenu() || RunManager.instance.levelCurrent == RunManager.instance.levelMainMenu)
+            //allowing for lobby menu since you can change color in lobby menu
+            if (RunManager.instance.levelCurrent == RunManager.instance.levelMainMenu)
                 return;
 
-            Plugin.AllEyeTypes.RemoveAll(t => t == null);
-
-            // Keep reference to vanilla eyes type
-            GetVanilla(__instance);
+            CustomEyeManager.AllIrisTypes.RemoveAll(t => t == null);
+            CustomEyeManager.AllPupilTypes.RemoveAll(t => t == null);
 
             // Get all custom eye types
-            CustomEyeType.GetAllTypes();
-        }
-        
-        private static void GetVanilla(PlayerAvatar player)
-        {
-            if (!Plugin.AllEyeTypes.Any(t => t.isVanilla))
+            // need to clear lists to not create duplicates
+            // CustomEyeManager.ClearLists();
+            // OR
+            // We set an initialization bool and only load types once!
+            if (!CustomEyeManager.isInitialized)
             {
-                CustomEyeType vanillaLeft = new()
+                AssetManager.LoadedAssets.Do(asset =>
                 {
-                    isVanilla = true
-                };
-                vanillaLeft.AddVanillaEyes("vanillaLeft", player.playerAvatarVisuals.playerEyes.pupilLeft.GetChild(0).gameObject);
-
-                CustomEyeType vanillaRight = new()
-                {
-                    isVanilla = true
-                };
-                vanillaRight.AddVanillaEyes("vanillaRight", player.playerAvatarVisuals.playerEyes.pupilRight.GetChild(0).gameObject);
+                    //This will go through any assets that have been registered with our mod
+                    CustomEyeManager.GetAllTypes(asset);
+                });
+                
+                Plugin.Spam("CustomEyeManager Initialized!");
             }
+
+            // Placed this here now that we are only initializing types once
+            Plugin.Spam("Player spawned, updating pupils for all players!");
+            List<PlayerAvatar> allPlayers = SemiFunc.PlayerGetAll();
+            Plugin.Spam($"{allPlayers.Count} players detected");
+
+            allPlayers.Do(p => GetPlayerEyes(p));
+
         }
 
         internal static void GetPlayerEyes(PlayerAvatar player)
         {
             Plugin.Spam($"GetPlayerEyes for {player.playerName}");
 
+            PatchedEyes patchedEyes = PatchedEyes.GetPatchedEyes(PlayerAvatar.instance);
+
             if (player.isLocal)
             {
                 Plugin.Spam("No need to change local player's eyes for player object. They can't see them.");
                 return;
             }
-
-            PatchedEyes patchedEyes = player.gameObject.GetComponent<PatchedEyes>() ?? player.gameObject.AddComponent<PatchedEyes>();
-            patchedEyes.playerID = player.steamID;
 
             // UpdateObjectRefs playervisual eyes
             Transform pupilLeft = player.playerAvatarVisuals.playerEyes.pupilLeft;
