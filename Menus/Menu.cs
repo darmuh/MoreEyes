@@ -1,8 +1,6 @@
 ﻿using UnityEngine;
-using BepInEx;
 using MenuLib;
 using MenuLib.MonoBehaviors;
-using Unity.VisualScripting;
 using System.Collections.Generic;
 
 namespace MoreEyes.Menus;
