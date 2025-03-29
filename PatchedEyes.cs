@@ -1,11 +1,11 @@
 ﻿using MoreEyes;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using static MoreEyes.CustomEyeManager;
 
 
+//this gets created/destroyed with whatever game object it's attached to
 public class PatchedEyes : MonoBehaviour
 {
     internal string playerID = "";
@@ -16,12 +16,8 @@ public class PatchedEyes : MonoBehaviour
     public GameObject RightPupilObject = null!; //these have to be explicitly set in order to use them with ref
     public GameObject LeftIrisObject = null!;
     public GameObject RightIrisObject = null!;
-    
-    //Refs to current selections
-    internal CustomPupilType pupilRight = null!;
-    internal CustomPupilType pupilLeft = null!;
-    internal CustomIrisType irisRight = null!;
-    internal CustomIrisType irisLeft = null!;
+
+    internal PlayerEyeSelection playerSelections = null!;
 
     //Created this to try to standardize the creation of the component
     //also to get references to existing components attached to any players
@@ -34,7 +30,6 @@ public class PatchedEyes : MonoBehaviour
         if (TryGetFromID == null)
         {
             PatchedEyes tryGetComponent = player.gameObject.GetComponent<PatchedEyes>();
-
             if (tryGetComponent != null)
                 return tryGetComponent;
             else
@@ -50,6 +45,7 @@ public class PatchedEyes : MonoBehaviour
             return TryGetFromID;
     }
 
+    //method to replace either pupil with a new game object (instantiated from prefab)
     public void OnePupilReplace(ref GameObject PupilGameObject, GameObject oldEye, CustomPupilType newPupil)
     {
         // Destroy any existing pupil
@@ -57,36 +53,41 @@ public class PatchedEyes : MonoBehaviour
         Plugin.Spam("destroyed any existing custom pupil");
 
         // Instantiate the new pupil
-        PupilGameObject = Instantiate(newPupil.Pupil, oldEye.transform.parent);
+        PupilGameObject = Instantiate(newPupil.Prefab, oldEye.transform.parent);
         PupilGameObject.SetActive(true);
-        Plugin.Spam("Instantiated new pupil");
+        Plugin.Spam("Instantiated new pupil from prefab");
 
         Transform pupilTransform = PupilGameObject.GetComponent<Transform>();
         pupilTransform.SetPositionAndRotation(oldEye.transform.position, oldEye.transform.rotation);
 
+        newPupil.inUse = true;
         MarkedForDeletion.Add(oldEye);
         Plugin.Spam($"{oldEye.name} marked for deletion");
     }
 
+    //method to update either iris with a new game object (instantiated from prefab)
+    //null game object will simply result in the old iris being removed
     public void OneIrisAdd(ref GameObject IrisGameObject, Transform pupil, CustomIrisType newIris)
-    {
-        if (newIris.Iris == null)
-        {
-            Plugin.Spam("NO IRIS GAME OBJECT");
-            return;
-        }
-            
+    {       
         // Destroy any existing iris
         // Destroy has a null check to prevent NREs where iris doesn't exist
         Destroy(IrisGameObject);
         Plugin.Spam("destroyed any existing custom iris");
 
-        IrisGameObject = Instantiate(newIris.Iris, pupil);
+        if (newIris.Prefab == null)
+        {
+            Plugin.Spam($"No iris game object for {newIris.Name}");
+            return;
+        }
+
+        IrisGameObject = Instantiate(newIris.Prefab, pupil);
         IrisGameObject.SetActive(true);
         Plugin.Spam("Instantiated new iris");
 
         Transform irisTransform = IrisGameObject.GetComponent<Transform>();
         irisTransform.SetPositionAndRotation(pupil.position, pupil.rotation);
+
+        newIris.inUse = true;
     }
 
     private void Destroy(GameObject gameObject)
@@ -95,15 +96,16 @@ public class PatchedEyes : MonoBehaviour
             UnityEngine.Object.Destroy(gameObject);
     }
 
+    //used to change existing pupil to new selection
     internal void SelectPupil(ref CustomPupilType current, CustomPupilType newSelection, ref GameObject PupilObject, Transform original)
     {
         if (!TryGetPupil(original, out GameObject originalPupilObject))
             return;
 
         current?.MarkPupilUnused();
-        if(newSelection.Pupil == null)
+        if(newSelection.Prefab == null)
         {
-            Plugin.logger.LogWarning("Invalid Selection! Pupil reference object is null");
+            Plugin.logger.LogWarning($"Invalid Selection! Pupil reference object for {newSelection.Name} is null");
             PupilObject = originalPupilObject;
             return;
         }
@@ -113,14 +115,10 @@ public class PatchedEyes : MonoBehaviour
         Plugin.logger.LogMessage($"Selected pupil {newSelection.Name}");
     }
 
+    //used to change existing iris to new selection
     internal void SelectIris(ref CustomIrisType current, CustomIrisType newSelection, ref GameObject IrisObject, GameObject PupilObject)
     {
         current?.MarkIrisUnused();
-        if (newSelection.Iris == null)
-        {
-            Plugin.Spam($"No iris selected! {newSelection.Name}");
-            return;
-        }
 
         if (PupilObject == null)
         {
@@ -133,11 +131,16 @@ public class PatchedEyes : MonoBehaviour
         Plugin.logger.LogMessage($"Added iris with {newSelection.Name}");
     }
 
+    //tries to get the pupil game object from a given transform
     internal static bool TryGetPupil(Transform pupil, out GameObject pupilObject)
     {
         pupilObject = null!;
         if (pupil.childCount == 0)
+        {
+            Plugin.logger.LogWarning("Unable to get Pupil from transform!");
             return false;
+        }
+            
 
         pupilObject = pupil.GetChild(0).gameObject;
         return true;
@@ -145,7 +148,8 @@ public class PatchedEyes : MonoBehaviour
 
     // broke this out into a couple of different methods
     // there might be a cleaner way of handling this once we have menus and stuff
-    internal void CommonEyeMethod(string Name, Transform leftTransform, Transform rightTransform)
+    // using this now as a randomize eyes function
+    internal void RandomizeEyes(string Name, Transform leftTransform, Transform rightTransform)
     {
         Plugin.Spam($"1 - {Name} pupils have been detected!");
 
@@ -166,15 +170,16 @@ public class PatchedEyes : MonoBehaviour
         // We will need to track each player's individual selections in CustomEyeManager probably
         // This can be done using the playerID (steamID) property
 
-        SelectPupil(ref pupilLeft, randomL, ref LeftPupilObject, leftTransform);
-        SelectPupil(ref pupilRight, randomR, ref RightPupilObject, rightTransform);
+        SelectPupil(ref playerSelections.pupilLeft, randomL, ref LeftPupilObject, leftTransform);
+        SelectPupil(ref playerSelections.pupilRight, randomR, ref RightPupilObject, rightTransform);
         Plugin.Spam($"2 - {Name} pupils have been updated!");
 
-        SelectIris(ref irisLeft, irisL, ref LeftIrisObject, LeftPupilObject);
-        SelectIris(ref irisRight, irisR, ref RightIrisObject, RightPupilObject);
+        SelectIris(ref playerSelections.irisLeft, irisL, ref LeftIrisObject, LeftPupilObject);
+        SelectIris(ref playerSelections.irisRight, irisR, ref RightIrisObject, RightPupilObject);
         Plugin.Spam($"3 - {Name} iris have been updated!");
 
         //Delete oldeyes gameobjects
-        CustomEyeManager.EmptyTrash();
+        //delayed to avoid issues with other eye selections
+        EmptyTrash();
     }
 }
