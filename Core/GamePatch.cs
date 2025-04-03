@@ -1,9 +1,8 @@
 ﻿using HarmonyLib;
+using MoreEyes.EyeManagement;
 using System.Collections.Generic;
-using System.Linq;
-using UnityEngine;
 
-namespace MoreEyes.Patching
+namespace MoreEyes.Core
 {
     [HarmonyPatch(typeof(PlayerAvatarVisuals), "Start")]
     public class LocalPlayerMenuPatch
@@ -59,9 +58,7 @@ namespace MoreEyes.Patching
             }
 
             // UpdateObjectRefs playervisual eyes
-            Transform pupilLeft = player.playerAvatarVisuals.playerEyes.pupilLeft;
-            Transform pupilRight = player.playerAvatarVisuals.playerEyes.pupilRight;
-            patchedEyes.RandomizeEyes(player.playerName, pupilLeft, pupilRight);
+            patchedEyes.RandomizeEyes(player);
         }
     }
 

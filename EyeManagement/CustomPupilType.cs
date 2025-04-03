@@ -1,9 +1,10 @@
-﻿using System;
+﻿using MoreEyes.Core;
+using System;
 using System.Linq;
 using UnityEngine;
-using static MoreEyes.CustomEyeManager;
+using static MoreEyes.EyeManagement.CustomEyeManager;
 
-namespace MoreEyes;
+namespace MoreEyes.EyeManagement;
 
 public class CustomPupilType
 {
@@ -49,7 +50,7 @@ public class CustomPupilType
         if (Prefab == null)
             Plugin.logger.LogWarning($"PUPIL IS NULL FOR ASSETNAME - [ {Name} ]");
         Prefab.SetActive(false);
-        GameObject.DontDestroyOnLoad(Prefab);
+        UnityEngine.Object.DontDestroyOnLoad(Prefab);
 
         AllPupilTypes.Add(this);
         AllPupilTypes.Distinct();
@@ -77,8 +78,8 @@ public class CustomPupilType
 
     internal void AddVanillaEye(GameObject eyeObject)
     {
-        Prefab = GameObject.Instantiate(eyeObject);
-        GameObject.DontDestroyOnLoad(Prefab);
+        Prefab = UnityEngine.Object.Instantiate(eyeObject);
+        UnityEngine.Object.DontDestroyOnLoad(Prefab);
         Prefab.transform.SetParent(null);
         Prefab.SetActive(false);
         isVanilla = true;

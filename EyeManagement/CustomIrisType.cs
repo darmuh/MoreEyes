@@ -1,9 +1,10 @@
-﻿using System;
+﻿using MoreEyes.Core;
+using System;
 using System.Linq;
 using UnityEngine;
-using static MoreEyes.CustomEyeManager;
+using static MoreEyes.EyeManagement.CustomEyeManager;
 
-namespace MoreEyes;
+namespace MoreEyes.EyeManagement;
 
 public class CustomIrisType
 {
@@ -41,7 +42,7 @@ public class CustomIrisType
         if (Prefab == null)
             Plugin.logger.LogWarning($"IRIS IS NULL FOR ASSETNAME - [ {Name} ]");
         Prefab.SetActive(false);
-        GameObject.DontDestroyOnLoad(Prefab);
+        UnityEngine.Object.DontDestroyOnLoad(Prefab);
 
         AllIrisTypes.Add(this);
         AllIrisTypes.Distinct();

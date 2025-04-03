@@ -1,9 +1,10 @@
 ﻿using BepInEx;
 using HarmonyLib;
+using MoreEyes.Core;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace MoreEyes;
+namespace MoreEyes.EyeManagement;
 
 public class CustomEyeManager
 {
@@ -54,13 +55,14 @@ public class CustomEyeManager
         // neither may be needed since we init at plugin awake
         if (!isInitialized)
         {
-            AssetManager.LoadedAssets.Do(asset =>
+            Core.AssetManager.LoadedAssets.Do(asset =>
             {
                 //This will go through any assets that have been registered with our mod
                 GetAllTypes(asset);
             });
 
             Plugin.Spam("CustomEyeManager Initialized!");
+            FileManager.ReadTextFile();
         }
     }
 
@@ -121,7 +123,7 @@ public class CustomEyeManager
 
     public static void EmptyTrash()
     {
-        MarkedForDeletion.DoIf(d => d != null, d => GameObject.Destroy(d));
+        MarkedForDeletion.DoIf(d => d != null, d => Object.Destroy(d));
         MarkedForDeletion.Clear();
         Plugin.Spam("Deleted Trash");
     }

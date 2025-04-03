@@ -4,6 +4,9 @@ using MenuLib.MonoBehaviors;
 using System.Collections.Generic;
 using HarmonyLib;
 using System.Linq;
+using MoreEyes.Core;
+using MoreEyes.EyeManagement;
+using System.Collections;
 
 namespace MoreEyes.Menus;
 
@@ -16,9 +19,6 @@ internal sealed class Menu
     internal static REPOLabel pupilRight;
     internal static REPOLabel irisLeft;
     internal static REPOLabel irisRight;
-
-    internal static Transform eyeLeft;
-    internal static Transform eyeRight;
 
 
     internal static void Initialize()
@@ -34,8 +34,8 @@ internal sealed class Menu
     {
         Plugin.Spam("Randomize Eye Selections!");
         PatchedEyes patchedEyes = PatchedEyes.GetPatchedEyes(PlayerAvatar.instance);
-        GetPlayerMenuEyes(AvatarPreview.playerAvatarVisuals);
-        patchedEyes.RandomizeEyes(PlayerAvatar.instance.playerName, eyeLeft, eyeRight);
+        patchedEyes.GetPlayerMenuEyes(AvatarPreview.playerAvatarVisuals);
+        patchedEyes.RandomizeEyes(PlayerAvatar.instance);
         UpdateLabels();
     }
 
@@ -51,6 +51,8 @@ internal sealed class Menu
     {
         if (MoreEyesMenu.menuPage != null)
             return;
+
+        PatchedEyes.GetPatchedEyes(PlayerAvatar.instance);
 
         //must be created when opened
         MoreEyesMenu = MenuAPI.CreateREPOPopupPage("MoreEyes", REPOPopupPage.PresetSide.Right, false, true);
@@ -81,7 +83,19 @@ internal sealed class Menu
         //iris right next, placed to the right of the text
         MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton(">", RightIrisNext, irisRight.transform, GetRightOfElement(irisRight.rectTransform) + new Vector2(0f, -3f)));
 
+        MoreEyesMenu.StartCoroutine(WaitForPlayerMenu());
+    }
+
+    //this may not need to be a coroutine
+    //originally made this an enum because I believed I needed to wait to update the visual
+    private static IEnumerator WaitForPlayerMenu()
+    {
+        PatchedEyes local = PatchedEyes.GetPatchedEyes(PlayerAvatar.instance);
+        local.GetPlayerMenuEyes(AvatarPreview.playerAvatarVisuals);
+        yield return null;
+        PatchedEyes.SetLocalEyes();
         MoreEyesMenu.OpenPage(false);
+        Plugin.Spam("Replaced menu eyes!");
     }
 
     private static void SetTextStyling(List<REPOLabel> labels)
@@ -105,6 +119,11 @@ internal sealed class Menu
 
     private static void LeftIrisNext()
     {
+        //get local eyes
+        CustomEyeManager.AllPatchedEyes.RemoveAll(p => p.playerRef == null);
+        PatchedEyes patchedEyes = PatchedEyes.GetPatchedEyes(PlayerAvatar.instance);
+        patchedEyes.GetPlayerMenuEyes(AvatarPreview.playerAvatarVisuals);
+
         //only get iris that are allowed for left eye
         List<CustomIrisType> noRights = CustomEyeManager.AllIrisTypes.FindAll(i => i.AllowedPos != CustomEyeManager.Sides.Right);
 
@@ -120,11 +139,7 @@ internal sealed class Menu
         //set new selection var
         CustomIrisType newSelection = noRights[selected];
 
-        //get local eyes
-        CustomEyeManager.AllPatchedEyes.RemoveAll(p => p.playerRef == null);
-        PatchedEyes patchedEyes = PatchedEyes.GetPatchedEyes(PlayerAvatar.instance);
-
-        patchedEyes.SelectIris(ref PlayerEyeSelection.localSelections.irisLeft, newSelection, ref patchedEyes.LeftIrisObject, patchedEyes.LeftPupilObject);
+        patchedEyes.SelectIris(newSelection, true);
 
         UpdateLabels();
 
@@ -132,6 +147,11 @@ internal sealed class Menu
     }
     private static void RightIrisNext()
     {
+        //get local eyes
+        CustomEyeManager.AllPatchedEyes.RemoveAll(p => p.playerRef == null);
+        PatchedEyes patchedEyes = PatchedEyes.GetPatchedEyes(PlayerAvatar.instance);
+        patchedEyes.GetPlayerMenuEyes(AvatarPreview.playerAvatarVisuals);
+
         //only get iris that are allowed for right eye
         List<CustomIrisType> noLefts = CustomEyeManager.AllIrisTypes.FindAll(i => i.AllowedPos != CustomEyeManager.Sides.Left);
 
@@ -147,11 +167,7 @@ internal sealed class Menu
         //set new selection var
         CustomIrisType newSelection = noLefts[selected];
 
-        //get local eyes
-        CustomEyeManager.AllPatchedEyes.RemoveAll(p => p.playerRef == null);
-        PatchedEyes patchedEyes = PatchedEyes.GetPatchedEyes(PlayerAvatar.instance);
-
-        patchedEyes.SelectIris(ref PlayerEyeSelection.localSelections.irisRight, newSelection, ref patchedEyes.RightIrisObject, patchedEyes.RightPupilObject);
+        patchedEyes.SelectIris(newSelection, false);
 
         UpdateLabels();
 
@@ -160,6 +176,11 @@ internal sealed class Menu
 
     private static void LeftIrisPrev()
     {
+        //get local eyes
+        CustomEyeManager.AllPatchedEyes.RemoveAll(p => p.playerRef == null);
+        PatchedEyes patchedEyes = PatchedEyes.GetPatchedEyes(PlayerAvatar.instance);
+        patchedEyes.GetPlayerMenuEyes(AvatarPreview.playerAvatarVisuals);
+
         //only get iris that are allowed for left eye
         List<CustomIrisType> noRights = CustomEyeManager.AllIrisTypes.FindAll(i => i.AllowedPos != CustomEyeManager.Sides.Right);
 
@@ -175,11 +196,7 @@ internal sealed class Menu
         //set new selection var
         CustomIrisType newSelection = noRights[selected];
 
-        //get local eyes
-        CustomEyeManager.AllPatchedEyes.RemoveAll(p => p.playerRef == null);
-        PatchedEyes patchedEyes = PatchedEyes.GetPatchedEyes(PlayerAvatar.instance);
-
-        patchedEyes.SelectIris(ref PlayerEyeSelection.localSelections.irisLeft, newSelection, ref patchedEyes.LeftIrisObject, patchedEyes.LeftPupilObject);
+        patchedEyes.SelectIris(newSelection, true);
 
         UpdateLabels();
 
@@ -187,6 +204,11 @@ internal sealed class Menu
     }
     private static void RightIrisPrev()
     {
+        //get local eyes
+        CustomEyeManager.AllPatchedEyes.RemoveAll(p => p.playerRef == null);
+        PatchedEyes patchedEyes = PatchedEyes.GetPatchedEyes(PlayerAvatar.instance);
+        patchedEyes.GetPlayerMenuEyes(AvatarPreview.playerAvatarVisuals);
+
         //only get iris that are allowed for right eye
         List<CustomIrisType> noLefts = CustomEyeManager.AllIrisTypes.FindAll(i => i.AllowedPos != CustomEyeManager.Sides.Left);
 
@@ -202,12 +224,7 @@ internal sealed class Menu
         //set new selection var
         CustomIrisType newSelection = noLefts[selected];
 
-        //get local eyes
-        CustomEyeManager.AllPatchedEyes.RemoveAll(p => p.playerRef == null);
-        PatchedEyes patchedEyes = PatchedEyes.GetPatchedEyes(PlayerAvatar.instance);
-
-        patchedEyes.SelectIris(ref PlayerEyeSelection.localSelections.irisRight, newSelection, ref patchedEyes.RightIrisObject, patchedEyes.RightPupilObject);
-        patchedEyes.SelectIris(ref PlayerEyeSelection.localSelections.irisRight, PlayerEyeSelection.localSelections.irisRight, ref patchedEyes.RightIrisObject, patchedEyes.RightPupilObject);
+        patchedEyes.SelectIris(newSelection, false);
 
         UpdateLabels();
 
@@ -216,7 +233,10 @@ internal sealed class Menu
 
     private static void LeftPupilNext()
     {
-        GetPlayerMenuEyes(AvatarPreview.playerAvatarVisuals);
+        //get local eyes
+        CustomEyeManager.AllPatchedEyes.RemoveAll(p => p.playerRef == null);
+        PatchedEyes patchedEyes = PatchedEyes.GetPatchedEyes(PlayerAvatar.instance);
+        patchedEyes.GetPlayerMenuEyes(AvatarPreview.playerAvatarVisuals);
 
         //only get iris that are allowed for left eye
         List<CustomPupilType> noRights = CustomEyeManager.AllPupilTypes.FindAll(i => i.AllowedPos != CustomEyeManager.Sides.Right);
@@ -233,12 +253,8 @@ internal sealed class Menu
         //set new selection var
         CustomPupilType newSelection = noRights[selected];
 
-        //get local eyes
-        CustomEyeManager.AllPatchedEyes.RemoveAll(p => p.playerRef == null);
-        PatchedEyes patchedEyes = PatchedEyes.GetPatchedEyes(PlayerAvatar.instance);
-
-        patchedEyes.SelectPupil(ref PlayerEyeSelection.localSelections.pupilLeft, newSelection, ref patchedEyes.LeftPupilObject, eyeLeft);
-        patchedEyes.SelectIris(ref PlayerEyeSelection.localSelections.irisLeft, PlayerEyeSelection.localSelections.irisLeft, ref patchedEyes.LeftIrisObject, patchedEyes.LeftPupilObject);
+        patchedEyes.SelectPupil(newSelection, true);
+        patchedEyes.SelectIris(PlayerEyeSelection.localSelections.irisLeft, true);
 
         UpdateLabels();
 
@@ -246,7 +262,10 @@ internal sealed class Menu
     }
     private static void RightPupilNext()
     {
-        GetPlayerMenuEyes(AvatarPreview.playerAvatarVisuals);
+        //get local eyes
+        CustomEyeManager.AllPatchedEyes.RemoveAll(p => p.playerRef == null);
+        PatchedEyes patchedEyes = PatchedEyes.GetPatchedEyes(PlayerAvatar.instance);
+        patchedEyes.GetPlayerMenuEyes(AvatarPreview.playerAvatarVisuals);
 
         //only get iris that are allowed for left eye
         List<CustomPupilType> noLefts = CustomEyeManager.AllPupilTypes.FindAll(i => i.AllowedPos != CustomEyeManager.Sides.Left);
@@ -264,12 +283,8 @@ internal sealed class Menu
         //set new selection var
         CustomPupilType newSelection = noLefts[selected];
 
-        //get local eyes
-        CustomEyeManager.AllPatchedEyes.RemoveAll(p => p.playerRef == null);
-        PatchedEyes patchedEyes = PatchedEyes.GetPatchedEyes(PlayerAvatar.instance);
-
-        patchedEyes.SelectPupil(ref PlayerEyeSelection.localSelections.pupilRight, newSelection, ref patchedEyes.RightPupilObject, eyeRight);
-        patchedEyes.SelectIris(ref PlayerEyeSelection.localSelections.irisRight, PlayerEyeSelection.localSelections.irisRight, ref patchedEyes.RightIrisObject, patchedEyes.RightPupilObject);
+        patchedEyes.SelectPupil(newSelection, false);
+        patchedEyes.SelectIris(PlayerEyeSelection.localSelections.irisRight, true);
 
         UpdateLabels();
 
@@ -278,7 +293,10 @@ internal sealed class Menu
 
     private static void LeftPupilPrev()
     {
-        GetPlayerMenuEyes(AvatarPreview.playerAvatarVisuals);
+        //get local eyes
+        CustomEyeManager.AllPatchedEyes.RemoveAll(p => p.playerRef == null);
+        PatchedEyes patchedEyes = PatchedEyes.GetPatchedEyes(PlayerAvatar.instance);
+        patchedEyes.GetPlayerMenuEyes(AvatarPreview.playerAvatarVisuals);
 
         //only get iris that are allowed for left eye
         List<CustomPupilType> noRights = CustomEyeManager.AllPupilTypes.FindAll(i => i.AllowedPos != CustomEyeManager.Sides.Right);
@@ -298,12 +316,8 @@ internal sealed class Menu
         //set new selection var
         CustomPupilType newSelection = noRights[selected];
 
-        //get local eyes
-        CustomEyeManager.AllPatchedEyes.RemoveAll(p => p.playerRef == null);
-        PatchedEyes patchedEyes = PatchedEyes.GetPatchedEyes(PlayerAvatar.instance);
-
-        patchedEyes.SelectPupil(ref PlayerEyeSelection.localSelections.pupilLeft, newSelection, ref patchedEyes.LeftPupilObject, eyeLeft);
-        patchedEyes.SelectIris(ref PlayerEyeSelection.localSelections.irisLeft, PlayerEyeSelection.localSelections.irisLeft, ref patchedEyes.LeftIrisObject, patchedEyes.LeftPupilObject);
+        patchedEyes.SelectPupil(newSelection, true);
+        patchedEyes.SelectIris(PlayerEyeSelection.localSelections.irisLeft, true);
 
         UpdateLabels();
 
@@ -311,8 +325,10 @@ internal sealed class Menu
     }
     private static void RightPupilPrev()
     {
-        if (eyeRight == null)
-            GetPlayerMenuEyes(AvatarPreview.playerAvatarVisuals);
+        //get local eyes
+        CustomEyeManager.AllPatchedEyes.RemoveAll(p => p.playerRef == null);
+        PatchedEyes patchedEyes = PatchedEyes.GetPatchedEyes(PlayerAvatar.instance);
+        patchedEyes.GetPlayerMenuEyes(AvatarPreview.playerAvatarVisuals);
 
         //only get iris that are allowed for left eye
         List<CustomPupilType> noLefts = CustomEyeManager.AllPupilTypes.FindAll(i => i.AllowedPos != CustomEyeManager.Sides.Left);
@@ -329,24 +345,11 @@ internal sealed class Menu
         //set new selection var
         CustomPupilType newSelection = noLefts[selected];
 
-        //get local eyes
-        CustomEyeManager.AllPatchedEyes.RemoveAll(p => p.playerRef == null);
-        PatchedEyes patchedEyes = PatchedEyes.GetPatchedEyes(PlayerAvatar.instance);
-
-        patchedEyes.SelectPupil(ref PlayerEyeSelection.localSelections.pupilRight, newSelection, ref patchedEyes.RightPupilObject, eyeRight);
+        patchedEyes.SelectPupil(newSelection, false);
 
         UpdateLabels();
 
         CustomEyeManager.EmptyTrash();
-    }
-
-    private static void GetPlayerMenuEyes(PlayerAvatarVisuals avatarVisuals)
-    {
-        //Plugin.Spam("Getting menu player eyes, local player can't see their own pupils");
-        eyeLeft = avatarVisuals.playerEyes.pupilLeft;
-        eyeRight = avatarVisuals.playerEyes.pupilRight;
-        if (eyeLeft == null || eyeRight == null)
-            Plugin.logger.LogWarning("GetPlayerMenuEyes got null transform!");
     }
 
 

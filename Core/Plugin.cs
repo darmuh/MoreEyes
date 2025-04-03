@@ -4,8 +4,9 @@ using System.IO;
 using BepInEx.Logging;
 using System.Reflection;
 using MoreEyes.Menus;
+using MoreEyes.EyeManagement;
 
-namespace MoreEyes;
+namespace MoreEyes.Core;
 
 // Logger class
 [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
@@ -17,7 +18,7 @@ public class Plugin : BaseUnityPlugin
 
     public void Awake()
     {
-        logger = base.Logger;
+        logger = Logger;
         string pluginFolderPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
         string assetBundleFilePath = Path.Combine(pluginFolderPath, "eyes");
         AssetManager.DefaultAssets = AssetManager.InitBundle(assetBundleFilePath);
