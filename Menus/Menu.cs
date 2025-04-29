@@ -223,6 +223,7 @@ internal sealed class Menu
         CustomPupilType newSelection = noRights[selected];
 
         patchedEyes.SelectPupil(newSelection, true);
+        patchedEyes.SelectIris(PlayerEyeSelection.localSelections.irisLeft, true);
 
         UpdateLabels();
 
@@ -248,6 +249,7 @@ internal sealed class Menu
         CustomPupilType newSelection = noLefts[selected];
 
         patchedEyes.SelectPupil(newSelection, false);
+        patchedEyes.SelectIris(PlayerEyeSelection.localSelections.irisRight, false);
 
         UpdateLabels();
 
@@ -275,6 +277,7 @@ internal sealed class Menu
         CustomPupilType newSelection = noRights[selected];
 
         patchedEyes.SelectPupil(newSelection, true);
+        patchedEyes.SelectIris(PlayerEyeSelection.localSelections.irisLeft, true);
 
         UpdateLabels();
 
@@ -299,6 +302,7 @@ internal sealed class Menu
         CustomPupilType newSelection = noLefts[selected];
 
         patchedEyes.SelectPupil(newSelection, false);
+        patchedEyes.SelectIris(PlayerEyeSelection.localSelections.irisRight, false);
 
         UpdateLabels();
 
