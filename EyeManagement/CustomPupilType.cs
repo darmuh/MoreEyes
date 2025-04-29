@@ -66,12 +66,16 @@ public class CustomPupilType
 
     public static string CleanName(string fileName)
     {
-        return string.Join(' ', fileName.Replace('_', ' ')
-                                       .Replace("pupil", "", StringComparison.OrdinalIgnoreCase)
-                                       .Replace("iris", "", StringComparison.OrdinalIgnoreCase)
-                                       .Trim()
-                                       .Split(' ', StringSplitOptions.RemoveEmptyEntries));
+        string[] toRemove = { "pupil", "pupils", "iris", "left", "right" };
+
+        string cleaned = fileName.Replace('_', ' ');
+
+        foreach (var word in toRemove)
+            cleaned = cleaned.Replace(word, "", StringComparison.OrdinalIgnoreCase);
+
+        return string.Join(' ', cleaned.Split(' ', StringSplitOptions.RemoveEmptyEntries));
     }
+
 
     public void VanillaSetup(bool isLeft, GameObject original)
     {

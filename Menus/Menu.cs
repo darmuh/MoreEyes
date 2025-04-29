@@ -19,13 +19,20 @@ internal sealed class Menu
     internal static REPOLabel pupilRight;
     internal static REPOLabel irisLeft;
     internal static REPOLabel irisRight;
+    internal static REPOLabel pupilLeftHeader;
+    internal static REPOLabel pupilRightHeader;
+    internal static REPOLabel irisLeftHeader;
+    internal static REPOLabel irisRightHeader;
 
 
     internal static void Initialize()
     {
-        MenuAPI.AddElementToMainMenu(p => MenuAPI.CreateREPOButton("MoreEyes", CreatePopupMenu, p, new Vector2(600f, 0f)));
-        MenuAPI.AddElementToLobbyMenu(p => MenuAPI.CreateREPOButton("MoreEyes", CreatePopupMenu, p, new Vector2(600f, 0f)));
-        MenuAPI.AddElementToEscapeMenu(p => MenuAPI.CreateREPOButton("MoreEyes", CreatePopupMenu, p, new Vector2(600f, 0f)));
+        // Moved them up by 22f so its in-line with the other buttons, BUT we need to add a soft dependency to change the value to ~50-55f
+        // if the mod called Enemy And Valuable Spawn Manager is in play (its often used not just as a devhelper but a config mod really)
+
+        MenuAPI.AddElementToMainMenu(p => MenuAPI.CreateREPOButton(ApplyGradient("More Eyes"), CreatePopupMenu, p, new Vector2(600f, 22f)));
+        MenuAPI.AddElementToLobbyMenu(p => MenuAPI.CreateREPOButton(ApplyGradient("More Eyes"), CreatePopupMenu, p, new Vector2(600f, 22f)));
+        MenuAPI.AddElementToEscapeMenu(p => MenuAPI.CreateREPOButton(ApplyGradient("More Eyes"), CreatePopupMenu, p, new Vector2(600f, 22f)));
     }
 
     private static void RandomizeEyeSelection()
@@ -39,10 +46,10 @@ internal sealed class Menu
 
     private static void UpdateLabels()
     {
-        pupilLeft.labelTMP.text = PlayerEyeSelection.localSelections.pupilLeft.Name;
-        pupilRight.labelTMP.text = PlayerEyeSelection.localSelections.pupilRight.Name;
-        irisLeft.labelTMP.text = PlayerEyeSelection.localSelections.irisLeft.Name;
-        irisRight.labelTMP.text = PlayerEyeSelection.localSelections.irisRight.Name;
+        pupilLeft.labelTMP.text = ApplyGradient(PlayerEyeSelection.localSelections.pupilLeft.Name, true);
+        pupilRight.labelTMP.text = ApplyGradient(PlayerEyeSelection.localSelections.pupilRight.Name, true);
+        irisLeft.labelTMP.text = ApplyGradient(PlayerEyeSelection.localSelections.irisLeft.Name, true);
+        irisRight.labelTMP.text = ApplyGradient(PlayerEyeSelection.localSelections.irisRight.Name, true);
     }
 
     private static void CreatePopupMenu()
@@ -52,25 +59,34 @@ internal sealed class Menu
 
         PatchedEyes.GetPatchedEyes(PlayerAvatar.instance);
 
-        MoreEyesMenu = MenuAPI.CreateREPOPopupPage("MoreEyes", false, true, 0f, new Vector2(-150f, 0f));
+        MoreEyesMenu = MenuAPI.CreateREPOPopupPage(ApplyGradient("More Eyes"), false, true, 0f, new Vector2(-150f, 0f));
         AvatarPreview = MenuAPI.CreateREPOAvatarPreview(MoreEyesMenu.transform, new Vector2(500, 18), true, new Color(0f, 0f, 0f, 0.69f));
         MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("Back", () => MoreEyesMenu.ClosePage(true), MoreEyesMenu.transform, new Vector2(200, 20)));
         MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("Randomize", RandomizeEyeSelection, MoreEyesMenu.transform, new Vector2(280, 20)));
         CustomEyeManager.CheckForVanillaPupils();
-        pupilLeft = MenuAPI.CreateREPOLabel(PlayerEyeSelection.localSelections.pupilLeft.Name, MoreEyesMenu.transform, new Vector2(225, 260));
-        pupilRight = MenuAPI.CreateREPOLabel(PlayerEyeSelection.localSelections.pupilRight.Name, MoreEyesMenu.transform, new Vector2(225, 220));
-        irisLeft = MenuAPI.CreateREPOLabel(PlayerEyeSelection.localSelections.irisLeft.Name, MoreEyesMenu.transform, new Vector2(225, 160));
-        irisRight = MenuAPI.CreateREPOLabel(PlayerEyeSelection.localSelections.irisRight.Name, MoreEyesMenu.transform, new Vector2(225, 120));
+
+        pupilLeft = MenuAPI.CreateREPOLabel(ApplyGradient(PlayerEyeSelection.localSelections.pupilLeft.Name, true), MoreEyesMenu.transform, new Vector2(160, 250));
+        pupilRight = MenuAPI.CreateREPOLabel(ApplyGradient(PlayerEyeSelection.localSelections.pupilRight.Name, true), MoreEyesMenu.transform, new Vector2(310, 250));
+        irisLeft = MenuAPI.CreateREPOLabel(ApplyGradient(PlayerEyeSelection.localSelections.irisLeft.Name, true), MoreEyesMenu.transform, new Vector2(160, 200));
+        irisRight = MenuAPI.CreateREPOLabel(ApplyGradient(PlayerEyeSelection.localSelections.irisRight.Name, true), MoreEyesMenu.transform, new Vector2(310, 200));
 
         SetTextStyling([pupilLeft, pupilRight, irisLeft, irisRight]);
-        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("<", LeftPupilPrev, pupilLeft.transform, new Vector2(-15f, -3f)));
-        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("<", RightPupilPrev, pupilRight.transform, new Vector2(-15f, -3f)));
-        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("<", LeftIrisPrev, irisLeft.transform, new Vector2(-15f, -3f)));
-        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("<", RightIrisPrev, irisRight.transform, new Vector2(-15f, -3f)));
-        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton(">", LeftPupilNext, pupilLeft.transform, GetRightOfElement(pupilLeft.rectTransform) + new Vector2(0f, -3f)));
-        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton(">", RightPupilNext, pupilRight.transform, GetRightOfElement(pupilRight.rectTransform) + new Vector2(0f, -3f)));
-        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton(">", LeftIrisNext, irisLeft.transform, GetRightOfElement(irisLeft.rectTransform) + new Vector2(0f, -3f)));
-        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton(">", RightIrisNext, irisRight.transform, GetRightOfElement(irisRight.rectTransform) + new Vector2(0f, -3f)));
+
+        pupilLeftHeader = MenuAPI.CreateREPOLabel("Pupil Left", MoreEyesMenu.transform, new Vector2(160, 270));
+        pupilRightHeader = MenuAPI.CreateREPOLabel("Pupil Right", MoreEyesMenu.transform, new Vector2(310, 270));
+        irisLeftHeader = MenuAPI.CreateREPOLabel("Iris Left", MoreEyesMenu.transform, new Vector2(160, 220));
+        irisRightHeader = MenuAPI.CreateREPOLabel("Iris Right", MoreEyesMenu.transform, new Vector2(310, 220));
+
+        SetHeaderTextStyling([pupilLeftHeader, pupilRightHeader, irisLeftHeader, irisRightHeader]);
+
+        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("<", LeftPupilPrev, pupilLeft.transform, new Vector2(45f, -5f)));
+        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("<", RightPupilPrev, pupilRight.transform, new Vector2(45f, -5f)));
+        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("<", LeftIrisPrev, irisLeft.transform, new Vector2(45f, -5f)));
+        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("<", RightIrisPrev, irisRight.transform, new Vector2(45f, -5f)));
+        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton(">", LeftPupilNext, pupilLeft.transform, GetRightOfElement(pupilLeft.rectTransform) + new Vector2(-75f, -5f)));
+        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton(">", RightPupilNext, pupilRight.transform, GetRightOfElement(pupilRight.rectTransform) + new Vector2(-75f, -5f)));
+        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton(">", LeftIrisNext, irisLeft.transform, GetRightOfElement(irisLeft.rectTransform) + new Vector2(-75f, -5f)));
+        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton(">", RightIrisNext, irisRight.transform, GetRightOfElement(irisRight.rectTransform) + new Vector2(-75f, -5f)));
 
         MoreEyesMenu.StartCoroutine(WaitForPlayerMenu());
     }
@@ -92,11 +108,48 @@ internal sealed class Menu
         labels.Do(t =>
         {
             t.labelTMP.fontStyle = TMPro.FontStyles.SmallCaps;
-            t.labelTMP.enableAutoSizing = false;
-            t.labelTMP.fontSizeMin = 8f;
+            t.labelTMP.fontSize = 18f;
             t.labelTMP.horizontalAlignment = TMPro.HorizontalAlignmentOptions.Center;
         });
     }
+
+    private static void SetHeaderTextStyling(List<REPOLabel> labels)
+    {
+        labels.Do(t =>
+        {
+            t.labelTMP.fontStyle = TMPro.FontStyles.Underline;
+            t.labelTMP.fontSize = 18f;
+            t.labelTMP.horizontalAlignment = TMPro.HorizontalAlignmentOptions.Center;
+            t.labelTMP.color = Color.white;
+        });
+    }
+
+    public static string ApplyGradient(string input, bool inverse = false)
+    {
+        Color startColor = new Color(1f, 0.666f, 0f);      // (#FFAA00)
+        Color endColor = new Color(1f, 0.898f, 0.698f);    // (#FFE5B2)
+
+        if (inverse)
+        {
+            var temp = startColor;
+            startColor = endColor;
+            endColor = temp;
+        }
+
+        string result = "";
+        int len = input.Length;
+
+        for (int i = 0; i < len; i++)
+        {
+            float t = (float)i / Mathf.Max(1, len - 1);
+            Color lerped = Color.Lerp(startColor, endColor, t);
+            string hex = ColorUtility.ToHtmlStringRGB(lerped);
+            result += $"<color=#{hex}>{input[i]}</color>";
+        }
+
+        return result;
+    }
+
 
     private static Vector2 GetRightOfElement(RectTransform rect)
     {
