@@ -8,7 +8,6 @@ using MoreEyes.EyeManagement;
 
 namespace MoreEyes.Core;
 
-// Logger class
 [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
 [BepInDependency("nickklmao.menulib", BepInDependency.DependencyFlags.HardDependency)]
 public class Plugin : BaseUnityPlugin

@@ -6,19 +6,18 @@ using System.Linq;
 using UnityEngine;
 using static MoreEyes.EyeManagement.CustomEyeManager;
 
-//this gets created/destroyed with whatever game object it's attached to
+namespace MoreEyes.EyeManagement;
+
 public class PatchedEyes : MonoBehaviour
 {
     internal string playerID = "";
     internal PlayerAvatar playerRef = null!;
 
-    //Objects
-    public List<GameObject> LeftPupilObjects = []; //list to include both menus and regular avatar
-    public List<GameObject> RightPupilObjects = []; //list to include both menus and regular avatar
+    public List<GameObject> LeftPupilObjects = [];
+    public List<GameObject> RightPupilObjects = [];
     public List<GameObject> LeftIrisObjects = [];
     public List<GameObject> RightIrisObjects = [];
 
-    //Transforms
     public Transform eyeLeftPos;
     public Transform eyeRightPos;
     public Transform eyeMenuLeft;

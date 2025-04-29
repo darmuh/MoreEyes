@@ -68,7 +68,6 @@ public class AssetManager
         return existing;
     }
 
-    //Unload via filepath string
     internal static void UnloadBundle(string bundlePath)
     {
         LoadedAsset existing = LoadedAssets.FirstOrDefault(a => a.isLoaded == true && a.FilePath == bundlePath);
@@ -81,7 +80,6 @@ public class AssetManager
         existing.UnloadBundle();
     }
 
-    //overload for AssetBundle reference
     internal static void UnloadBundle(AssetBundle bundleRef)
     {
         if(bundleRef == null)

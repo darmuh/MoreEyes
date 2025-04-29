@@ -30,13 +30,23 @@ public class CustomIrisType
     {
         MyBundle = bundle;
         Path = name;
-        //See AddCustomPupils comments
-        Name = name[(name.LastIndexOf('/') + 1)..].Replace(".prefab", "");
 
-        if (Name.EndsWith("_right"))
+        string fileNameOnly = name[(name.LastIndexOf('/') + 1)..].Replace(".prefab", "");
+
+        if (fileNameOnly.EndsWith("_right", StringComparison.OrdinalIgnoreCase))
+        {
             AllowedPos = Sides.Right;
-        else if (Name.EndsWith("_left"))
+        }
+        else if (fileNameOnly.EndsWith("_left", StringComparison.OrdinalIgnoreCase))
+        {
             AllowedPos = Sides.Left;
+        }
+        else
+        {
+            AllowedPos = Sides.Both;
+        }
+
+        Name = CustomPupilType.CleanName(fileNameOnly);
 
         MyBundle.LoadAssetGameObject(Path, out Prefab);
         if (Prefab == null)

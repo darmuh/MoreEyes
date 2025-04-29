@@ -36,15 +36,22 @@ public class CustomPupilType
         MyBundle = bundle;
         Path = name;
 
-        // the method to get the asset names dynamically includes the whole path
-        // this will replace the string we've assigned without the path at the front
-        // it also replaces ".prefab" at the end with nothing
-        Name = name[(name.LastIndexOf('/') + 1)..].Replace(".prefab", "");
+        string fileNameOnly = name[(name.LastIndexOf('/') + 1)..].Replace(".prefab", "");
 
-        if (Name.EndsWith("_right"))
+        if (fileNameOnly.EndsWith("_right", StringComparison.OrdinalIgnoreCase))
+        {
             AllowedPos = Sides.Right;
-        else if (Name.EndsWith("_left"))
+        }
+        else if (fileNameOnly.EndsWith("_left", StringComparison.OrdinalIgnoreCase))
+        {
             AllowedPos = Sides.Left;
+        }
+        else
+        {
+            AllowedPos = Sides.Both;
+        }
+
+        Name = CleanName(fileNameOnly);
 
         MyBundle.LoadAssetGameObject(Path, out Prefab);
         if (Prefab == null)
@@ -55,6 +62,15 @@ public class CustomPupilType
         AllPupilTypes.Add(this);
         AllPupilTypes.Distinct();
         Plugin.Spam($"AllPupilTypes count - {AllPupilTypes.Count}");
+    }
+
+    public static string CleanName(string fileName)
+    {
+        return string.Join(' ', fileName.Replace('_', ' ')
+                                       .Replace("pupil", "", StringComparison.OrdinalIgnoreCase)
+                                       .Replace("iris", "", StringComparison.OrdinalIgnoreCase)
+                                       .Trim()
+                                       .Split(' ', StringSplitOptions.RemoveEmptyEntries));
     }
 
     public void VanillaSetup(bool isLeft, GameObject original)

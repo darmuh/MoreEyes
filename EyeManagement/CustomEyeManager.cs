@@ -8,23 +8,18 @@ namespace MoreEyes.EyeManagement;
 
 public class CustomEyeManager
 {
-    //Collection of all possible types
     public static List<CustomPupilType> AllPupilTypes = [];
     public static List<CustomIrisType> AllIrisTypes = [];
     internal static List<PatchedEyes> AllPatchedEyes = [];
     internal static List<PlayerEyeSelection> AllPlayerSelections = [];
 
-    //Our list of things in Use, if needed
     public static List<CustomPupilType> PupilsInUse = [];
     public static List<CustomIrisType> IrisInUse = [];
 
-    //Trashcan
     public static List<GameObject> MarkedForDeletion = [];
 
-    //Initialized
     public static bool isInitialized = false;
 
-    //Vanilla Stuff
     public static CustomPupilType VanillaPupilRight = new("Standard Right");
     public static CustomPupilType VanillaPupilLeft = new("Standard Left");
     public static CustomIrisType VanillaIris;
