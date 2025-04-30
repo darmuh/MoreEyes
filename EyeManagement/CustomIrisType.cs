@@ -15,6 +15,7 @@ public class CustomIrisType
     public Sides AllowedPos = Sides.Both;
     public bool isVanilla = false;
     public bool inUse = false;
+    public Material material;
 
     //easier to go through lists in UnityExplorer
     public override string ToString() => Name;

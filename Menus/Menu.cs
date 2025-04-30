@@ -8,6 +8,7 @@ using MoreEyes.Core;
 using MoreEyes.EyeManagement;
 using System.Collections;
 using MoreEyes.Core.ModCompats;
+using System;
 
 namespace MoreEyes.Menus;
 
@@ -32,9 +33,9 @@ internal sealed class Menu
             ? new Vector2(600f, 52f)
             : new Vector2(600f, 22f);
 
-        MenuAPI.AddElementToMainMenu(p => MenuAPI.CreateREPOButton(ApplyGradient("More Eyes"), CreatePopupMenu, p, buttonSize));
-        MenuAPI.AddElementToLobbyMenu(p => MenuAPI.CreateREPOButton(ApplyGradient("More Eyes"), CreatePopupMenu, p, new Vector2(600f, 22f)));
-        MenuAPI.AddElementToEscapeMenu(p => MenuAPI.CreateREPOButton(ApplyGradient("More Eyes"), CreatePopupMenu, p, new Vector2(600f, 22f)));
+        MenuAPI.AddElementToMainMenu(p => MenuAPI.CreateREPOButton("More Eyes", CreatePopupMenu, p, buttonSize));
+        MenuAPI.AddElementToLobbyMenu(p => MenuAPI.CreateREPOButton("More Eyes", CreatePopupMenu, p, new Vector2(600f, 22f)));
+        MenuAPI.AddElementToEscapeMenu(p => MenuAPI.CreateREPOButton("More Eyes", CreatePopupMenu, p, new Vector2(600f, 22f)));
     }
 
     private static void RandomizeEyeSelection()
@@ -107,6 +108,13 @@ internal sealed class Menu
         MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton(">", LeftIrisNext, irisLeft.transform, GetRightOfElement(irisLeft.rectTransform) + new Vector2(-75f, -5f)));
         MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton(">", RightIrisNext, irisRight.transform, GetRightOfElement(irisRight.rectTransform) + new Vector2(-75f, -5f)));
 
+        // Material's RGB sliders
+
+        // They should only pop up when someone clicks on .... thinking
+        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOSlider("Red", ApplyGradient("Change red component"),new Action<float>(RedSlider), MoreEyesMenu.transform, new Vector2(205f, 180f)));
+        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOSlider("Green", ApplyGradient("Change green component"),new Action<float>(GreenSlider), MoreEyesMenu.transform, new Vector2(205f, 135f)));
+        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOSlider("Blue", ApplyGradient("Change blue component"), new Action<float>(BlueSlider), MoreEyesMenu.transform, new Vector2(205f, 90f)));
+
         MoreEyesMenu.StartCoroutine(WaitForPlayerMenu());
     }
 
@@ -143,10 +151,26 @@ internal sealed class Menu
         });
     }
 
-    public static string ApplyGradient(string input, bool inverse = false)
+    public static string ApplyGradient(string input, bool inverse = false, float minBrightness = 0.1f)
     {
-        Color startColor = new(1f, 0.666f, 0f);      // (#FFAA00)
-        Color endColor = new(1f, 0.898f, 0.698f);    // (#FFE5B2)
+        Material material = PlayerAvatar.instance.playerHealth.bodyMaterial;
+
+        Color baseColor = material.GetColor(Shader.PropertyToID("_AlbedoColor"));
+        Color startColor = baseColor;
+        Color endColor;
+
+        float luminance = 0.299f * baseColor.r + 0.587f * baseColor.g + 0.114f * baseColor.b;
+
+        float adjustmentAmount = 0.6f;
+
+        if (luminance < 0.5f)
+        {
+            endColor = Color.Lerp(baseColor, Color.white, adjustmentAmount);
+        }
+        else
+        {
+            endColor = Color.Lerp(baseColor, Color.black, adjustmentAmount);
+        }
 
         if (inverse)
         {
@@ -160,6 +184,14 @@ internal sealed class Menu
         {
             float t = (float)i / Mathf.Max(1, len - 1);
             Color lerped = Color.Lerp(startColor, endColor, t);
+
+            float brightness = 0.299f * lerped.r + 0.587f * lerped.g + 0.114f * lerped.b;
+            if (brightness < minBrightness)
+            {
+                float boost = Mathf.Clamp01((minBrightness - brightness) * 0.5f);
+                lerped = Color.Lerp(lerped, Color.white, boost);
+            }
+
             string hex = ColorUtility.ToHtmlStringRGB(lerped);
             result += $"<color=#{hex}>{input[i]}</color>";
         }
@@ -175,6 +207,64 @@ internal sealed class Menu
         Plugin.Spam($"Count: {allCorners.Length}");
         return (Vector2)allCorners[3];
     }
+
+
+    private enum EyePart { IrisLeft, IrisRight, PupilLeft, PupilRight };
+
+    private static EyePart currentSelection;
+
+    private static void ColorSlider(float value, int channelIndex)
+    {
+        // These might just be done in another class
+        // CurrentPupil's material -> base color -> RGB
+        // CurrentIris's material -> base color -> RGB
+
+        CustomEyeManager.AllPatchedEyes.RemoveAll(p => p.playerRef == null);
+        PatchedEyes patchedEyes = PatchedEyes.GetPatchedEyes(PlayerAvatar.instance);
+        patchedEyes.GetPlayerMenuEyes(AvatarPreview.playerAvatarVisuals);
+
+        // Apply all to playerAvatarVisuals
+
+        // Select when clicked on .... thinking
+
+        Material material = currentSelection switch
+        {
+
+
+            EyePart.IrisLeft => PlayerEyeSelection.localSelections.irisLeft.material,
+            EyePart.IrisRight => PlayerEyeSelection.localSelections.irisRight.material,
+            EyePart.PupilLeft => PlayerEyeSelection.localSelections.pupilLeft.material,
+            EyePart.PupilRight => PlayerEyeSelection.localSelections.pupilRight.material,
+            _ => null
+        };
+
+        if (material == null) return;
+
+        Color color = material.color;
+        color[channelIndex] = value;
+        material.color = color;
+
+
+        /*
+            Color leftIrisColor = PlayerEyeSelection.localSelections.irisLeft.material.color;
+        Color rightIrisColor = PlayerEyeSelection.localSelections.irisRight.material.color;
+        Color leftPupilColor = PlayerEyeSelection.localSelections.pupilLeft.material.color;
+        Color rightPupilColor = PlayerEyeSelection.localSelections.pupilRight.material.color;
+
+        if ()
+
+        leftIrisColor[channelIndex] = normalized;
+        rightIrisColor[channelIndex] = normalized;
+        leftPupilColor[channelIndex] = normalized;
+        rightPupilColor[channelIndex] = normalized;
+
+        // Only change one of these values base on the slider
+        */
+    }
+
+    private static void RedSlider(float value) => ColorSlider(value, 0);
+    private static void GreenSlider(float value) => ColorSlider(value, 1);
+    private static void BlueSlider(float value) => ColorSlider(value, 2);
 
     private static void LeftIrisNext()
     {

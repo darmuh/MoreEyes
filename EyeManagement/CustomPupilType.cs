@@ -15,6 +15,7 @@ public class CustomPupilType
     public Sides AllowedPos = Sides.Both;
     public bool isVanilla = false;
     public bool inUse = false;
+    public Material material;
 
     //internal static List<string> UsedPupilNames = [];
 
