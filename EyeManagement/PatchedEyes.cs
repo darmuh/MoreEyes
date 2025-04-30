@@ -319,4 +319,19 @@ public class PatchedEyes : MonoBehaviour
         //delayed to avoid issues with other eye selections
         EmptyTrash();
     }
+
+    internal void ResetEyes(PlayerAvatar player)
+    {
+        UpdateRefs(player);
+
+        Plugin.Spam($"Resetting {player.playerName}'s eye settings!");
+
+        CustomPupilType vanillaP = AllPupilTypes.Find(p => p.Name.StartsWith("Standard"));
+        CustomIrisType vanillaI = AllIrisTypes.Find(p => p.Name.StartsWith(""));
+
+        SelectPupil(vanillaP, true);
+        SelectPupil(vanillaP, false);
+        SelectIris(vanillaI, true);
+        SelectIris(vanillaI, false);
+    }
 }

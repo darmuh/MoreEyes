@@ -66,7 +66,7 @@ public class CustomPupilType
 
     public static string CleanName(string fileName)
     {
-        string[] toRemove = { "pupil", "pupils", "iris", "left", "right" };
+        string[] toRemove = ["pupil", "pupils", "iris", "left", "right"];
 
         string cleaned = fileName.Replace('_', ' ');
 
@@ -81,12 +81,12 @@ public class CustomPupilType
     {
         if(isLeft)
         {
-            Name = "Standard Left";
+            Name = "Standard";
             AllowedPos = Sides.Left;
         }
         else
         {
-            Name = "Standard Right";
+            Name = "Standard";
             AllowedPos = Sides.Right;
         }
 

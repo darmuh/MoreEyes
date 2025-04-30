@@ -10,6 +10,7 @@ namespace MoreEyes.Core;
 
 [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
 [BepInDependency("nickklmao.menulib", BepInDependency.DependencyFlags.HardDependency)]
+[BepInDependency("soundedsquash.spawnmanager", BepInDependency.DependencyFlags.SoftDependency)]
 public class Plugin : BaseUnityPlugin
 {
     internal static ManualLogSource logger;

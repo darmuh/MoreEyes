@@ -86,26 +86,22 @@ public class CustomEyeManager
             return;
         }
 
-        // replaced hardcoded name list with one that will get from the bundle
-        // also made it take a parameter so this method can be used with any LoadedAsset
         List<string> allAssets = [.. loadedAsset.Bundle.GetAllAssetNames()];
         List<string> irisNames = allAssets.FindAll(n => n.Contains("_iris_"));
         List<string> pupilNames = allAssets.FindAll(n => n.Contains("_pupil_"));
 
-        // make sure there's no weird names that dont lead to anything
+        // Make sure there's no weird names that dont lead to anything
         irisNames.RemoveAll(i => i.IsNullOrWhiteSpace());
         pupilNames.RemoveAll(p => p.IsNullOrWhiteSpace());
 
-        //Load all custom pupils from asset into memory
-        //Each pupil will load an object prefab that can be used to create a clone
-        //since there's no fast/easy way to unload an individual asset, no need to hotload
+        // Load all custom pupils from asset into memory
+        // Each pupil will load an object prefab that can be used to create a clone
+        // since there's no fast/easy way to unload an individual asset, no need to hotload
         pupilNames.Do(n =>
         {
             CustomPupilType thisType = new(loadedAsset, n);
         });
 
-        //create blank class item for vanilla iris
-        //this will have a null game object
         VanillaIris = new();
         VanillaIris.VanillaSetup();
 

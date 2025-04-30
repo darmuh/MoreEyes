@@ -7,6 +7,7 @@ using System.Linq;
 using MoreEyes.Core;
 using MoreEyes.EyeManagement;
 using System.Collections;
+using MoreEyes.Core.ModCompats;
 
 namespace MoreEyes.Menus;
 
@@ -27,10 +28,11 @@ internal sealed class Menu
 
     internal static void Initialize()
     {
-        // Moved them up by 22f so its in-line with the other buttons, BUT we need to add a soft dependency to change the value to ~50-55f
-        // if the mod called Enemy And Valuable Spawn Manager is in play (its often used not just as a devhelper but a config mod really)
+        Vector2 buttonSize = Spawnmanager.IsSpawnManagerPresent
+            ? new Vector2(600f, 52f)
+            : new Vector2(600f, 22f);
 
-        MenuAPI.AddElementToMainMenu(p => MenuAPI.CreateREPOButton(ApplyGradient("More Eyes"), CreatePopupMenu, p, new Vector2(600f, 22f)));
+        MenuAPI.AddElementToMainMenu(p => MenuAPI.CreateREPOButton(ApplyGradient("More Eyes"), CreatePopupMenu, p, buttonSize));
         MenuAPI.AddElementToLobbyMenu(p => MenuAPI.CreateREPOButton(ApplyGradient("More Eyes"), CreatePopupMenu, p, new Vector2(600f, 22f)));
         MenuAPI.AddElementToEscapeMenu(p => MenuAPI.CreateREPOButton(ApplyGradient("More Eyes"), CreatePopupMenu, p, new Vector2(600f, 22f)));
     }
@@ -42,6 +44,19 @@ internal sealed class Menu
         patchedEyes.GetPlayerMenuEyes(AvatarPreview.playerAvatarVisuals);
         patchedEyes.RandomizeEyes(PlayerAvatar.instance);
         UpdateLabels();
+
+        CustomEyeManager.EmptyTrash();
+    }
+
+    private static void ResetEyeSelection()
+    {
+        Plugin.Spam("Reset Eye Selections!");
+        PatchedEyes patchedEyes = PatchedEyes.GetPatchedEyes(PlayerAvatar.instance);
+        patchedEyes.GetPlayerMenuEyes(AvatarPreview.playerAvatarVisuals);
+        patchedEyes.ResetEyes(PlayerAvatar.instance);
+        UpdateLabels();
+
+        CustomEyeManager.EmptyTrash();
     }
 
     private static void UpdateLabels()
@@ -60,9 +75,13 @@ internal sealed class Menu
         PatchedEyes.GetPatchedEyes(PlayerAvatar.instance);
 
         MoreEyesMenu = MenuAPI.CreateREPOPopupPage(ApplyGradient("More Eyes"), false, true, 0f, new Vector2(-150f, 0f));
-        AvatarPreview = MenuAPI.CreateREPOAvatarPreview(MoreEyesMenu.transform, new Vector2(500, 18), true, new Color(0f, 0f, 0f, 0.69f));
-        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("Back", () => MoreEyesMenu.ClosePage(true), MoreEyesMenu.transform, new Vector2(200, 20)));
-        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("Randomize", RandomizeEyeSelection, MoreEyesMenu.transform, new Vector2(280, 20)));
+        if (SemiFunc.MenuLevel())
+        {
+            AvatarPreview = MenuAPI.CreateREPOAvatarPreview(MoreEyesMenu.transform, new Vector2(500, 18), true, new Color(0f, 0f, 0f, 0.69f));
+        }
+        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("Back", () => MoreEyesMenu.ClosePage(true), MoreEyesMenu.transform, new Vector2(190, 20)));
+        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("Randomize", RandomizeEyeSelection, MoreEyesMenu.transform, new Vector2(270, 20)));
+        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("Reset", ResetEyeSelection, MoreEyesMenu.transform, new Vector2(400, 20)));
         CustomEyeManager.CheckForVanillaPupils();
 
         pupilLeft = MenuAPI.CreateREPOLabel(ApplyGradient(PlayerEyeSelection.localSelections.pupilLeft.Name, true), MoreEyesMenu.transform, new Vector2(160, 250));
@@ -126,14 +145,12 @@ internal sealed class Menu
 
     public static string ApplyGradient(string input, bool inverse = false)
     {
-        Color startColor = new Color(1f, 0.666f, 0f);      // (#FFAA00)
-        Color endColor = new Color(1f, 0.898f, 0.698f);    // (#FFE5B2)
+        Color startColor = new(1f, 0.666f, 0f);      // (#FFAA00)
+        Color endColor = new(1f, 0.898f, 0.698f);    // (#FFE5B2)
 
         if (inverse)
         {
-            var temp = startColor;
-            startColor = endColor;
-            endColor = temp;
+            (endColor, startColor) = (startColor, endColor);
         }
 
         string result = "";
