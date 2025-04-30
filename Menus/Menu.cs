@@ -151,7 +151,7 @@ internal sealed class Menu
         });
     }
 
-    public static string ApplyGradient(string input, bool inverse = false, float minBrightness = 0.1f)
+    public static string ApplyGradient(string input, bool inverse = false, float minBrightness = 0.15f)
     {
         Material material = PlayerAvatar.instance.playerHealth.bodyMaterial;
 
