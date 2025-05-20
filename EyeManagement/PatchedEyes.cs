@@ -1,6 +1,5 @@
 ﻿using HarmonyLib;
 using MoreEyes.Core;
-using MoreEyes.EyeManagement;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;

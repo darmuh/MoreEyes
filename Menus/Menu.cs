@@ -1,14 +1,14 @@
-﻿using UnityEngine;
+﻿using HarmonyLib;
 using MenuLib;
 using MenuLib.MonoBehaviors;
-using System.Collections.Generic;
-using HarmonyLib;
-using System.Linq;
 using MoreEyes.Core;
-using MoreEyes.EyeManagement;
-using System.Collections;
 using MoreEyes.Core.ModCompats;
+using MoreEyes.EyeManagement;
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
 
 namespace MoreEyes.Menus;
 
@@ -29,11 +29,21 @@ internal sealed class Menu
 
     internal static void Initialize()
     {
-        Vector2 buttonSize = Spawnmanager.IsSpawnManagerPresent
-            ? new Vector2(600f, 52f)
-            : new Vector2(600f, 22f);
+        Vector2 buttonPos;
+        if (ModCompats.IsSpawnManagerPresent && ModCompats.IsTwitchChatAPIPresent)
+        {
+            buttonPos = new Vector2(595f, 82f);
+        }
+        else if (ModCompats.IsSpawnManagerPresent || ModCompats.IsTwitchChatAPIPresent)
+        {
+            buttonPos = new Vector2(595f, 52f);
+        }
+        else
+        {
+            buttonPos = new Vector2(595f, 22f);
+        }
 
-        MenuAPI.AddElementToMainMenu(p => MenuAPI.CreateREPOButton("More Eyes", CreatePopupMenu, p, buttonSize));
+        MenuAPI.AddElementToMainMenu(p => MenuAPI.CreateREPOButton("More Eyes", CreatePopupMenu, p, buttonPos));
         MenuAPI.AddElementToLobbyMenu(p => MenuAPI.CreateREPOButton("More Eyes", CreatePopupMenu, p, new Vector2(600f, 22f)));
         MenuAPI.AddElementToEscapeMenu(p => MenuAPI.CreateREPOButton("More Eyes", CreatePopupMenu, p, new Vector2(600f, 22f)));
     }
@@ -78,7 +88,15 @@ internal sealed class Menu
         MoreEyesMenu = MenuAPI.CreateREPOPopupPage(ApplyGradient("More Eyes"), false, true, 0f, new Vector2(-150f, 0f));
         if (SemiFunc.MenuLevel())
         {
-            AvatarPreview = MenuAPI.CreateREPOAvatarPreview(MoreEyesMenu.transform, new Vector2(500, 18), true, new Color(0f, 0f, 0f, 0.69f));
+            AvatarPreview = MenuAPI.CreateREPOAvatarPreview(MoreEyesMenu.transform, new Vector2(471.25f, 151.5f), true, new Color(0f, 0f, 0f, 0.58f));
+            AvatarPreview.previewSize = new Vector2(266.6667f, 500f); // original numbers (184, 345)
+            AvatarPreview.rectTransform.sizeDelta = new Vector2(266.6667f, 210f); // original (184, 345) same way as previewSize
+            AvatarPreview.rigTransform.parent.localScale = new Vector3(2f, 2f, 2f); // original (1, 1, 1)
+            AvatarPreview.rigTransform.parent.localPosition = new Vector3();
+            AvatarPreview.rigTransform.parent.position = new Vector3(0f, -3.5f, -2000f); /// original (0, -0.686, -2000)
+            //AvatarPreview.rectTransform.localScale = new Vector3(1.25f, 1.25f, 1.25f); // original (1, 1, 1)
+
+
         }
         MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("Back", () => MoreEyesMenu.ClosePage(true), MoreEyesMenu.transform, new Vector2(190, 20)));
         MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("Randomize", RandomizeEyeSelection, MoreEyesMenu.transform, new Vector2(270, 20)));
@@ -111,8 +129,8 @@ internal sealed class Menu
         // Material's RGB sliders
 
         // They should only pop up when someone clicks on .... thinking
-        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOSlider("Red", ApplyGradient("Change red component"),new Action<float>(RedSlider), MoreEyesMenu.transform, new Vector2(205f, 180f)));
-        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOSlider("Green", ApplyGradient("Change green component"),new Action<float>(GreenSlider), MoreEyesMenu.transform, new Vector2(205f, 135f)));
+        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOSlider("Red", ApplyGradient("Change red component"), new Action<float>(RedSlider), MoreEyesMenu.transform, new Vector2(205f, 180f)));
+        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOSlider("Green", ApplyGradient("Change green component"), new Action<float>(GreenSlider), MoreEyesMenu.transform, new Vector2(205f, 135f)));
         MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOSlider("Blue", ApplyGradient("Change blue component"), new Action<float>(BlueSlider), MoreEyesMenu.transform, new Vector2(205f, 90f)));
 
         MoreEyesMenu.StartCoroutine(WaitForPlayerMenu());

@@ -69,7 +69,6 @@ public class CustomIrisType
         if (IrisInUse.Contains(this))
         {
             IrisInUse.Remove(this);
-            Plugin.logger.LogInfo($"{Name} was marked as unused."); // We can get rid of this logger in the future
         }
     }
 }

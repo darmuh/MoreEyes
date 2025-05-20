@@ -112,7 +112,7 @@ public class CustomEyeManager
         });
     }
 
-    public static void EmptyTrash()
+    internal static void EmptyTrash()
     {
         MarkedForDeletion.DoIf(d => d != null, d => Object.Destroy(d));
         MarkedForDeletion.Clear();
