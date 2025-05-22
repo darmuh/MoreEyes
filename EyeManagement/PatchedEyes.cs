@@ -327,5 +327,7 @@ public class PatchedEyes : MonoBehaviour
         SelectPupil(VanillaPupilRight, false);
         SelectIris(VanillaIris, true);
         SelectIris(VanillaIris, false);
+
+        EmptyTrash();
     }
 }

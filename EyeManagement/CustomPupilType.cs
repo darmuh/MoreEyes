@@ -15,7 +15,6 @@ public class CustomPupilType
     public Sides AllowedPos = Sides.Both;
     public bool isVanilla = false;
     public bool inUse = false;
-    public Material material;
 
     //internal static List<string> UsedPupilNames = [];
 
@@ -37,13 +36,13 @@ public class CustomPupilType
         MyBundle = bundle;
         Path = name;
 
-        string fileNameOnly = name[(name.LastIndexOf('/') + 1)..].Replace(".prefab", "");
+        Name = name[(name.LastIndexOf('/') + 1)..].Replace(".prefab", "");
 
-        if (fileNameOnly.EndsWith("_right", StringComparison.OrdinalIgnoreCase))
+        if (name.EndsWith("_right", StringComparison.OrdinalIgnoreCase))
         {
             AllowedPos = Sides.Right;
         }
-        else if (fileNameOnly.EndsWith("_left", StringComparison.OrdinalIgnoreCase))
+        else if (name.EndsWith("_left", StringComparison.OrdinalIgnoreCase))
         {
             AllowedPos = Sides.Left;
         }
@@ -51,8 +50,6 @@ public class CustomPupilType
         {
             AllowedPos = Sides.Both;
         }
-
-        Name = fileNameOnly;
 
         MyBundle.LoadAssetGameObject(Path, out Prefab);
         if (Prefab == null)

@@ -10,7 +10,6 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
-using static UnityEngine.Rendering.DebugUI;
 
 namespace MoreEyes.Menus;
 
@@ -84,10 +83,6 @@ internal sealed class Menu
         irisLeft.labelTMP.text = ApplyGradient(CleanName(PlayerEyeSelection.localSelections.irisLeft.Name), true);
         irisRight.labelTMP.text = ApplyGradient(CleanName(PlayerEyeSelection.localSelections.irisRight.Name), true);
     }
-    private static void UpdateSliders()
-    {
-
-    }
 
     private static void CreatePopupMenu()
     {
@@ -106,9 +101,6 @@ internal sealed class Menu
             AvatarPreview.rectTransform.sizeDelta = new Vector2(266.6667f, 210f); // original (184, 345) same way as previewSize
             AvatarPreview.rigTransform.parent.localScale = new Vector3(2f, 2f, 2f); // original (1, 1, 1)
             AvatarPreview.rigTransform.parent.localPosition = new Vector3(0f, -3.5f, 0f);
-            //AvatarPreview.rectTransform.localScale = new Vector3(1.25f, 1.25f, 1.25f); // original (1, 1, 1)
-
-
         }
         MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("Back", () => MoreEyesMenu.ClosePage(true), MoreEyesMenu.transform, new Vector2(190, 30)));
         MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("Randomize", RandomizeEyeSelection, MoreEyesMenu.transform, new Vector2(270, 30)));
@@ -327,21 +319,20 @@ internal sealed class Menu
 
     private static void PupilLeftSliders()
     {
-
+        
     }
     private static void PupilRightSliders()
     {
-
+        
     }
     private static void IrisLeftSliders()
     {
-
+        
     }
     private static void IrisRightSliders()
     {
 
     }
-
 
     private static void RedSlider(int value)
     {
