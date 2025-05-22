@@ -4,31 +4,35 @@ using MenuLib.MonoBehaviors;
 using MoreEyes.Core;
 using MoreEyes.Core.ModCompats;
 using MoreEyes.EyeManagement;
-using Photon.Realtime;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
-using static System.Net.Mime.MediaTypeNames;
+using static UnityEngine.Rendering.DebugUI;
 
 namespace MoreEyes.Menus;
 
 internal sealed class Menu
 {
-    internal static REPOButton clickedButton;
     internal static REPOPopupPage MoreEyesMenu = new();
     internal static REPOAvatarPreview AvatarPreview;
-    internal static REPOLabel pupilLeft;
-    internal static REPOLabel pupilRight;
-    internal static REPOLabel irisLeft;
-    internal static REPOLabel irisRight;
+
+    internal static REPOButton clickedButton;
+    internal static REPOButton pupilLeft;
+    internal static REPOButton pupilRight;
+    internal static REPOButton irisLeft;
+    internal static REPOButton irisRight;
+
     internal static REPOLabel pupilLeftHeader;
     internal static REPOLabel pupilRightHeader;
     internal static REPOLabel irisLeftHeader;
     internal static REPOLabel irisRightHeader;
 
+    internal static REPOSlider redSlider;
+    internal static REPOSlider greenSlider;
+    internal static REPOSlider blueSlider;
 
     internal static void Initialize()
     {
@@ -57,7 +61,7 @@ internal sealed class Menu
         PatchedEyes patchedEyes = PatchedEyes.GetPatchedEyes(PlayerAvatar.instance);
         patchedEyes.GetPlayerMenuEyes(AvatarPreview.playerAvatarVisuals);
         patchedEyes.RandomizeEyes(PlayerAvatar.instance);
-        UpdateLabels();
+        UpdateButtons();
 
         CustomEyeManager.EmptyTrash();
     }
@@ -68,30 +72,36 @@ internal sealed class Menu
         PatchedEyes patchedEyes = PatchedEyes.GetPatchedEyes(PlayerAvatar.instance);
         patchedEyes.GetPlayerMenuEyes(AvatarPreview.playerAvatarVisuals);
         patchedEyes.ResetEyes(PlayerAvatar.instance);
-        UpdateLabels();
+        UpdateButtons();
 
         CustomEyeManager.EmptyTrash();
     }
 
-    private static void UpdateLabels()
+    private static void UpdateButtons()
     {
         pupilLeft.labelTMP.text = ApplyGradient(CleanName(PlayerEyeSelection.localSelections.pupilLeft.Name), true);
         pupilRight.labelTMP.text = ApplyGradient(CleanName(PlayerEyeSelection.localSelections.pupilRight.Name), true);
         irisLeft.labelTMP.text = ApplyGradient(CleanName(PlayerEyeSelection.localSelections.irisLeft.Name), true);
         irisRight.labelTMP.text = ApplyGradient(CleanName(PlayerEyeSelection.localSelections.irisRight.Name), true);
     }
+    private static void UpdateSliders()
+    {
+
+    }
 
     private static void CreatePopupMenu()
     {
         if (MoreEyesMenu.menuPage != null)
+        {
             return;
+        }
 
         PatchedEyes.GetPatchedEyes(PlayerAvatar.instance);
 
-        MoreEyesMenu = MenuAPI.CreateREPOPopupPage(ApplyGradient("More Eyes"), false, true, 0f, new Vector2(-150f, 0f));
+        MoreEyesMenu = MenuAPI.CreateREPOPopupPage(ApplyGradient("More Eyes"), false, true, 0f, new Vector2(-150f, 5f));
         if (SemiFunc.MenuLevel())
         {
-            AvatarPreview = MenuAPI.CreateREPOAvatarPreview(MoreEyesMenu.transform, new Vector2(471.25f, 151.5f), true, new Color(0f, 0f, 0f, 0.58f));
+            AvatarPreview = MenuAPI.CreateREPOAvatarPreview(MoreEyesMenu.transform, new Vector2(471.25f, 156.5f), true, new Color(0f, 0f, 0f, 0.58f));
             AvatarPreview.previewSize = new Vector2(266.6667f, 500f); // original numbers (184, 345)
             AvatarPreview.rectTransform.sizeDelta = new Vector2(266.6667f, 210f); // original (184, 345) same way as previewSize
             AvatarPreview.rigTransform.parent.localScale = new Vector3(2f, 2f, 2f); // original (1, 1, 1)
@@ -100,42 +110,41 @@ internal sealed class Menu
 
 
         }
-        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("Back", () => MoreEyesMenu.ClosePage(true), MoreEyesMenu.transform, new Vector2(190, 20)));
-        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("Randomize", RandomizeEyeSelection, MoreEyesMenu.transform, new Vector2(270, 20)));
-        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("Reset", ResetEyeSelection, MoreEyesMenu.transform, new Vector2(400, 20)));
+        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("Back", () => MoreEyesMenu.ClosePage(true), MoreEyesMenu.transform, new Vector2(190, 30)));
+        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("Randomize", RandomizeEyeSelection, MoreEyesMenu.transform, new Vector2(270, 30)));
+        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("Reset", ResetEyeSelection, MoreEyesMenu.transform, new Vector2(400, 30)));
         CustomEyeManager.CheckForVanillaPupils();
 
-        pupilLeft = MenuAPI.CreateREPOLabel(ApplyGradient(CleanName(PlayerEyeSelection.localSelections.pupilLeft.Name), true), MoreEyesMenu.transform, new Vector2(160, 250));
-        pupilRight = MenuAPI.CreateREPOLabel(ApplyGradient(CleanName(PlayerEyeSelection.localSelections.pupilRight.Name), true), MoreEyesMenu.transform, new Vector2(310, 250));
-        irisLeft = MenuAPI.CreateREPOLabel(ApplyGradient(CleanName(PlayerEyeSelection.localSelections.irisLeft.Name), true), MoreEyesMenu.transform, new Vector2(160, 200));
-        irisRight = MenuAPI.CreateREPOLabel(ApplyGradient(CleanName(PlayerEyeSelection.localSelections.irisRight.Name), true), MoreEyesMenu.transform, new Vector2(310, 200));
+        pupilLeft = MenuAPI.CreateREPOButton(ApplyGradient(CleanName(PlayerEyeSelection.localSelections.pupilLeft.Name)), PupilLeftSliders, MoreEyesMenu.transform, new Vector2(215f, 265f));
+        pupilRight = MenuAPI.CreateREPOButton(ApplyGradient(CleanName(PlayerEyeSelection.localSelections.pupilRight.Name)), PupilRightSliders, MoreEyesMenu.transform, new Vector2(360f, 265f));
+        irisLeft = MenuAPI.CreateREPOButton(ApplyGradient(CleanName(PlayerEyeSelection.localSelections.irisLeft.Name)), IrisLeftSliders, MoreEyesMenu.transform, new Vector2(215, 215f));
+        irisRight = MenuAPI.CreateREPOButton(ApplyGradient(CleanName(PlayerEyeSelection.localSelections.irisRight.Name)), IrisRightSliders, MoreEyesMenu.transform, new Vector2(360, 215f));
 
         SetTextStyling([pupilLeft, pupilRight, irisLeft, irisRight]);
 
-        pupilLeftHeader = MenuAPI.CreateREPOLabel("Pupil Left", MoreEyesMenu.transform, new Vector2(160, 270));
-        pupilRightHeader = MenuAPI.CreateREPOLabel("Pupil Right", MoreEyesMenu.transform, new Vector2(310, 270));
-        irisLeftHeader = MenuAPI.CreateREPOLabel("Iris Left", MoreEyesMenu.transform, new Vector2(160, 220));
-        irisRightHeader = MenuAPI.CreateREPOLabel("Iris Right", MoreEyesMenu.transform, new Vector2(310, 220));
+        pupilLeftHeader = MenuAPI.CreateREPOLabel("Pupil Left", MoreEyesMenu.transform, new Vector2(151.5f, 285f));
+        pupilRightHeader = MenuAPI.CreateREPOLabel("Pupil Right", MoreEyesMenu.transform, new Vector2(297.5f, 285f));
+        irisLeftHeader = MenuAPI.CreateREPOLabel("Iris Left", MoreEyesMenu.transform, new Vector2(151.5f, 235f));
+        irisRightHeader = MenuAPI.CreateREPOLabel("Iris Right", MoreEyesMenu.transform, new Vector2(297.5f, 235f));
 
         SetHeaderTextStyling([pupilLeftHeader, pupilRightHeader, irisLeftHeader, irisRightHeader]);
 
-        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("<", LeftPupilPrev, pupilLeft.transform, new Vector2(45f, -5f)));
-        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("<", RightPupilPrev, pupilRight.transform, new Vector2(45f, -5f)));
-        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("<", LeftIrisPrev, irisLeft.transform, new Vector2(45f, -5f)));
-        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("<", RightIrisPrev, irisRight.transform, new Vector2(45f, -5f)));
-        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton(">", LeftPupilNext, pupilLeft.transform, GetRightOfElement(pupilLeft.rectTransform) + new Vector2(-75f, -5f)));
-        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton(">", RightPupilNext, pupilRight.transform, GetRightOfElement(pupilRight.rectTransform) + new Vector2(-75f, -5f)));
-        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton(">", LeftIrisNext, irisLeft.transform, GetRightOfElement(irisLeft.rectTransform) + new Vector2(-75f, -5f)));
-        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton(">", RightIrisNext, irisRight.transform, GetRightOfElement(irisRight.rectTransform) + new Vector2(-75f, -5f)));
+        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("<", LeftPupilPrev, pupilLeft.transform, new Vector2(-25f, -10f)));
+        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("<", RightPupilPrev, pupilRight.transform, new Vector2(-25f, -10f)));
+        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("<", LeftIrisPrev, irisLeft.transform, new Vector2(-25f, -10f)));
+        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("<", RightIrisPrev, irisRight.transform, new Vector2(-25f, -10f)));
+        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton(">", LeftPupilNext, pupilLeft.transform, new Vector2(70f, -10f)));
+        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton(">", RightPupilNext, pupilRight.transform, new Vector2(70f, -10f)));
+        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton(">", LeftIrisNext, irisLeft.transform, new Vector2(70f, -10f)));
+        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton(">", RightIrisNext, irisRight.transform, new Vector2(70f, -10f)));
 
-        // Material's RGB sliders
+        redSlider = MenuAPI.CreateREPOSlider("Red", ApplyGradient("Change red component"), RedSlider, MoreEyesMenu.transform, new Vector2(205f, 180f), min: 0, max: 255, barBehavior: REPOSlider.BarBehavior.UpdateWithValue);
+        greenSlider = MenuAPI.CreateREPOSlider("Green", ApplyGradient("Change green component"), GreenSlider, MoreEyesMenu.transform, new Vector2(205f, 135f), min: 0, max: 255, barBehavior: REPOSlider.BarBehavior.UpdateWithValue);
+        blueSlider = MenuAPI.CreateREPOSlider("Blue", ApplyGradient("Change blue component"), BlueSlider, MoreEyesMenu.transform, new Vector2(205f, 90f), min: 0, max: 255, barBehavior: REPOSlider.BarBehavior.UpdateWithValue);
 
-        // They should only pop up when someone clicks on .... thinking
-        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOSlider("Red", ApplyGradient("Change red component"), new Action<float>(RedSlider), MoreEyesMenu.transform, new Vector2(205f, 180f)));
-        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOSlider("Green", ApplyGradient("Change green component"), new Action<float>(GreenSlider), MoreEyesMenu.transform, new Vector2(205f, 135f)));
-        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOSlider("Blue", ApplyGradient("Change blue component"), new Action<float>(BlueSlider), MoreEyesMenu.transform, new Vector2(205f, 90f)));
+        SliderSetups([redSlider, greenSlider, blueSlider]);
 
-        SliderSetups(MoreEyesMenu.gameObject);
+        UpdateButtons();
 
         MoreEyesMenu.StartCoroutine(WaitForPlayerMenu());
     }
@@ -152,11 +161,11 @@ internal sealed class Menu
         Plugin.Spam("Replaced menu eyes!");
     }
 
-    private static void SetTextStyling(List<REPOLabel> labels)
+    private static void SetTextStyling(List<REPOButton> buttons)
     {
-        labels.Do(t =>
+        buttons.Do(t =>
         {
-            t.labelTMP.fontStyle = TMPro.FontStyles.SmallCaps;
+            t.overrideButtonSize = new Vector2(75f, 20f);
             t.labelTMP.fontSize = 18f;
             t.labelTMP.horizontalAlignment = TMPro.HorizontalAlignmentOptions.Center;
         });
@@ -173,7 +182,7 @@ internal sealed class Menu
         });
     }
 
-    private static void SliderSetups(GameObject root)
+    private static void SliderSetups(List<REPOSlider> root)
     {
         if (root == null) return;
 
@@ -181,66 +190,68 @@ internal sealed class Menu
         Color baseColor = material.GetColor(Shader.PropertyToID("_AlbedoColor"));
         Color compColor = new(1f - baseColor.r, 1f - baseColor.g, 1f - baseColor.b, baseColor.a);
 
-
-        foreach (Transform t in root.GetComponentsInChildren<Transform>(true))
+        foreach (REPOSlider slider in root)
         {
-            if (t.name == "SliderBG")
+            foreach (Transform t in slider.GetComponentsInChildren<Transform>(true))
             {
-                var raws = t.GetComponentsInChildren<RawImage>(true);
-                foreach (var raw in raws)
+                if (t.name == "SliderBG")
                 {
-                    if (raw != null)
+                    var raws = t.GetComponentsInChildren<RawImage>(true);
+                    foreach (var raw in raws)
                     {
-                        Color zeroAlpha = raw.color;
-                        zeroAlpha.a = 0f;
-                        raw.color = zeroAlpha;
-                    }
-                }
-            }
-            if (t.name == "Bar")
-            {
-                var raws = t.GetComponentsInChildren<RawImage>(true);
-                foreach (var raw in raws)
-                {
-                    if (raw != null)
-                    {
-                        float brightness = 0.299f * compColor.r + 0.587f * compColor.g + 0.114f * compColor.b;
-                        float minBrightness = 0.5f;
-                        if (brightness < minBrightness)
+                        if (raw != null)
                         {
-                            float boost = Mathf.Clamp01((minBrightness - brightness) * 0.5f);
-                            compColor = Color.Lerp(compColor, Color.white, boost);
+                            Color zeroAlpha = raw.color;
+                            zeroAlpha.a = 0f;
+                            raw.color = zeroAlpha;
                         }
-                        raw.color = compColor;
                     }
                 }
-            }
-            if (t.name == "Bar Text")
-            {
-                var texts = t.GetComponentsInChildren<TMPro.TextMeshProUGUI>(true);
-                foreach (var text in texts)
+                if (t.name == "Bar")
                 {
-                    if (text != null)
+                    var raws = t.GetComponentsInChildren<RawImage>(true);
+                    foreach (var raw in raws)
                     {
-                        float brightness = 0.299f * compColor.r + 0.587f * compColor.g + 0.114f * compColor.b;
-                        float minBrightness = 0.5f;
-                        if (brightness < minBrightness)
+                        if (raw != null)
                         {
-                            float boost = Mathf.Clamp01((minBrightness - brightness) * 0.5f);
-                            compColor = Color.Lerp(compColor, Color.white, boost);
+                            float brightness = 0.299f * compColor.r + 0.587f * compColor.g + 0.114f * compColor.b;
+                            float minBrightness = 0.5f;
+                            if (brightness < minBrightness)
+                            {
+                                float boost = Mathf.Clamp01((minBrightness - brightness) * 0.5f);
+                                compColor = Color.Lerp(compColor, Color.white, boost);
+                            }
+                            raw.color = compColor;
                         }
-                        text.color = compColor;
                     }
                 }
-            }
-            if (t.name == "Bar Text (1)")
-            {
-                var raws = t.GetComponentsInChildren<TMPro.TextMeshProUGUI>(true);
-                foreach (var raw in raws)
+                if (t.name == "Bar Text")
                 {
-                    if (raw != null)
+                    var texts = t.GetComponentsInChildren<TMPro.TextMeshProUGUI>(true);
+                    foreach (var text in texts)
                     {
-                        raw.color = Color.black;
+                        if (text != null)
+                        {
+                            float brightness = 0.299f * compColor.r + 0.587f * compColor.g + 0.114f * compColor.b;
+                            float minBrightness = 0.5f;
+                            if (brightness < minBrightness)
+                            {
+                                float boost = Mathf.Clamp01((minBrightness - brightness) * 0.5f);
+                                compColor = Color.Lerp(compColor, Color.white, boost);
+                            }
+                            text.color = compColor;
+                        }
+                    }
+                }
+                if (t.name == "Bar Text (1)")
+                {
+                    var raws = t.GetComponentsInChildren<TMPro.TextMeshProUGUI>(true);
+                    foreach (var raw in raws)
+                    {
+                        if (raw != null)
+                        {
+                            raw.color = Color.black;
+                        }
                     }
                 }
             }
@@ -314,62 +325,36 @@ internal sealed class Menu
         return (Vector2)allCorners[3];
     }
 
-
-    private enum EyePart { IrisLeft, IrisRight, PupilLeft, PupilRight };
-
-    private static EyePart currentSelection;
-
-    private static void ColorSlider(float value, int channelIndex)
+    private static void PupilLeftSliders()
     {
-        // CurrentPupil's material -> base color -> RGB
-        // CurrentIris's material -> base color -> RGB
 
-        CustomEyeManager.AllPatchedEyes.RemoveAll(p => p.playerRef == null);
-        PatchedEyes patchedEyes = PatchedEyes.GetPatchedEyes(PlayerAvatar.instance);
-        patchedEyes.GetPlayerMenuEyes(AvatarPreview.playerAvatarVisuals);
+    }
+    private static void PupilRightSliders()
+    {
 
-        // Apply all to playerAvatarVisuals
+    }
+    private static void IrisLeftSliders()
+    {
 
-        // Select when clicked on .... thinking
+    }
+    private static void IrisRightSliders()
+    {
 
-        Material material = currentSelection switch
-        {
-
-
-            EyePart.IrisLeft => PlayerEyeSelection.localSelections.irisLeft.material,
-            EyePart.IrisRight => PlayerEyeSelection.localSelections.irisRight.material,
-            EyePart.PupilLeft => PlayerEyeSelection.localSelections.pupilLeft.material,
-            EyePart.PupilRight => PlayerEyeSelection.localSelections.pupilRight.material,
-            _ => null
-        };
-
-        if (material == null) return;
-
-        Color color = material.color;
-        color[channelIndex] = value;
-        material.color = color;
-
-
-        /*
-            Color leftIrisColor = PlayerEyeSelection.localSelections.irisLeft.material.color;
-        Color rightIrisColor = PlayerEyeSelection.localSelections.irisRight.material.color;
-        Color leftPupilColor = PlayerEyeSelection.localSelections.pupilLeft.material.color;
-        Color rightPupilColor = PlayerEyeSelection.localSelections.pupilRight.material.color;
-
-        if ()
-
-        leftIrisColor[channelIndex] = normalized;
-        rightIrisColor[channelIndex] = normalized;
-        leftPupilColor[channelIndex] = normalized;
-        rightPupilColor[channelIndex] = normalized;
-
-        // Only change one of these values base on the slider
-        */
     }
 
-    private static void RedSlider(float value) => ColorSlider(value, 0);
-    private static void GreenSlider(float value) => ColorSlider(value, 1);
-    private static void BlueSlider(float value) => ColorSlider(value, 2);
+
+    private static void RedSlider(int value)
+    {
+
+    }
+    private static void GreenSlider(int value)
+    {
+
+    }
+    private static void BlueSlider(int value)
+    {
+
+    }
 
     private static void LeftIrisNext()
     {
@@ -391,7 +376,7 @@ internal sealed class Menu
 
         patchedEyes.SelectIris(newSelection, true);
 
-        UpdateLabels();
+        UpdateButtons();
 
         CustomEyeManager.EmptyTrash();
     }
@@ -415,7 +400,7 @@ internal sealed class Menu
 
         patchedEyes.SelectIris(newSelection, false);
 
-        UpdateLabels();
+        UpdateButtons();
 
         CustomEyeManager.EmptyTrash();
     }
@@ -440,7 +425,7 @@ internal sealed class Menu
 
         patchedEyes.SelectIris(newSelection, true);
 
-        UpdateLabels();
+        UpdateButtons();
 
         CustomEyeManager.EmptyTrash();
     }
@@ -464,7 +449,7 @@ internal sealed class Menu
 
         patchedEyes.SelectIris(newSelection, false);
 
-        UpdateLabels();
+        UpdateButtons();
 
         CustomEyeManager.EmptyTrash();
     }
@@ -490,7 +475,7 @@ internal sealed class Menu
         patchedEyes.SelectPupil(newSelection, true);
         patchedEyes.SelectIris(PlayerEyeSelection.localSelections.irisLeft, true);
 
-        UpdateLabels();
+        UpdateButtons();
 
         CustomEyeManager.EmptyTrash();
     }
@@ -516,7 +501,7 @@ internal sealed class Menu
         patchedEyes.SelectPupil(newSelection, false);
         patchedEyes.SelectIris(PlayerEyeSelection.localSelections.irisRight, false);
 
-        UpdateLabels();
+        UpdateButtons();
 
         CustomEyeManager.EmptyTrash();
     }
@@ -544,7 +529,7 @@ internal sealed class Menu
         patchedEyes.SelectPupil(newSelection, true);
         patchedEyes.SelectIris(PlayerEyeSelection.localSelections.irisLeft, true);
 
-        UpdateLabels();
+        UpdateButtons();
 
         CustomEyeManager.EmptyTrash();
     }
@@ -569,7 +554,7 @@ internal sealed class Menu
         patchedEyes.SelectPupil(newSelection, false);
         patchedEyes.SelectIris(PlayerEyeSelection.localSelections.irisRight, false);
 
-        UpdateLabels();
+        UpdateButtons();
 
         CustomEyeManager.EmptyTrash();
     }

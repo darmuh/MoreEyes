@@ -22,7 +22,7 @@ public class CustomIrisType
 
     public void VanillaSetup()
     {
-        Name = "No Iris";
+        Name = "None";
         isVanilla = true;
         AllIrisTypes.Add(this);
     }
