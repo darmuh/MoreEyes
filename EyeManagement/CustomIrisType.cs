@@ -47,7 +47,7 @@ public class CustomIrisType
             AllowedPos = Sides.Both;
         }
 
-        Name = CustomPupilType.CleanName(fileNameOnly);
+        Name = fileNameOnly;
 
         MyBundle.LoadAssetGameObject(Path, out Prefab);
         if (Prefab == null)

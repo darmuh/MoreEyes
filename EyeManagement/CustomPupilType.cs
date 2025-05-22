@@ -52,7 +52,7 @@ public class CustomPupilType
             AllowedPos = Sides.Both;
         }
 
-        Name = CleanName(fileNameOnly);
+        Name = fileNameOnly;
 
         MyBundle.LoadAssetGameObject(Path, out Prefab);
         if (Prefab == null)
@@ -63,18 +63,6 @@ public class CustomPupilType
         AllPupilTypes.Add(this);
         AllPupilTypes.Distinct();
         Plugin.Spam($"AllPupilTypes count - {AllPupilTypes.Count}");
-    }
-
-    public static string CleanName(string fileName)
-    {
-        string[] toRemove = ["pupil", "pupils", "iris", "left", "right"];
-
-        string cleaned = fileName.Replace('_', ' ');
-
-        foreach (var word in toRemove)
-            cleaned = cleaned.Replace(word, "", StringComparison.OrdinalIgnoreCase);
-
-        return string.Join(' ', cleaned.Split(' ', StringSplitOptions.RemoveEmptyEntries));
     }
 
 

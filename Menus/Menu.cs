@@ -4,11 +4,14 @@ using MenuLib.MonoBehaviors;
 using MoreEyes.Core;
 using MoreEyes.Core.ModCompats;
 using MoreEyes.EyeManagement;
+using Photon.Realtime;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.UI;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace MoreEyes.Menus;
 
@@ -72,10 +75,10 @@ internal sealed class Menu
 
     private static void UpdateLabels()
     {
-        pupilLeft.labelTMP.text = ApplyGradient(PlayerEyeSelection.localSelections.pupilLeft.Name, true);
-        pupilRight.labelTMP.text = ApplyGradient(PlayerEyeSelection.localSelections.pupilRight.Name, true);
-        irisLeft.labelTMP.text = ApplyGradient(PlayerEyeSelection.localSelections.irisLeft.Name, true);
-        irisRight.labelTMP.text = ApplyGradient(PlayerEyeSelection.localSelections.irisRight.Name, true);
+        pupilLeft.labelTMP.text = ApplyGradient(CleanName(PlayerEyeSelection.localSelections.pupilLeft.Name), true);
+        pupilRight.labelTMP.text = ApplyGradient(CleanName(PlayerEyeSelection.localSelections.pupilRight.Name), true);
+        irisLeft.labelTMP.text = ApplyGradient(CleanName(PlayerEyeSelection.localSelections.irisLeft.Name), true);
+        irisRight.labelTMP.text = ApplyGradient(CleanName(PlayerEyeSelection.localSelections.irisRight.Name), true);
     }
 
     private static void CreatePopupMenu()
@@ -92,8 +95,7 @@ internal sealed class Menu
             AvatarPreview.previewSize = new Vector2(266.6667f, 500f); // original numbers (184, 345)
             AvatarPreview.rectTransform.sizeDelta = new Vector2(266.6667f, 210f); // original (184, 345) same way as previewSize
             AvatarPreview.rigTransform.parent.localScale = new Vector3(2f, 2f, 2f); // original (1, 1, 1)
-            AvatarPreview.rigTransform.parent.localPosition = new Vector3();
-            AvatarPreview.rigTransform.parent.position = new Vector3(0f, -3.5f, -2000f); /// original (0, -0.686, -2000)
+            AvatarPreview.rigTransform.parent.localPosition = new Vector3(0f, -3.5f, 0f);
             //AvatarPreview.rectTransform.localScale = new Vector3(1.25f, 1.25f, 1.25f); // original (1, 1, 1)
 
 
@@ -103,10 +105,10 @@ internal sealed class Menu
         MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("Reset", ResetEyeSelection, MoreEyesMenu.transform, new Vector2(400, 20)));
         CustomEyeManager.CheckForVanillaPupils();
 
-        pupilLeft = MenuAPI.CreateREPOLabel(ApplyGradient(PlayerEyeSelection.localSelections.pupilLeft.Name, true), MoreEyesMenu.transform, new Vector2(160, 250));
-        pupilRight = MenuAPI.CreateREPOLabel(ApplyGradient(PlayerEyeSelection.localSelections.pupilRight.Name, true), MoreEyesMenu.transform, new Vector2(310, 250));
-        irisLeft = MenuAPI.CreateREPOLabel(ApplyGradient(PlayerEyeSelection.localSelections.irisLeft.Name, true), MoreEyesMenu.transform, new Vector2(160, 200));
-        irisRight = MenuAPI.CreateREPOLabel(ApplyGradient(PlayerEyeSelection.localSelections.irisRight.Name, true), MoreEyesMenu.transform, new Vector2(310, 200));
+        pupilLeft = MenuAPI.CreateREPOLabel(ApplyGradient(CleanName(PlayerEyeSelection.localSelections.pupilLeft.Name), true), MoreEyesMenu.transform, new Vector2(160, 250));
+        pupilRight = MenuAPI.CreateREPOLabel(ApplyGradient(CleanName(PlayerEyeSelection.localSelections.pupilRight.Name), true), MoreEyesMenu.transform, new Vector2(310, 250));
+        irisLeft = MenuAPI.CreateREPOLabel(ApplyGradient(CleanName(PlayerEyeSelection.localSelections.irisLeft.Name), true), MoreEyesMenu.transform, new Vector2(160, 200));
+        irisRight = MenuAPI.CreateREPOLabel(ApplyGradient(CleanName(PlayerEyeSelection.localSelections.irisRight.Name), true), MoreEyesMenu.transform, new Vector2(310, 200));
 
         SetTextStyling([pupilLeft, pupilRight, irisLeft, irisRight]);
 
@@ -132,6 +134,8 @@ internal sealed class Menu
         MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOSlider("Red", ApplyGradient("Change red component"), new Action<float>(RedSlider), MoreEyesMenu.transform, new Vector2(205f, 180f)));
         MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOSlider("Green", ApplyGradient("Change green component"), new Action<float>(GreenSlider), MoreEyesMenu.transform, new Vector2(205f, 135f)));
         MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOSlider("Blue", ApplyGradient("Change blue component"), new Action<float>(BlueSlider), MoreEyesMenu.transform, new Vector2(205f, 90f)));
+
+        SliderSetups(MoreEyesMenu.gameObject);
 
         MoreEyesMenu.StartCoroutine(WaitForPlayerMenu());
     }
@@ -169,10 +173,94 @@ internal sealed class Menu
         });
     }
 
-    public static string ApplyGradient(string input, bool inverse = false, float minBrightness = 0.15f)
+    private static void SliderSetups(GameObject root)
+    {
+        if (root == null) return;
+
+        Material material = PlayerAvatar.instance.playerHealth.bodyMaterial;
+        Color baseColor = material.GetColor(Shader.PropertyToID("_AlbedoColor"));
+        Color compColor = new(1f - baseColor.r, 1f - baseColor.g, 1f - baseColor.b, baseColor.a);
+
+
+        foreach (Transform t in root.GetComponentsInChildren<Transform>(true))
+        {
+            if (t.name == "SliderBG")
+            {
+                var raws = t.GetComponentsInChildren<RawImage>(true);
+                foreach (var raw in raws)
+                {
+                    if (raw != null)
+                    {
+                        Color zeroAlpha = raw.color;
+                        zeroAlpha.a = 0f;
+                        raw.color = zeroAlpha;
+                    }
+                }
+            }
+            if (t.name == "Bar")
+            {
+                var raws = t.GetComponentsInChildren<RawImage>(true);
+                foreach (var raw in raws)
+                {
+                    if (raw != null)
+                    {
+                        float brightness = 0.299f * compColor.r + 0.587f * compColor.g + 0.114f * compColor.b;
+                        float minBrightness = 0.5f;
+                        if (brightness < minBrightness)
+                        {
+                            float boost = Mathf.Clamp01((minBrightness - brightness) * 0.5f);
+                            compColor = Color.Lerp(compColor, Color.white, boost);
+                        }
+                        raw.color = compColor;
+                    }
+                }
+            }
+            if (t.name == "Bar Text")
+            {
+                var texts = t.GetComponentsInChildren<TMPro.TextMeshProUGUI>(true);
+                foreach (var text in texts)
+                {
+                    if (text != null)
+                    {
+                        float brightness = 0.299f * compColor.r + 0.587f * compColor.g + 0.114f * compColor.b;
+                        float minBrightness = 0.5f;
+                        if (brightness < minBrightness)
+                        {
+                            float boost = Mathf.Clamp01((minBrightness - brightness) * 0.5f);
+                            compColor = Color.Lerp(compColor, Color.white, boost);
+                        }
+                        text.color = compColor;
+                    }
+                }
+            }
+            if (t.name == "Bar Text (1)")
+            {
+                var raws = t.GetComponentsInChildren<TMPro.TextMeshProUGUI>(true);
+                foreach (var raw in raws)
+                {
+                    if (raw != null)
+                    {
+                        raw.color = Color.black;
+                    }
+                }
+            }
+        }
+    }
+    public static string CleanName(string fileName)
+    {
+        string[] toRemove = ["pupil", "pupils", "iris", "left", "right"];
+
+        string cleaned = fileName.Replace('_', ' ');
+
+        foreach (var word in toRemove)
+            cleaned = cleaned.Replace(word, "", StringComparison.OrdinalIgnoreCase);
+
+        return string.Join(' ', cleaned.Split(' ', StringSplitOptions.RemoveEmptyEntries));
+    }
+
+    private static string ApplyGradient(string input, bool inverse = false, float minBrightness = 0.15f)
     {
         Material material = PlayerAvatar.instance.playerHealth.bodyMaterial;
-
         Color baseColor = material.GetColor(Shader.PropertyToID("_AlbedoColor"));
         Color startColor = baseColor;
         Color endColor;
@@ -189,7 +277,7 @@ internal sealed class Menu
         {
             endColor = Color.Lerp(baseColor, Color.black, adjustmentAmount);
         }
-
+        // Using this one on pupil and iris names to break up using the same style too much
         if (inverse)
         {
             (endColor, startColor) = (startColor, endColor);
@@ -202,7 +290,7 @@ internal sealed class Menu
         {
             float t = (float)i / Mathf.Max(1, len - 1);
             Color lerped = Color.Lerp(startColor, endColor, t);
-
+            // Needed a min brightness because of darker colors (like black if you have custom colors on)
             float brightness = 0.299f * lerped.r + 0.587f * lerped.g + 0.114f * lerped.b;
             if (brightness < minBrightness)
             {
@@ -233,7 +321,6 @@ internal sealed class Menu
 
     private static void ColorSlider(float value, int channelIndex)
     {
-        // These might just be done in another class
         // CurrentPupil's material -> base color -> RGB
         // CurrentIris's material -> base color -> RGB
 
