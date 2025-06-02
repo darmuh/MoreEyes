@@ -33,6 +33,9 @@ internal sealed class Menu
     internal static REPOSlider greenSlider;
     internal static REPOSlider blueSlider;
 
+    internal static Material currentMaterial;
+    internal static Renderer renderer;
+
     internal static void Initialize()
     {
         Vector2 buttonPos;
@@ -82,6 +85,23 @@ internal sealed class Menu
         pupilRight.labelTMP.text = ApplyGradient(CleanName(PlayerEyeSelection.localSelections.pupilRight.Name), true);
         irisLeft.labelTMP.text = ApplyGradient(CleanName(PlayerEyeSelection.localSelections.irisLeft.Name), true);
         irisRight.labelTMP.text = ApplyGradient(CleanName(PlayerEyeSelection.localSelections.irisRight.Name), true);
+
+    }
+
+    private static void UpdateSliders(Color color)
+    {
+        if (currentMaterial == null) return;
+
+        currentMaterial.SetColor("_EmissionColor", color);
+
+        int red = Mathf.RoundToInt(color.r * 255f);
+        int green = Mathf.RoundToInt(color.g * 255f);
+        int blue = Mathf.RoundToInt(color.b * 255f);
+
+
+        RedSlider(red);
+        GreenSlider(green);
+        BlueSlider(blue);
     }
 
     private static void CreatePopupMenu()
@@ -94,14 +114,12 @@ internal sealed class Menu
         PatchedEyes.GetPatchedEyes(PlayerAvatar.instance);
 
         MoreEyesMenu = MenuAPI.CreateREPOPopupPage(ApplyGradient("More Eyes"), false, true, 0f, new Vector2(-150f, 5f));
-        if (SemiFunc.MenuLevel())
-        {
-            AvatarPreview = MenuAPI.CreateREPOAvatarPreview(MoreEyesMenu.transform, new Vector2(471.25f, 156.5f), true, new Color(0f, 0f, 0f, 0.58f));
-            AvatarPreview.previewSize = new Vector2(266.6667f, 500f); // original numbers (184, 345)
-            AvatarPreview.rectTransform.sizeDelta = new Vector2(266.6667f, 210f); // original (184, 345) same way as previewSize
-            AvatarPreview.rigTransform.parent.localScale = new Vector3(2f, 2f, 2f); // original (1, 1, 1)
-            AvatarPreview.rigTransform.parent.localPosition = new Vector3(0f, -3.5f, 0f);
-        }
+        
+        AvatarPreview = MenuAPI.CreateREPOAvatarPreview(MoreEyesMenu.transform, new Vector2(471.25f, 156.5f), true, new Color(0f, 0f, 0f, 0.58f));
+        AvatarPreview.previewSize = new Vector2(266.6667f, 500f); // original numbers (184, 345)
+        AvatarPreview.rectTransform.sizeDelta = new Vector2(266.6667f, 210f); // original (184, 345) same way as previewSize
+        AvatarPreview.rigTransform.parent.localScale = new Vector3(2f, 2f, 2f); // original (1, 1, 1)
+        AvatarPreview.rigTransform.parent.localPosition = new Vector3(0f, -3.5f, 0f);
         MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("Back", () => MoreEyesMenu.ClosePage(true), MoreEyesMenu.transform, new Vector2(190, 30)));
         MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("Randomize", RandomizeEyeSelection, MoreEyesMenu.transform, new Vector2(270, 30)));
         MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("Reset", ResetEyeSelection, MoreEyesMenu.transform, new Vector2(400, 30)));
@@ -319,32 +337,70 @@ internal sealed class Menu
 
     private static void PupilLeftSliders()
     {
-        
+        /*
+        PatchedEyes patchedEyes = PatchedEyes.GetPatchedEyes(PlayerAvatar.instance);
+        patchedEyes.GetPlayerMenuEyes(AvatarPreview.playerAvatarVisuals);
+        renderer = patchedEyes.playerSelections.irisRight.Prefab.GetComponent<MeshRenderer>();
+        */
+        //currentMaterial = renderer.material;
+        //Color color = currentMaterial.color;
+        //UpdateSliders(color);
     }
     private static void PupilRightSliders()
     {
-        
+        /*
+        renderer = PlayerEyeSelection.localSelections.pupilRight.Prefab.GetComponent<MeshRenderer>();
+        */
+        //currentMaterial = renderer.material;
+        //Color color = currentMaterial.color;
+        //UpdateSliders(color);
     }
     private static void IrisLeftSliders()
     {
-        
+        /*
+        renderer = PlayerEyeSelection.localSelections.irisLeft.Prefab.GetComponent<MeshRenderer>();
+        */
+        //currentMaterial = renderer.material;
+        //Color color = currentMaterial.color;
+        //UpdateSliders(color);
     }
     private static void IrisRightSliders()
     {
-
+        /*
+        PatchedEyes patchedEyes = PatchedEyes.GetPatchedEyes(PlayerAvatar.instance);
+        renderer = patchedEyes.playerSelections.irisRight.Prefab.gameObject.GetComponent<Renderer>();
+        */
+        //currentMaterial = renderer.material;
+        //Color color = currentMaterial.color;
+        //UpdateSliders(color);
     }
 
     private static void RedSlider(int value)
     {
+        if (currentMaterial == null) return;
 
+        float red = value / 255f;
+        Color color = currentMaterial.GetColor("_EmissionColor");
+        color.r = red;
+        currentMaterial.SetColor("_EmissionColor", color);
     }
     private static void GreenSlider(int value)
     {
+        if (currentMaterial == null) return;
 
+        float green = value / 255f;
+        Color color = currentMaterial.GetColor("_EmissionColor");
+        color.g = green;
+        currentMaterial.SetColor("_EmissionColor", color);
     }
     private static void BlueSlider(int value)
     {
+        if (currentMaterial == null) return;
 
+        float blue = value / 255f;
+        Color color = currentMaterial.GetColor("_EmissionColor");
+        color.b = blue;
+        currentMaterial.SetColor("_EmissionColor", color);
     }
 
     private static void LeftIrisNext()

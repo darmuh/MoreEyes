@@ -1,6 +1,8 @@
 ﻿using HarmonyLib;
 using MoreEyes.EyeManagement;
 using System.Collections.Generic;
+using MoreEyes.Menus;
+using UnityEngine;
 
 namespace MoreEyes.Core;
 
@@ -13,11 +15,12 @@ public class LocalPlayerMenuPatch
             return;
 
         Plugin.Spam("Getting menu player eyes, local player can't see their own pupils");
-        //Transform pupilLeft = __instance.playerEyes.pupilLeft;
-        //Transform pupilRight = __instance.playerEyes.pupilRight;
 
-        //CustomEyeManager.AllPatchedEyes.RemoveAll(p => p.playerRef == null);
-        //PatchedEyes patchedEyes = PatchedEyes.GetPatchedEyes(PlayerAvatar.instance);
+        CustomEyeManager.AllPatchedEyes.RemoveAll(p => p.playerRef == null);
+        PatchedEyes patchedEyes = PatchedEyes.GetPatchedEyes(PlayerAvatar.instance);
+
+        patchedEyes.GetPlayerMenuEyes(__instance);
+        PatchedEyes.SetLocalEyes();
 
         //patchedEyes.RandomizeEyes(PlayerAvatar.instance.playerName, pupilLeft, pupilRight);
     }
@@ -58,6 +61,36 @@ public class PlayerSpawnPatch
         }
 
         // UpdateObjectRefs playervisual eyes
-        patchedEyes.RandomizeEyes(player);
+        //patchedEyes.RandomizeEyes(player);
+
+        patchedEyes.SetSelectedEyes(player);
+    }
+}
+
+[HarmonyPatch(typeof(MenuPageEsc), "Update")]
+public class MenuEscPatch
+{
+    private static GameObject target;
+    public static void Postfix(MenuPageEsc __instance)
+    {
+        if (Menu.MoreEyesMenu.menuPage != null)
+        {
+            Transform playerAvatar = __instance.transform.Find("Menu Element Player Avatar");
+            if (playerAvatar != null)
+            {
+                target = playerAvatar.gameObject;
+            }
+            if (target != null && target.activeSelf)
+            {
+                target.SetActive(false);
+            }
+        }
+        else
+        {
+            if (target != null && !target.activeSelf)
+            {
+                target.SetActive(true);
+            }
+        }
     }
 }

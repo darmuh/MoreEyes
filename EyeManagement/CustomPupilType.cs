@@ -38,11 +38,11 @@ public class CustomPupilType
 
         Name = name[(name.LastIndexOf('/') + 1)..].Replace(".prefab", "");
 
-        if (name.EndsWith("_right", StringComparison.OrdinalIgnoreCase))
+        if (Name.EndsWith("_right", StringComparison.OrdinalIgnoreCase))
         {
             AllowedPos = Sides.Right;
         }
-        else if (name.EndsWith("_left", StringComparison.OrdinalIgnoreCase))
+        else if (Name.EndsWith("_left", StringComparison.OrdinalIgnoreCase))
         {
             AllowedPos = Sides.Left;
         }
