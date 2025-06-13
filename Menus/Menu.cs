@@ -34,14 +34,19 @@ internal sealed class Menu
     internal static REPOSlider blueSlider;
 
     internal static Material currentMaterial;
-    internal static Renderer renderer;
+    internal static MeshRenderer renderer;
 
     internal static EyePart currentEyePart;
     internal static EyeSide currentEyeSide;
 
+    private static int currentRed;
+    private static int currentGreen;
+    private static int currentBlue;
+
     internal static string eyePart;
     internal static string eyeSide;
     internal static string eyeStyle;
+
     internal static bool slidersOn;
 
     internal enum EyePart
@@ -91,19 +96,15 @@ internal sealed class Menu
 
     internal static void Initialize()
     {
-        Vector2 buttonPos;
-        if (ModCompats.IsSpawnManagerPresent && ModCompats.IsTwitchChatAPIPresent)
-        {
-            buttonPos = new Vector2(595f, 82f);
-        }
-        else if (ModCompats.IsSpawnManagerPresent || ModCompats.IsTwitchChatAPIPresent)
-        {
-            buttonPos = new Vector2(595f, 52f);
-        }
-        else
-        {
-            buttonPos = new Vector2(595f, 22f);
-        }
+        int modCount = 0;
+        if (ModCompats.IsSpawnManagerPresent) modCount++;
+        if (ModCompats.IsTwitchChatAPIPresent) modCount++;
+        if (ModCompats.IsTwitchTrollingPresent) modCount++;
+
+        float yOffsetStart = 22f;
+        float yOffsetPlus = 35f;
+
+        Vector2 buttonPos = new(595f, yOffsetStart + (yOffsetPlus * modCount));
 
         MenuAPI.AddElementToMainMenu(p => MenuAPI.CreateREPOButton("More Eyes", CreatePopupMenu, p, buttonPos));
         MenuAPI.AddElementToLobbyMenu(p => MenuAPI.CreateREPOButton("More Eyes", CreatePopupMenu, p, new Vector2(600f, 22f)));
@@ -142,20 +143,38 @@ internal sealed class Menu
         UpdateHeaders();
     }
 
+    private static void SetSliders(int red, int green, int blue)
+    {
+        redSlider.SetValue(red, false);
+        greenSlider.SetValue(green, false);
+        blueSlider.SetValue(blue, false);
+
+        currentRed = red;
+        currentGreen = green;
+        currentBlue = blue;
+    }
+
     private static void UpdateSliders(Color color)
     {
         if (currentMaterial == null) return;
-
-        currentMaterial.SetColor("_EmissionColor", color);
 
         int red = Mathf.RoundToInt(color.r * 255f);
         int green = Mathf.RoundToInt(color.g * 255f);
         int blue = Mathf.RoundToInt(color.b * 255f);
 
-
         RedSlider(red);
         GreenSlider(green);
         BlueSlider(blue);
+
+        SetSliders(currentRed, currentGreen, currentBlue);
+
+    }
+    private static void UpdateMaterialColor()
+    {
+        if (currentMaterial == null) return;
+
+        Color newColor = new(currentRed / 255f, currentGreen / 255f, currentBlue / 255f);
+        currentMaterial.SetColor("_EmissionColor", newColor);
     }
 
     private static void UpdateHeaders()
@@ -426,14 +445,10 @@ internal sealed class Menu
         eyeStyle = pupilLeft.labelTMP.text;
         UpdateHeaders();
 
-        /*
-        PatchedEyes patchedEyes = PatchedEyes.GetPatchedEyes(PlayerAvatar.instance);
-        patchedEyes.GetPlayerMenuEyes(AvatarPreview.playerAvatarVisuals);
-        renderer = patchedEyes.playerSelections.irisRight.Prefab.GetComponent<MeshRenderer>();
-        */
-        //currentMaterial = renderer.material;
-        //Color color = currentMaterial.color;
-        //UpdateSliders(color);
+        renderer = PlayerEyeSelection.localSelections.pupilLeft.Prefab.GetComponentInChildren<MeshRenderer>();
+        currentMaterial = renderer.material;
+        Color color = currentMaterial.GetColor("_EmissionColor");
+        UpdateSliders(color);
     }
     private static void PupilRightSliders()
     {
@@ -450,12 +465,10 @@ internal sealed class Menu
         eyeStyle = pupilRight.labelTMP.text;
         UpdateHeaders();
 
-        /*
-        renderer = PlayerEyeSelection.localSelections.pupilRight.Prefab.GetComponent<MeshRenderer>();
-        */
-        //currentMaterial = renderer.material;
-        //Color color = currentMaterial.color;
-        //UpdateSliders(color);
+        renderer = PlayerEyeSelection.localSelections.pupilRight.Prefab.GetComponentInChildren<MeshRenderer>();
+        currentMaterial = renderer.material;
+        Color color = currentMaterial.GetColor("_EmissionColor");
+        UpdateSliders(color);
     }
     private static void IrisLeftSliders()
     {
@@ -472,12 +485,11 @@ internal sealed class Menu
         eyeStyle = irisLeft.labelTMP.text;
         UpdateHeaders();
 
-        /*
-        renderer = PlayerEyeSelection.localSelections.irisLeft.Prefab.GetComponent<MeshRenderer>();
-        */
-        //currentMaterial = renderer.material;
-        //Color color = currentMaterial.color;
-        //UpdateSliders(color);
+
+        renderer = PlayerEyeSelection.localSelections.irisLeft.Prefab.GetComponentInChildren<MeshRenderer>();
+        currentMaterial = renderer.material;
+        Color color = currentMaterial.GetColor("_EmissionColor");
+        UpdateSliders(color);
     }
     private static void IrisRightSliders()
     {
@@ -494,41 +506,29 @@ internal sealed class Menu
         eyeStyle = irisRight.labelTMP.text;
         UpdateHeaders();
 
-        /*
-        PatchedEyes patchedEyes = PatchedEyes.GetPatchedEyes(PlayerAvatar.instance);
-        renderer = patchedEyes.playerSelections.irisRight.Prefab.gameObject.GetComponent<Renderer>();
-        */
-        //currentMaterial = renderer.material;
-        //Color color = currentMaterial.color;
-        //UpdateSliders(color);
+        renderer = PlayerEyeSelection.localSelections.irisRight.Prefab.GetComponentInChildren<MeshRenderer>();
+        currentMaterial = renderer.material;
+        Color color = currentMaterial.GetColor("_EmissionColor");
+        UpdateSliders(color);
     }
 
     private static void RedSlider(int value)
     {
-        if (currentMaterial == null) return;
+        currentRed = value;
+        UpdateMaterialColor();
 
-        float red = value / 255f;
-        Color color = currentMaterial.GetColor("_EmissionColor");
-        color.r = red;
-        currentMaterial.SetColor("_EmissionColor", color);
     }
     private static void GreenSlider(int value)
     {
-        if (currentMaterial == null) return;
+        currentGreen = value;
+        UpdateMaterialColor();
 
-        float green = value / 255f;
-        Color color = currentMaterial.GetColor("_EmissionColor");
-        color.g = green;
-        currentMaterial.SetColor("_EmissionColor", color);
     }
     private static void BlueSlider(int value)
     {
-        if (currentMaterial == null) return;
+        currentBlue = value;
+        UpdateMaterialColor();
 
-        float blue = value / 255f;
-        Color color = currentMaterial.GetColor("_EmissionColor");
-        color.b = blue;
-        currentMaterial.SetColor("_EmissionColor", color);
     }
 
     private static void LeftIrisNext()

@@ -12,6 +12,7 @@ namespace MoreEyes.Core;
 [BepInDependency("nickklmao.menulib", BepInDependency.DependencyFlags.HardDependency)]
 [BepInDependency("soundedsquash.spawnmanager", BepInDependency.DependencyFlags.SoftDependency)]
 [BepInDependency("TwitchChatAPI.REPO", BepInDependency.DependencyFlags.SoftDependency)]
+[BepInDependency("com.github.zehsteam.TwitchTrolling", BepInDependency.DependencyFlags.SoftDependency)]
 public class Plugin : BaseUnityPlugin
 {
     internal static ManualLogSource logger;

@@ -8,25 +8,25 @@ namespace MoreEyes.EyeManagement;
 
 public class CustomIrisType
 {
-    public string Name = string.Empty;
-    public string Path = string.Empty;
-    public GameObject Prefab = null!;
-    internal LoadedAsset MyBundle;
-    public Sides AllowedPos = Sides.Both;
-    public bool isVanilla = false;
-    public bool inUse = false;
+    internal string Name = string.Empty;
+    internal string Path = string.Empty;
+    internal GameObject Prefab = null!;
+    internal LoadedAsset MyBundle = null!;
+    internal Sides AllowedPos = Sides.Both;
+    internal bool isVanilla = false;
+    internal bool inUse = false;
 
     //easier to go through lists in UnityExplorer
     public override string ToString() => Name;
 
-    public void VanillaSetup()
+    internal void VanillaSetup()
     {
         Name = "None";
         isVanilla = true;
         AllIrisTypes.Add(this);
     }
 
-    public void IrisSetup(LoadedAsset bundle, string name)
+    internal void IrisSetup(LoadedAsset bundle, string name)
     {
         MyBundle = bundle;
         Path = name;
@@ -58,7 +58,7 @@ public class CustomIrisType
     }
 
     //note sure if we are gonna use this to be honest
-    public void MarkIrisUnused()
+    internal void MarkIrisUnused()
     {
         //might just use this lol
         inUse = false;

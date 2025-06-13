@@ -8,30 +8,29 @@ namespace MoreEyes.EyeManagement;
 
 public class CustomPupilType
 {
-    public string Name = string.Empty;
-    public string Path = string.Empty;
-    public GameObject Prefab = null!;
-    public LoadedAsset MyBundle = null!;
-    public Sides AllowedPos = Sides.Both;
-    public bool isVanilla = false;
-    public bool inUse = false;
+    internal string Name = string.Empty;
+    internal string Path = string.Empty;
+    internal GameObject Prefab = null!;
+    internal LoadedAsset MyBundle = null!;
+    internal Sides AllowedPos = Sides.Both;
+    internal bool isVanilla = false;
+    internal bool inUse = false;
 
     //internal static List<string> UsedPupilNames = [];
 
     //easier to go through lists in UnityExplorer
     public override string ToString() => Name;
 
-    public CustomPupilType(LoadedAsset bundle, string name)
+    internal CustomPupilType(LoadedAsset bundle, string name)
     {
         PupilSetup(bundle, name);
     }
 
-    public CustomPupilType(string name)
+    internal CustomPupilType(string name)
     {
         Name = name;
     }
-
-    public void PupilSetup(LoadedAsset bundle, string name)
+    internal void PupilSetup(LoadedAsset bundle, string name)
     {
         MyBundle = bundle;
         Path = name;
@@ -62,8 +61,7 @@ public class CustomPupilType
         Plugin.Spam($"AllPupilTypes count - {AllPupilTypes.Count}");
     }
 
-
-    public void VanillaSetup(bool isLeft, GameObject original)
+    internal void VanillaSetup(bool isLeft, GameObject original)
     {
         if(isLeft)
         {
