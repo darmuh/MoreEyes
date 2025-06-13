@@ -36,6 +36,59 @@ internal sealed class Menu
     internal static Material currentMaterial;
     internal static Renderer renderer;
 
+    internal static EyePart currentEyePart;
+    internal static EyeSide currentEyeSide;
+
+    internal static string eyePart;
+    internal static string eyeSide;
+    internal static string eyeStyle;
+    internal static bool slidersOn;
+
+    internal enum EyePart
+    {
+        Pupil,
+        Iris
+    }
+    internal enum EyeSide
+    {
+        Left,
+        Right
+    }
+
+
+    private static string GetEyePartName(EyePart part)
+    {
+        return part switch
+        {
+            EyePart.Pupil => "Pupil",
+            EyePart.Iris => "Iris",
+            _ => ""
+        };
+    }
+
+    private static string GetEyeSideName(EyeSide side)
+    {
+        return side switch
+        {
+            EyeSide.Left => "Left",
+            EyeSide.Right => "Right",
+            _ => ""
+        };
+    }
+
+    private static string GetEyeStyle()
+    {
+        return (currentEyePart, currentEyeSide) switch
+        {
+            (EyePart.Pupil, EyeSide.Left) => pupilLeft.labelTMP.text,
+            (EyePart.Pupil, EyeSide.Right) => pupilRight.labelTMP.text,
+            (EyePart.Iris, EyeSide.Left) => irisLeft.labelTMP.text,
+            (EyePart.Iris, EyeSide.Right) => irisRight.labelTMP.text,
+            _ => ""
+        };
+    }
+
+
     internal static void Initialize()
     {
         Vector2 buttonPos;
@@ -86,6 +139,7 @@ internal sealed class Menu
         irisLeft.labelTMP.text = ApplyGradient(CleanName(PlayerEyeSelection.localSelections.irisLeft.Name), true);
         irisRight.labelTMP.text = ApplyGradient(CleanName(PlayerEyeSelection.localSelections.irisRight.Name), true);
 
+        UpdateHeaders();
     }
 
     private static void UpdateSliders(Color color)
@@ -104,6 +158,22 @@ internal sealed class Menu
         BlueSlider(blue);
     }
 
+    private static void UpdateHeaders()
+    {
+        eyePart = GetEyePartName(currentEyePart);
+        eyeSide = GetEyeSideName(currentEyeSide);
+        eyeStyle = GetEyeStyle();
+        redSlider.labelTMP.text = $"{eyeStyle}";
+        greenSlider.labelTMP.text = ApplyGradient($"{eyePart}");
+        blueSlider.labelTMP.text = ApplyGradient($"{eyeSide}");
+    }
+
+    private static void BackButton()
+    {
+        slidersOn = true;
+        MoreEyesMenu.ClosePage(true);
+    }
+
     private static void CreatePopupMenu()
     {
         if (MoreEyesMenu.menuPage != null)
@@ -116,19 +186,21 @@ internal sealed class Menu
         MoreEyesMenu = MenuAPI.CreateREPOPopupPage(ApplyGradient("More Eyes"), false, true, 0f, new Vector2(-150f, 5f));
         
         AvatarPreview = MenuAPI.CreateREPOAvatarPreview(MoreEyesMenu.transform, new Vector2(471.25f, 156.5f), true, new Color(0f, 0f, 0f, 0.58f));
+
         AvatarPreview.previewSize = new Vector2(266.6667f, 500f); // original numbers (184, 345)
         AvatarPreview.rectTransform.sizeDelta = new Vector2(266.6667f, 210f); // original (184, 345) same way as previewSize
         AvatarPreview.rigTransform.parent.localScale = new Vector3(2f, 2f, 2f); // original (1, 1, 1)
         AvatarPreview.rigTransform.parent.localPosition = new Vector3(0f, -3.5f, 0f);
-        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("Back", () => MoreEyesMenu.ClosePage(true), MoreEyesMenu.transform, new Vector2(190, 30)));
+
+        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("Back", BackButton, MoreEyesMenu.transform, new Vector2(190, 30)));
         MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("Randomize", RandomizeEyeSelection, MoreEyesMenu.transform, new Vector2(270, 30)));
         MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("Reset", ResetEyeSelection, MoreEyesMenu.transform, new Vector2(400, 30)));
         CustomEyeManager.CheckForVanillaPupils();
 
-        pupilLeft = MenuAPI.CreateREPOButton(ApplyGradient(CleanName(PlayerEyeSelection.localSelections.pupilLeft.Name)), PupilLeftSliders, MoreEyesMenu.transform, new Vector2(215f, 265f));
-        pupilRight = MenuAPI.CreateREPOButton(ApplyGradient(CleanName(PlayerEyeSelection.localSelections.pupilRight.Name)), PupilRightSliders, MoreEyesMenu.transform, new Vector2(360f, 265f));
-        irisLeft = MenuAPI.CreateREPOButton(ApplyGradient(CleanName(PlayerEyeSelection.localSelections.irisLeft.Name)), IrisLeftSliders, MoreEyesMenu.transform, new Vector2(215, 215f));
-        irisRight = MenuAPI.CreateREPOButton(ApplyGradient(CleanName(PlayerEyeSelection.localSelections.irisRight.Name)), IrisRightSliders, MoreEyesMenu.transform, new Vector2(360, 215f));
+        pupilLeft = MenuAPI.CreateREPOButton(ApplyGradient(CleanName(PlayerEyeSelection.localSelections.pupilLeft.Name), true), PupilLeftSliders, MoreEyesMenu.transform, new Vector2(215f, 265f));
+        pupilRight = MenuAPI.CreateREPOButton(ApplyGradient(CleanName(PlayerEyeSelection.localSelections.pupilRight.Name), true), PupilRightSliders, MoreEyesMenu.transform, new Vector2(360f, 265f));
+        irisLeft = MenuAPI.CreateREPOButton(ApplyGradient(CleanName(PlayerEyeSelection.localSelections.irisLeft.Name), true), IrisLeftSliders, MoreEyesMenu.transform, new Vector2(215, 215f));
+        irisRight = MenuAPI.CreateREPOButton(ApplyGradient(CleanName(PlayerEyeSelection.localSelections.irisRight.Name), true), IrisRightSliders, MoreEyesMenu.transform, new Vector2(360, 215f));
 
         SetTextStyling([pupilLeft, pupilRight, irisLeft, irisRight]);
 
@@ -148,13 +220,17 @@ internal sealed class Menu
         MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton(">", LeftIrisNext, irisLeft.transform, new Vector2(70f, -10f)));
         MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton(">", RightIrisNext, irisRight.transform, new Vector2(70f, -10f)));
 
-        redSlider = MenuAPI.CreateREPOSlider("Red", ApplyGradient("Change red component"), RedSlider, MoreEyesMenu.transform, new Vector2(205f, 180f), min: 0, max: 255, barBehavior: REPOSlider.BarBehavior.UpdateWithValue);
-        greenSlider = MenuAPI.CreateREPOSlider("Green", ApplyGradient("Change green component"), GreenSlider, MoreEyesMenu.transform, new Vector2(205f, 135f), min: 0, max: 255, barBehavior: REPOSlider.BarBehavior.UpdateWithValue);
-        blueSlider = MenuAPI.CreateREPOSlider("Blue", ApplyGradient("Change blue component"), BlueSlider, MoreEyesMenu.transform, new Vector2(205f, 90f), min: 0, max: 255, barBehavior: REPOSlider.BarBehavior.UpdateWithValue);
+        redSlider = MenuAPI.CreateREPOSlider(ApplyGradient($"{eyeStyle}"), "<color=#FF0000>Red</color>", RedSlider, MoreEyesMenu.transform, new Vector2(205f, 180f), min: 0, max: 255, barBehavior: REPOSlider.BarBehavior.UpdateWithValue);
+        greenSlider = MenuAPI.CreateREPOSlider(ApplyGradient($"{eyePart}"), "<color=#00FF00>Green</color>", GreenSlider, MoreEyesMenu.transform, new Vector2(205f, 135f), min: 0, max: 255, barBehavior: REPOSlider.BarBehavior.UpdateWithValue);
+        blueSlider = MenuAPI.CreateREPOSlider(ApplyGradient($"{eyeSide}"), "<color=#0000FF>Blue</color>", BlueSlider, MoreEyesMenu.transform, new Vector2(205f, 90f), min: 0, max: 255, barBehavior: REPOSlider.BarBehavior.UpdateWithValue);
 
         SliderSetups([redSlider, greenSlider, blueSlider]);
 
-        UpdateButtons();
+        redSlider.gameObject.SetActive(false);
+        greenSlider.gameObject.SetActive(false);
+        blueSlider.gameObject.SetActive(false);
+
+        slidersOn = false;
 
         MoreEyesMenu.StartCoroutine(WaitForPlayerMenu());
     }
@@ -337,6 +413,19 @@ internal sealed class Menu
 
     private static void PupilLeftSliders()
     {
+        if (!slidersOn)
+        {
+            redSlider.gameObject.SetActive(true);
+            greenSlider.gameObject.SetActive(true);
+            blueSlider.gameObject.SetActive(true);
+        }
+        slidersOn = true;
+
+        currentEyePart = EyePart.Pupil;
+        currentEyeSide = EyeSide.Left;
+        eyeStyle = pupilLeft.labelTMP.text;
+        UpdateHeaders();
+
         /*
         PatchedEyes patchedEyes = PatchedEyes.GetPatchedEyes(PlayerAvatar.instance);
         patchedEyes.GetPlayerMenuEyes(AvatarPreview.playerAvatarVisuals);
@@ -348,6 +437,19 @@ internal sealed class Menu
     }
     private static void PupilRightSliders()
     {
+        if (!slidersOn)
+        {
+            redSlider.gameObject.SetActive(true);
+            greenSlider.gameObject.SetActive(true);
+            blueSlider.gameObject.SetActive(true);
+        }
+        slidersOn = true;
+
+        currentEyePart = EyePart.Pupil;
+        currentEyeSide = EyeSide.Right;
+        eyeStyle = pupilRight.labelTMP.text;
+        UpdateHeaders();
+
         /*
         renderer = PlayerEyeSelection.localSelections.pupilRight.Prefab.GetComponent<MeshRenderer>();
         */
@@ -357,6 +459,19 @@ internal sealed class Menu
     }
     private static void IrisLeftSliders()
     {
+        if (!slidersOn)
+        {
+            redSlider.gameObject.SetActive(true);
+            greenSlider.gameObject.SetActive(true);
+            blueSlider.gameObject.SetActive(true);
+        }
+        slidersOn = true;
+
+        currentEyePart = EyePart.Iris;
+        currentEyeSide = EyeSide.Left;
+        eyeStyle = irisLeft.labelTMP.text;
+        UpdateHeaders();
+
         /*
         renderer = PlayerEyeSelection.localSelections.irisLeft.Prefab.GetComponent<MeshRenderer>();
         */
@@ -366,6 +481,19 @@ internal sealed class Menu
     }
     private static void IrisRightSliders()
     {
+        if (!slidersOn)
+        {
+            redSlider.gameObject.SetActive(true);
+            greenSlider.gameObject.SetActive(true);
+            blueSlider.gameObject.SetActive(true);
+        }
+        slidersOn = true;
+
+        currentEyePart = EyePart.Iris;
+        currentEyeSide = EyeSide.Right;
+        eyeStyle = irisRight.labelTMP.text;
+        UpdateHeaders();
+
         /*
         PatchedEyes patchedEyes = PatchedEyes.GetPatchedEyes(PlayerAvatar.instance);
         renderer = patchedEyes.playerSelections.irisRight.Prefab.gameObject.GetComponent<Renderer>();
