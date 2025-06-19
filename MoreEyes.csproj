@@ -53,10 +53,6 @@
       <HintPath>..\..\Gale\repo\profiles\dev\BepInEx\plugins\nickklmao-MenuLib\MenuLib.dll</HintPath>
     </Reference>
   </ItemGroup>
-  
-  <ItemGroup>
-    <Folder Include="SetupTutorial\" />
-  </ItemGroup>
     
   
   <!-- Import settings from .csproj.user file -->
