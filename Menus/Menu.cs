@@ -364,7 +364,7 @@ internal sealed class Menu
     }
     public static string CleanName(string fileName)
     {
-        string[] toRemove = ["pupil", "pupils", "iris", "left", "right"];
+        string[] toRemove = ["pupil", "pupils", "iris", "irises", "left", "right"];
 
         string cleaned = fileName.Replace('_', ' ');
 
