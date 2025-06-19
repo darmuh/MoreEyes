@@ -14,5 +14,32 @@ Customize your own player model however you like!
 ![](https://media.discordapp.net/attachments/1348729665879015565/1348780866683277415/image.png?ex=67db4191&is=67d9f011&hm=fbb1c2e2fdc180bec36b08393ecd0876b9b5f2d7d09b292d1bd9dbeb2aa9139b&=&format=webp&quality=lossless)
 
 
+## How To Add Your Own
+
+1) You will need to follow [Installation Guide of Unity Repo Patcher](https://github.com/Kesomannen/unity-repo-project-patcher)
+2) Put the `PlayerAvatar` in the scene and click on one of the pupils
+3) Export `mesh_pupil_r` or `mesh_pupil_l` in FBX format
+     a) Import `FBX Exporter` if you don't have it already [Window -> Package Manager -> On the top left of the popup "Unity Registry" and on the top right in the search bar write "FBX" it should come up
+     b) Right click on one of the gameobject previously mentioned -> Export To FBX
+     c) Give it an Export Path of your choosing, Export Format: `Binary`, Include: `Model(s) Only` - everything else can remain the same
+4) Open Blender and Import the fbx file
+5) Duplicate it, we want to keep the original for reference (You can make a bigger pupil, iris whatever its up to you)
+6) Once you are done, you can remove the original model and export the model as an FBX file
+     a) Create a folder in unity where you would have your pupils, irises and then Right Click -> Show In Explorer -> Copy the path
+     b) Go back to blender -> File -> Export -> FBX -> Paste path, and then export ONLY the mesh (Object types: Meshes, nothing else)
+7) In unity what you want to do is create a new Gameobject, have it named in this format: cat_pupil_right , diamond_iris_left
+     a) Add components : Mesh Filter and Mesh Renderer.
+     b) Add your mesh (inside the fbx) to the filter
+     c) Apply `Player Avatar - Pupil` material to Mesh Renderer
+     d) Save the GameObject as a Prefab by dragging it into your folder
+8) Now you will need an assetbundle builder you can either use (add it in a similar way how you were taught in 1) guide
+     a) [AssetBundle Browser](https://github.com/Unity-Technologies/AssetBundles-Browser) <- old unity assetbundle builder, has been deprecated but still works just fine, you wont have issues with this for these kind of projects
+     b) [CR AssetBundle Builder](https://github.com/XuuXiaolan/CR-AssetBundle-Builder) <- newer assetbundle builder made by [Xu](https://github.com/XuuXiaolan) and has more features tailored to projects with several assetbundles
+9) Put all your pupil and iris prefabs under the same assetbundle and then build your bundle.
+10) Once you are done with that, follow [Thunderstore package format documentation](https://thunderstore.io/c/lethal-company/create/docs/), you can also use their [Markdown Preview](https://thunderstore.io/tools/markdown-preview/) and [Manifest Validator](https://thunderstore.io/tools/manifest-v1-validator/). One is a handy tool for constructing README and the other is a handy tool to check if you did your manifest correctly (this is self-evident BUT you need this mod as a dependency)
+
+For more instructions, tips look into [Setup Tutorial](https://github.com/s1ckboii/MoreEyes/tree/master/SetupTutorial)
+
+
 ## Credits to
-- [Darmuh](https://github.com/darmuh) for contributing and teaching me at the same time 🥇
+- [Darmuh](https://github.com/darmuh) for collaborating and teaching me at the same time 🥇
