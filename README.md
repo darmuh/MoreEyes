@@ -101,7 +101,7 @@ Follow the [Thunderstore package format documentation](https://thunderstore.io/c
 
 ### 📚 More Resources
 
-- [Setup Tutorial (MoreEyes)](https://github.com/s1ckboii/MoreEyes/tree/master/SetupTutorial)
+- [Setup Tutorial](https://github.com/s1ckboii/MoreEyes/tree/master/SetupTutorial)
 </details>
 
 ## Credits to
