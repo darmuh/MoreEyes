@@ -420,16 +420,6 @@ internal sealed class Menu
 
         return result;
     }
-
-
-    private static Vector2 GetRightOfElement(RectTransform rect)
-    {
-        Vector3[] allCorners = new Vector3[4];
-        rect.GetLocalCorners(allCorners);
-        Plugin.Spam($"Count: {allCorners.Length}");
-        return (Vector2)allCorners[3];
-    }
-
     private static void PupilLeftSliders()
     {
         if (!slidersOn)
@@ -445,10 +435,13 @@ internal sealed class Menu
         eyeStyle = pupilLeft.labelTMP.text;
         UpdateHeaders();
 
-        renderer = PlayerEyeSelection.localSelections.pupilLeft.Prefab.GetComponentInChildren<MeshRenderer>();
-        currentMaterial = renderer.material;
-        Color color = currentMaterial.GetColor("_EmissionColor");
-        UpdateSliders(color);
+        if (PlayerEyeSelection.localSelections.pupilLeft.Prefab != null)
+        {
+            renderer = PlayerEyeSelection.localSelections.pupilLeft.Prefab.GetComponentInChildren<MeshRenderer>();
+            currentMaterial = renderer.material;
+            Color color = currentMaterial.GetColor("_EmissionColor");
+            UpdateSliders(color);
+        }
     }
     private static void PupilRightSliders()
     {
@@ -465,10 +458,13 @@ internal sealed class Menu
         eyeStyle = pupilRight.labelTMP.text;
         UpdateHeaders();
 
-        renderer = PlayerEyeSelection.localSelections.pupilRight.Prefab.GetComponentInChildren<MeshRenderer>();
-        currentMaterial = renderer.material;
-        Color color = currentMaterial.GetColor("_EmissionColor");
-        UpdateSliders(color);
+        if (PlayerEyeSelection.localSelections.pupilRight.Prefab != null)
+        {
+            renderer = PlayerEyeSelection.localSelections.pupilRight.Prefab.GetComponentInChildren<MeshRenderer>();
+            currentMaterial = renderer.material;
+            Color color = currentMaterial.GetColor("_EmissionColor");
+            UpdateSliders(color);
+        }
     }
     private static void IrisLeftSliders()
     {
@@ -485,11 +481,13 @@ internal sealed class Menu
         eyeStyle = irisLeft.labelTMP.text;
         UpdateHeaders();
 
-
-        renderer = PlayerEyeSelection.localSelections.irisLeft.Prefab.GetComponentInChildren<MeshRenderer>();
-        currentMaterial = renderer.material;
-        Color color = currentMaterial.GetColor("_EmissionColor");
-        UpdateSliders(color);
+        if (PlayerEyeSelection.localSelections.irisLeft.Prefab != null)
+        {
+            renderer = PlayerEyeSelection.localSelections.irisLeft.Prefab.GetComponentInChildren<MeshRenderer>();
+            currentMaterial = renderer.material;
+            Color color = currentMaterial.GetColor("_EmissionColor");
+            UpdateSliders(color);
+        }
     }
     private static void IrisRightSliders()
     {
@@ -506,10 +504,13 @@ internal sealed class Menu
         eyeStyle = irisRight.labelTMP.text;
         UpdateHeaders();
 
-        renderer = PlayerEyeSelection.localSelections.irisRight.Prefab.GetComponentInChildren<MeshRenderer>();
-        currentMaterial = renderer.material;
-        Color color = currentMaterial.GetColor("_EmissionColor");
-        UpdateSliders(color);
+        if (PlayerEyeSelection.localSelections.irisRight.Prefab != null)
+        {
+            renderer = PlayerEyeSelection.localSelections.irisRight.Prefab.GetComponentInChildren<MeshRenderer>();
+            currentMaterial = renderer.material;
+            Color color = currentMaterial.GetColor("_EmissionColor");
+            UpdateSliders(color);
+        }
     }
 
     private static void RedSlider(int value)
