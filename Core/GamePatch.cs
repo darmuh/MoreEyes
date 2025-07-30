@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace MoreEyes.Core;
 
-[HarmonyPatch(typeof(PlayerAvatarVisuals), "Start")]
+[HarmonyPatch(typeof(PlayerAvatarVisuals), nameof(PlayerAvatarVisuals.Start))]
 public class LocalPlayerMenuPatch
 {
     public static void Postfix(PlayerAvatarVisuals __instance)
@@ -28,7 +28,7 @@ public class LocalPlayerMenuPatch
 
 //custom assets could probably be loaded before spawn
 //however, vanilla references will need to be created at first spawn
-[HarmonyPatch(typeof(PlayerAvatar), "Spawn")]
+[HarmonyPatch(typeof(PlayerAvatar), nameof(PlayerAvatar.Spawn))]
 public class PlayerSpawnPatch
 {
     public static void Postfix()
@@ -67,7 +67,7 @@ public class PlayerSpawnPatch
     }
 }
 
-[HarmonyPatch(typeof(MenuPageEsc), "Update")]
+[HarmonyPatch(typeof(MenuPageEsc), nameof(MenuPageEsc.Update))]
 public class MenuEscPatch
 {
     private static GameObject target;
