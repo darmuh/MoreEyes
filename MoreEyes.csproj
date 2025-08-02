@@ -78,7 +78,7 @@
 	<Target Name="DebugGalePaths" AfterTargets="BeforeBuild">
 		<PropertyGroup>
 			<MenuLibFullPath>$(GalePluginsFolder)\nickklmao-MenuLib\MenuLib.dll</MenuLibFullPath>
-			<GaleDebug>true</GaleDebug>
+			<GaleDebug>false</GaleDebug>
 		</PropertyGroup>
 		
 		<!-- Using warning messages because regular messages get deleted if error during build -->
