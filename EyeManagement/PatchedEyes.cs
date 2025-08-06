@@ -146,6 +146,7 @@ public class PatchedEyes : MonoBehaviour
 
             Transform pupilTransform = s.GetComponent<Transform>();
             pupilTransform.SetPositionAndRotation(p.transform.position, p.transform.rotation);
+            pupilTransform.localPosition = new(0, 0, -0.1067f); //matching vanila pupil localPosition
 
             current.inUse = false;
             newSelection.inUse = true;
