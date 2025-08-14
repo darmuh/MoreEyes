@@ -7,29 +7,34 @@ using static MoreEyes.EyeManagement.CustomEyeManager;
 
 namespace MoreEyes.EyeManagement;
 
-public class PatchedEyes : MonoBehaviour
+//Each player should have their own PatchedEyes component
+internal class PatchedEyes : MonoBehaviour
 {
     internal string playerID = "";
-    internal PlayerAvatar playerRef = null!;
+    internal PlayerAvatar Player { get; private set; } = null!;
+    internal static PatchedEyes Local 
+    { 
+        get { return PlayerAvatar.instance.GetComponent<PatchedEyes>(); }
+    }
 
-    public List<GameObject> LeftPupilObjects = [];
-    public List<GameObject> RightPupilObjects = [];
-    public List<GameObject> LeftIrisObjects = [];
-    public List<GameObject> RightIrisObjects = [];
+    public List<GameObject> LeftPupilObjects { get; set; } = [];
+    public List<GameObject> RightPupilObjects { get; set; } = [];
+    public List<GameObject> LeftIrisObjects { get; set; } = [];
+    public List<GameObject> RightIrisObjects { get; set; } = [];
 
     public Transform eyeLeftPos;
     public Transform eyeRightPos;
     public Transform eyeMenuLeft;
     public Transform eyeMenuRight;
 
-    internal PlayerEyeSelection playerSelections = null!;
+    internal PlayerEyeSelection currentSelections = null!;
 
     //Created this to try to standardize the creation of the component
     //also to get references to existing components attached to any players
     //added the playerref bit so that it's a little easier to find by code
     public static PatchedEyes GetPatchedEyes(PlayerAvatar player)
     {
-        AllPatchedEyes.RemoveAll(p => p.playerRef == null);
+        AllPatchedEyes.RemoveAll(p => p.Player == null);
         PatchedEyes TryGetFromID = AllPatchedEyes.FirstOrDefault(p => p.playerID == PlayerAvatar.instance.steamID);
 
         if (TryGetFromID == null)
@@ -41,7 +46,7 @@ public class PatchedEyes : MonoBehaviour
             {
                 tryGetComponent = player.gameObject.AddComponent<PatchedEyes>();
                 tryGetComponent.playerID = player.steamID;
-                tryGetComponent.playerRef = player;
+                tryGetComponent.Player = player;
                 AllPatchedEyes.Add(tryGetComponent);
                 return tryGetComponent;
             } 
@@ -52,18 +57,47 @@ public class PatchedEyes : MonoBehaviour
 
     public void UpdateRefs(PlayerAvatar player)
     {
-        playerRef = player;
-        eyeLeftPos = playerRef.playerAvatarVisuals.playerEyes.pupilLeft;
-        eyeRightPos = playerRef.playerAvatarVisuals.playerEyes.pupilRight;
+        Player = player;
+        eyeLeftPos = Player.playerAvatarVisuals.playerEyes.pupilLeft;
+        eyeRightPos = Player.playerAvatarVisuals.playerEyes.pupilRight;
     }
 
+    //this is important for object deletion
+    //The object hierarchy changed at some point and now requires two getchild(0)s instead of one
+    //getting the vanilla prefab is done a bit cleaner but for this I think getchild(0) twice is best
     public void GetPlayerMenuEyes(PlayerAvatarVisuals avatarVisuals)
     {
-        //Plugin.Spam("Getting menu player eyes, local player can't see their own pupils");
-        eyeMenuLeft = avatarVisuals.playerEyes.pupilLeft;
-        eyeMenuRight = avatarVisuals.playerEyes.pupilRight;
+        eyeMenuLeft = avatarVisuals.playerEyes.pupilLeft.GetChild(0);
+        eyeMenuRight = avatarVisuals.playerEyes.pupilRight.GetChild(0);
         if (eyeMenuLeft == null || eyeMenuRight == null)
             Plugin.logger.LogWarning("GetPlayerMenuEyes got null transform!");
+
+        SetSelectedEyes(Player);
+    }
+
+    internal void DeleteChildren(Transform parent)
+    {
+            for (int i = parent.childCount - 1; i >= 0; i--)
+                if (parent.GetChild(i) != null)
+                    Destroy(parent.GetChild(i).gameObject);
+    }
+
+    internal List<Transform> GetPupilParents(bool isLeft)
+    {
+        List<Transform> transforms = [];
+        if (isLeft)
+        {
+            transforms = [eyeMenuLeft, eyeLeftPos];
+            transforms.RemoveAll(t => t == null);
+        }
+        else
+        {
+            transforms = [eyeMenuRight, eyeRightPos];
+            transforms.RemoveAll(t => t == null);
+        }
+
+        return transforms;
+        
     }
 
     private void Destroy(GameObject gameObject)
@@ -72,21 +106,32 @@ public class PatchedEyes : MonoBehaviour
             Object.Destroy(gameObject);
     }
 
-    internal void GetPupilObjects(bool isLeft)
+    internal List<GameObject> GetPupilObjects(bool isLeft)
     {
         List<Transform> transforms;
         if (isLeft)
         {
             transforms = [eyeMenuLeft, eyeLeftPos];
             transforms.RemoveAll(t => t == null);
-            LeftPupilObjects = GetObjectsFromTransforms(transforms);
+            return GetObjectsFromTransforms(transforms);
         }
         else
         {
             transforms = [eyeMenuRight, eyeRightPos];
             transforms.RemoveAll(t => t == null);
-            RightPupilObjects = GetObjectsFromTransforms(transforms);
+            return GetObjectsFromTransforms(transforms);
         }
+    }
+
+    internal void GetAllPupilObjects()
+    {
+        List<Transform> leftTransforms = [eyeMenuLeft, eyeLeftPos];
+        List<Transform> rightTransforms = [eyeMenuRight, eyeRightPos];
+        leftTransforms.RemoveAll(t => t == null);
+        rightTransforms.RemoveAll(t => t == null);
+
+        LeftPupilObjects = GetObjectsFromTransforms(leftTransforms);
+        RightPupilObjects = GetObjectsFromTransforms(rightTransforms);
     }
 
     internal List<GameObject> GetObjectsFromTransforms(List<Transform> transforms)
@@ -108,24 +153,7 @@ public class PatchedEyes : MonoBehaviour
     //used to change existing pupil to new selection
     internal void SelectPupil(CustomPupilType newSelection, bool isLeft)
     {
-        List<GameObject> PupilObjects = [];
-        CustomPupilType current;
-
-        GetPupilObjects(isLeft);
-        //using isLeft bool to lower amount of params since these are all expected values
-        if (isLeft)
-        {
-            current = playerSelections.pupilLeft;
-            PupilObjects = LeftPupilObjects;
-        }
-        else
-        {
-            current = playerSelections.pupilRight;
-            PupilObjects = RightPupilObjects;
-        }
-
-        //Remove null refs
-        PupilObjects.RemoveAll(p => p == null);
+        //CustomPupilType current;
 
         if (newSelection.Prefab == null)
         {
@@ -133,36 +161,57 @@ public class PatchedEyes : MonoBehaviour
             return;
         }
 
-        Plugin.Spam($"PupilObjects count - {PupilObjects.Count}");
+        List<Transform> PupilParents = GetPupilParents(isLeft);
+        Vector3 ChildPos;
+        Quaternion ChildRot;
 
-        List<GameObject> newPupils = [];
+        Plugin.Spam($"PupilParents count - {PupilParents.Count}");
 
-        PupilObjects.Do(p =>
+        PupilParents.Do(p =>
         {
-            // Instantiate the new pupil
-            GameObject s = Instantiate(newSelection.Prefab, p.transform.parent);
+            if(p.GetChild(0) == null)
+            {
+                Plugin.WARNING($"Pupil parent {p.name} has no child!");
+                return;
+            }
+            
+            //Save position/rotation info of child
+            ChildPos = p.GetChild(0).position;
+            ChildRot = p.GetChild(0).rotation;
+            
+            //Delete child and any remaining children
+            DeleteChildren(p);
+
+            // Instantiate the new pupil with current parent transform
+            GameObject s = Instantiate(newSelection.Prefab, p);
             s.SetActive(true);
             Plugin.Spam("Instantiated new pupil from prefab");
 
+            //Set to saved child pos/rot
             Transform pupilTransform = s.GetComponent<Transform>();
-            pupilTransform.SetPositionAndRotation(p.transform.position, p.transform.rotation);
-            pupilTransform.localPosition = new(0, 0, -0.1067f); //matching vanila pupil localPosition
+            pupilTransform.SetPositionAndRotation(ChildPos, ChildRot);
 
-            current.inUse = false;
-            newSelection.inUse = true;
-            MarkedForDeletion.Add(p);
-            newPupils.Add(s);
+            if(!newSelection.isVanilla)
+                pupilTransform.localPosition = new(0, 0, -0.1067f); //matching vanila pupil localPosition if not vanilla
+
+            if (isLeft)
+            {
+                currentSelections.pupilLeft.inUse = false;
+                newSelection.inUse = true;
+                currentSelections.pupilLeft = newSelection;
+            }
+            else
+            {
+                currentSelections.pupilRight.inUse = false;
+                newSelection.inUse = true;
+                currentSelections.pupilRight = newSelection;
+            }
+                
             Plugin.Spam($"{p.name} marked for deletion");
         });
 
-        PupilObjects.RemoveAll(p => p == null);
-        PupilObjects.AddRange(newPupils);
         Plugin.logger.LogMessage($"Selected pupil {newSelection.Name}");
-
-        if (isLeft)
-            playerSelections.pupilLeft = newSelection;
-        else
-            playerSelections.pupilRight = newSelection;
+        GetAllPupilObjects();
 
         //might be costly to run this every selection, idk
         FileManager.WriteTextFile();
@@ -171,26 +220,21 @@ public class PatchedEyes : MonoBehaviour
     //used to change existing iris to new selection
     internal void SelectIris(CustomIrisType newSelection, bool isLeft)
     {
-        List<GameObject> PupilObjects;
+        List<GameObject> PupilObjects = GetPupilObjects(isLeft);
         List<GameObject> IrisObjects;
         CustomIrisType current;
-        
 
         if (isLeft)
-        {
-            PupilObjects = LeftPupilObjects;
+        { 
             IrisObjects = LeftIrisObjects;
-            current = playerSelections.irisLeft;
+            current = currentSelections.irisLeft;
         }
         else
         {
-            PupilObjects = RightPupilObjects;
             IrisObjects = RightIrisObjects;
-            current = playerSelections.irisRight;
+            current = currentSelections.irisRight;
         }
 
-        //remove null refs
-        PupilObjects.RemoveAll(p => p == null);
         if (PupilObjects.Count == 0)
         {
             Plugin.logger.LogError($"PupilObjects are null! Cannot set Iris for {newSelection.Name}");
@@ -219,11 +263,15 @@ public class PatchedEyes : MonoBehaviour
 
             GameObject IrisObject = Instantiate(newSelection.Prefab, p.transform);
             IrisObject.SetActive(true);
-            Plugin.Spam("Instantiated new iris");
+            Plugin.Spam($"Instantiated new iris on pupil {p.name}");
 
             Transform irisTransform = IrisObject.GetComponent<Transform>();
             irisTransform.SetPositionAndRotation(p.transform.position, p.transform.rotation);
 
+            if (isLeft && currentSelections.pupilLeft.isVanilla)
+                irisTransform.localPosition = new(0, 0, -0.1067f); //matching vanila pupil localPosition if not vanilla
+            if (!isLeft && currentSelections.pupilRight.isVanilla)
+                irisTransform.localPosition = new(0, 0, -0.1067f); //matching vanila pupil localPosition if not vanilla
 
             newSelection.inUse = true;
             newObjects.Add(IrisObject);
@@ -235,15 +283,23 @@ public class PatchedEyes : MonoBehaviour
         Plugin.logger.LogMessage($"Added iris with {newSelection.Name}");
 
         if (isLeft)
-            playerSelections.irisLeft = newSelection;
+        {
+            currentSelections.irisLeft = newSelection;
+            LeftIrisObjects = IrisObjects;
+        }
         else
-            playerSelections.irisRight = newSelection;
+        {
+            currentSelections.irisRight = newSelection;
+            RightIrisObjects = IrisObjects;
+        }
 
+        GetAllPupilObjects();
         //might be costly to run this every selection, idk
         FileManager.WriteTextFile();
     }
 
     //tries to get the pupil game object from a given transform
+    //pupil has to be the direct child of a given transform
     internal static bool TryGetPupil(Transform pupil, out GameObject pupilObject)
     {
         pupilObject = null!;
@@ -252,33 +308,30 @@ public class PatchedEyes : MonoBehaviour
             Plugin.logger.LogWarning("Unable to get Pupil from transform!");
             return false;
         }
-            
 
         pupilObject = pupil.GetChild(0).gameObject;
+        Plugin.Spam($"Got Pupil Object {pupilObject.name}");
         return true;
-    }
-
-    internal static void SetLocalEyes()
-    {
-        PatchedEyes local = GetPatchedEyes(PlayerAvatar.instance);
-        local.SetSelectedEyes(PlayerAvatar.instance);
     }
 
     internal void SetSelectedEyes(PlayerAvatar player)
     {
         UpdateRefs(player);
 
-        SelectPupil(playerSelections.pupilLeft, true);
-        SelectPupil(playerSelections.pupilRight, false);
+        PlayerEyeSelection playerChoices = PlayerEyeSelection.GetPlayerEyeSelection(player.steamID);
+        if (playerChoices == null)
+            return;
+
+        playerChoices.GetSavedSelection();
+
+        SelectPupil(playerChoices.pupilLeft, true);
+        SelectPupil(playerChoices.pupilRight, false);
         Plugin.Spam($"2 - {player.playerName} pupils have been updated!");
 
-        SelectIris(playerSelections.irisLeft, true);
-        SelectIris(playerSelections.irisRight, false);
+        SelectIris(playerChoices.irisLeft, true);
+        SelectIris(playerChoices.irisRight, false);
         Plugin.Spam($"3 - {player.playerName} iris have been updated!");
 
-        //Delete oldeyes gameobjects
-        //delayed to avoid issues with other eye selections
-        EmptyTrash();
     }
 
     // broke this out into a couple of different methods
@@ -317,7 +370,6 @@ public class PatchedEyes : MonoBehaviour
 
         //Delete oldeyes gameobjects
         //delayed to avoid issues with other eye selections
-        EmptyTrash();
     }
 
     internal void ResetEyes(PlayerAvatar player)
@@ -328,7 +380,7 @@ public class PatchedEyes : MonoBehaviour
         SelectPupil(VanillaPupilRight, false);
         SelectIris(VanillaIris, true);
         SelectIris(VanillaIris, false);
+        currentSelections.SetDefaultColors();
 
-        EmptyTrash();
     }
 }

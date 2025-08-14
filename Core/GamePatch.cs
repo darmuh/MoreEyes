@@ -1,57 +1,50 @@
 ﻿using HarmonyLib;
 using MoreEyes.EyeManagement;
-using System.Collections.Generic;
 using MoreEyes.Menus;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace MoreEyes.Core;
 
 [HarmonyPatch(typeof(PlayerAvatarVisuals), nameof(PlayerAvatarVisuals.Start))]
-public class LocalPlayerMenuPatch
+internal class LocalPlayerMenuPatch
 {
     public static void Postfix(PlayerAvatarVisuals __instance)
     {
         if (!__instance.isMenuAvatar)
             return;
 
-        Plugin.Spam("Getting menu player eyes, local player can't see their own pupils");
-
-        CustomEyeManager.AllPatchedEyes.RemoveAll(p => p.playerRef == null);
-        PatchedEyes patchedEyes = PatchedEyes.GetPatchedEyes(PlayerAvatar.instance);
-
-        patchedEyes.GetPlayerMenuEyes(__instance);
-        PatchedEyes.SetLocalEyes();
-
-        //patchedEyes.RandomizeEyes(PlayerAvatar.instance.playerName, pupilLeft, pupilRight);
+        Plugin.Spam("Getting menu player eyes");
+        CustomEyeManager.AllPatchedEyes.RemoveAll(p => p.Player == null);
+        PatchedEyes.Local.GetPlayerMenuEyes(__instance);
     }
 }
 
 //custom assets could probably be loaded before spawn
 //however, vanilla references will need to be created at first spawn
 [HarmonyPatch(typeof(PlayerAvatar), nameof(PlayerAvatar.Spawn))]
-public class PlayerSpawnPatch
+internal class PlayerSpawnPatch
 {
-    public static void Postfix()
+    public static void Postfix(PlayerAvatar __instance)
     {
         CustomEyeManager.CheckForVanillaPupils();
 
         // Placed this here now that we are only initializing types once
-        Plugin.Spam("Player spawned, updating pupils for all players!");
-        List<PlayerAvatar> allPlayers = SemiFunc.PlayerGetAll();
-        Plugin.Spam($"{allPlayers.Count} players detected");
-
-        allPlayers.Do(p => GetPlayerEyes(p));
+        Plugin.Spam($"Player ({__instance.playerName}) spawned, updating their eyes!");
+        GetPlayerEyes(__instance);
 
     }
 
     internal static void GetPlayerEyes(PlayerAvatar player)
     {
         Plugin.Spam($"GetPlayerEyes for {player.playerName}");
-        PlayerEyeSelection selections = new(player.steamID);
+        if (!PlayerEyeSelection.TryGetSelections(player.steamID, out PlayerEyeSelection selections))
+            selections = new(player.steamID);
+
         PatchedEyes patchedEyes = PatchedEyes.GetPatchedEyes(PlayerAvatar.instance);
-        
+
         //link these two
-        patchedEyes.playerSelections = selections;
+        patchedEyes.currentSelections = selections;
         selections.patchedEyes = patchedEyes;
 
         if (player.isLocal)
@@ -60,15 +53,12 @@ public class PlayerSpawnPatch
             return;
         }
 
-        // UpdateObjectRefs playervisual eyes
-        //patchedEyes.RandomizeEyes(player);
-
         patchedEyes.SetSelectedEyes(player);
     }
 }
 
 [HarmonyPatch(typeof(MenuPageEsc), nameof(MenuPageEsc.Update))]
-public class MenuEscPatch
+internal class MenuEscPatch
 {
     private static GameObject target;
     public static void Postfix(MenuPageEsc __instance)

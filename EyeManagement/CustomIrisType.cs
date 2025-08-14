@@ -6,11 +6,11 @@ using static MoreEyes.EyeManagement.CustomEyeManager;
 
 namespace MoreEyes.EyeManagement;
 
-public class CustomIrisType
+internal class CustomIrisType
 {
     internal string Name = string.Empty;
     internal string Path = string.Empty;
-    internal GameObject Prefab = null!;
+    internal GameObject Prefab = null!; //This object is used to instantiate the actual iris object and is re-used by all players
     internal LoadedAsset MyBundle = null!;
     internal Sides AllowedPos = Sides.Both;
     internal bool isVanilla = false;

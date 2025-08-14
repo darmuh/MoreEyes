@@ -1,16 +1,17 @@
 ﻿using MoreEyes.Core;
 using System;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 using static MoreEyes.EyeManagement.CustomEyeManager;
 
 namespace MoreEyes.EyeManagement;
 
-public class CustomPupilType
+internal class CustomPupilType
 {
     internal string Name = string.Empty;
     internal string Path = string.Empty;
-    internal GameObject Prefab = null!;
+    internal GameObject Prefab = null!; //This object is used to instantiate the actual pupil object and is re-used by all players
     internal LoadedAsset MyBundle = null!;
     internal Sides AllowedPos = Sides.Both;
     internal bool isVanilla = false;
@@ -77,7 +78,7 @@ public class CustomPupilType
         AddVanillaEye(original);
 
         AllPupilTypes.Add(this);
-        AllPupilTypes.Distinct();
+        AllPupilTypes.RemoveAll(p => p.Prefab == null);
     }
 
     internal void AddVanillaEye(GameObject eyeObject)
@@ -87,16 +88,5 @@ public class CustomPupilType
         Prefab.transform.SetParent(null);
         Prefab.SetActive(false);
         isVanilla = true;
-    }
-
-    public void MarkPupilUnused()
-    {
-        inUse = false;
-
-        if (PupilsInUse.Contains(this))
-        {
-            PupilsInUse.Remove(this);
-            Plugin.logger.LogInfo($"{Name} was marked as unused."); // We can get rid of this logger in the future
-        }      
     }
 }

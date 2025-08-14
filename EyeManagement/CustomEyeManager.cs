@@ -2,11 +2,12 @@
 using HarmonyLib;
 using MoreEyes.Core;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace MoreEyes.EyeManagement;
 
-public class CustomEyeManager
+internal class CustomEyeManager
 {
     public static List<CustomPupilType> AllPupilTypes = [];
     public static List<CustomIrisType> AllIrisTypes = [];
@@ -15,8 +16,6 @@ public class CustomEyeManager
 
     public static List<CustomPupilType> PupilsInUse = [];
     public static List<CustomIrisType> IrisInUse = [];
-
-    public static List<GameObject> MarkedForDeletion = [];
 
     public static bool isInitialized = false;
 
@@ -63,19 +62,34 @@ public class CustomEyeManager
 
     internal static void CheckForVanillaPupils()
     {
+        Transform leftPupilLocation = RecursiveFindMatchingChild(PlayerAvatar.instance.playerAvatarVisuals.playerEyes.pupilLeft, "mesh_pupil");
+        Transform rightPupilLocation = RecursiveFindMatchingChild(PlayerAvatar.instance.playerAvatarVisuals.playerEyes.pupilRight, "mesh_pupil");
 
         // Create vanilla pupils
         // This will create a copy of the object (prefab) for our class and disable it
-        if (VanillaPupilLeft.Prefab == null)
-        {
-            VanillaPupilLeft.VanillaSetup(true, PlayerAvatar.instance.playerAvatarVisuals.playerEyes.pupilLeft.GetChild(0).gameObject);
-        }
+        VanillaPupilLeft.VanillaSetup(true, leftPupilLocation.gameObject);
             
-        if(VanillaPupilRight.Prefab == null)
+        VanillaPupilRight.VanillaSetup(false, rightPupilLocation.gameObject); 
+    }
+
+    private static Transform RecursiveFindMatchingChild(Transform parent, string childName)
+    {
+        foreach (Transform child in parent)
         {
-            VanillaPupilRight.VanillaSetup(false, PlayerAvatar.instance.playerAvatarVisuals.playerEyes.pupilRight.GetChild(0).gameObject);
+            if (child.name.Contains(childName, System.StringComparison.InvariantCultureIgnoreCase))
+            {
+                return child;
+            }
+            else
+            {
+                Transform found = RecursiveFindMatchingChild(child, childName);
+                if (found != null)
+                {
+                    return found;
+                }
+            }
         }
-        
+        return null;
     }
 
     internal static void GetAllTypes(LoadedAsset loadedAsset)
@@ -112,10 +126,10 @@ public class CustomEyeManager
         });
     }
 
-    internal static void EmptyTrash()
+   /* internal static void EmptyTrash()
     {
         MarkedForDeletion.DoIf(d => d != null, d => Object.Destroy(d));
         MarkedForDeletion.Clear();
         Plugin.Spam("Deleted Trash");
-    }
+    } */
 }
