@@ -1,10 +1,10 @@
 ﻿using BepInEx;
-using HarmonyLib;
-using System.IO;
 using BepInEx.Logging;
-using System.Reflection;
-using MoreEyes.Menus;
+using HarmonyLib;
 using MoreEyes.EyeManagement;
+using MoreEyes.Menus;
+using System.IO;
+using System.Reflection;
 
 namespace MoreEyes.Core;
 
@@ -13,7 +13,7 @@ namespace MoreEyes.Core;
 [BepInDependency("soundedsquash.spawnmanager", BepInDependency.DependencyFlags.SoftDependency)]
 [BepInDependency("TwitchChatAPI.REPO", BepInDependency.DependencyFlags.SoftDependency)]
 [BepInDependency("com.github.zehsteam.TwitchTrolling", BepInDependency.DependencyFlags.SoftDependency)]
-public class Plugin : BaseUnityPlugin
+internal class Plugin : BaseUnityPlugin
 {
     internal static ManualLogSource logger;
     internal static System.Random Rand = new();
@@ -35,5 +35,10 @@ public class Plugin : BaseUnityPlugin
     {
         // Config item to disable dev logging here
         logger.LogDebug(message);
+    }
+
+    internal static void WARNING(string message)
+    {
+        logger.LogWarning(message);
     }
 }

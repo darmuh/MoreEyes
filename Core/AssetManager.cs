@@ -1,15 +1,14 @@
-﻿using HarmonyLib;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
 namespace MoreEyes.Core;
 
-public class LoadedAsset
+internal class LoadedAsset
 {
-    public string FilePath = string.Empty;
     public AssetBundle Bundle = null!;
-    public bool isLoaded = false;
+    internal string FilePath = string.Empty;
+    internal bool isLoaded = false;
 
     public LoadedAsset(string assetPath)
     {
@@ -51,7 +50,7 @@ public class LoadedAsset
         gameObject = Bundle.LoadAsset<GameObject>(name);
     }
 }
-public class AssetManager
+internal class AssetManager
 {
     internal static List<LoadedAsset> LoadedAssets = [];
     internal static LoadedAsset DefaultAssets = null!;
@@ -97,32 +96,5 @@ public class AssetManager
         }
 
         existing.UnloadBundle();
-    }
-
-
-    //this method may be beneficial if we want to reload all irises/pupils
-    internal static void UnloadAllBundles()
-    {
-        Plugin.Spam("Unloading ALL AssetBundles");
-        LoadedAssets.DoIf(x => x.isLoaded && x.Bundle != null, x => x.UnloadBundle());
-    }
-
-    public static void HotReloadAsset()
-    {
-        // Unload unused assets from memory and reload them when necessary (this is not finished yet - go ham at it if you want to)
-        UnloadAllBundles();
-
-
-        /*
-        foreach (var usedPupil in UsedPupilNames)
-        {
-            CustomPupilType used = new();
-            used.AddCustomPupils(usedPupil);
-            Plugin.logger.LogInfo($"Reloaded {usedPupil}");
-
-            List<PlayerAvatar> allPlayers = SemiFunc.PlayerGetAll();
-            allPlayers.ForEach(p => PlayerSpawnPatch.GetPlayerEyes(p)); // Reapply new eyes to all players
-        }
-        */
     }
 }

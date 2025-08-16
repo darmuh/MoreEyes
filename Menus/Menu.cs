@@ -5,9 +5,8 @@ using MoreEyes.Core;
 using MoreEyes.Core.ModCompats;
 using MoreEyes.EyeManagement;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -18,7 +17,7 @@ internal sealed class Menu
     internal static REPOPopupPage MoreEyesMenu = new();
     internal static REPOAvatarPreview AvatarPreview;
 
-    internal static REPOButton clickedButton;
+    //internal static REPOButton clickedButton;
     internal static REPOButton pupilLeft;
     internal static REPOButton pupilRight;
     internal static REPOButton irisLeft;
@@ -33,11 +32,10 @@ internal sealed class Menu
     internal static REPOSlider greenSlider;
     internal static REPOSlider blueSlider;
 
-    internal static Material currentMaterial;
-    internal static MeshRenderer renderer;
+    internal static object ColorSelection { get; private set; } = null!;
 
-    internal static EyePart currentEyePart;
-    internal static EyeSide currentEyeSide;
+    internal static EyePart CurrentEyePart { get; private set; }
+    internal static EyeSide CurrentEyeSide { get; private set; }
 
     private static int currentRed;
     private static int currentGreen;
@@ -47,7 +45,7 @@ internal sealed class Menu
     internal static string eyeSide;
     internal static string eyeStyle;
 
-    internal static bool slidersOn;
+    internal static bool SlidersOn { get; private set; } = false;
 
     internal enum EyePart
     {
@@ -83,7 +81,7 @@ internal sealed class Menu
 
     private static string GetEyeStyle()
     {
-        return (currentEyePart, currentEyeSide) switch
+        return (CurrentEyePart, CurrentEyeSide) switch
         {
             (EyePart.Pupil, EyeSide.Left) => pupilLeft.labelTMP.text,
             (EyePart.Pupil, EyeSide.Right) => pupilRight.labelTMP.text,
@@ -111,34 +109,26 @@ internal sealed class Menu
         MenuAPI.AddElementToEscapeMenu(p => MenuAPI.CreateREPOButton("More Eyes", CreatePopupMenu, p, new Vector2(600f, 22f)));
     }
 
-    private static void RandomizeEyeSelection()
+    private static void RandomizeLocalEyeSelection()
     {
         Plugin.Spam("Randomize Eye Selections!");
-        PatchedEyes patchedEyes = PatchedEyes.GetPatchedEyes(PlayerAvatar.instance);
-        patchedEyes.GetPlayerMenuEyes(AvatarPreview.playerAvatarVisuals);
-        patchedEyes.RandomizeEyes(PlayerAvatar.instance);
+        PatchedEyes.Local.RandomizeEyes();
         UpdateButtons();
-
-        CustomEyeManager.EmptyTrash();
     }
 
-    private static void ResetEyeSelection()
+    private static void ResetLocalEyeSelection()
     {
         Plugin.Spam("Reset Eye Selections!");
-        PatchedEyes patchedEyes = PatchedEyes.GetPatchedEyes(PlayerAvatar.instance);
-        patchedEyes.GetPlayerMenuEyes(AvatarPreview.playerAvatarVisuals);
-        patchedEyes.ResetEyes(PlayerAvatar.instance);
+        PatchedEyes.Local.ResetEyes();
         UpdateButtons();
-
-        CustomEyeManager.EmptyTrash();
     }
 
-    private static void UpdateButtons()
+    internal static void UpdateButtons()
     {
-        pupilLeft.labelTMP.text = ApplyGradient(CleanName(PlayerEyeSelection.localSelections.pupilLeft.Name), true);
-        pupilRight.labelTMP.text = ApplyGradient(CleanName(PlayerEyeSelection.localSelections.pupilRight.Name), true);
-        irisLeft.labelTMP.text = ApplyGradient(CleanName(PlayerEyeSelection.localSelections.irisLeft.Name), true);
-        irisRight.labelTMP.text = ApplyGradient(CleanName(PlayerEyeSelection.localSelections.irisRight.Name), true);
+        pupilLeft.labelTMP.text = ApplyGradient(CleanName(PatchedEyes.Local.currentSelections.pupilLeft.Name), true);
+        pupilRight.labelTMP.text = ApplyGradient(CleanName(PatchedEyes.Local.currentSelections.pupilRight.Name), true);
+        irisLeft.labelTMP.text = ApplyGradient(CleanName(PatchedEyes.Local.currentSelections.irisLeft.Name), true);
+        irisRight.labelTMP.text = ApplyGradient(CleanName(PatchedEyes.Local.currentSelections.irisRight.Name), true);
 
         UpdateHeaders();
     }
@@ -154,9 +144,26 @@ internal sealed class Menu
         currentBlue = blue;
     }
 
-    private static void UpdateSliders(Color color)
+    private static void UpdateSliders(object selection)
     {
-        if (currentMaterial == null) return;
+        if (selection == null) return;
+        Color color;
+
+        if (selection is CustomPupilType pupil)
+        {
+            ColorSelection = selection;
+            color = PatchedEyes.Local.currentSelections.GetColorOf(pupil);
+        }        
+        else if (selection is CustomIrisType iris)
+        {
+            ColorSelection = selection;
+            color = PatchedEyes.Local.currentSelections.GetColorOf(iris);
+        }
+        else
+        {
+            Plugin.WARNING("Selection is invalid type at UpdateSliders!");
+            return;
+        }
 
         int red = Mathf.RoundToInt(color.r * 255f);
         int green = Mathf.RoundToInt(color.g * 255f);
@@ -171,16 +178,22 @@ internal sealed class Menu
     }
     private static void UpdateMaterialColor()
     {
-        if (currentMaterial == null) return;
+        if (ColorSelection == null) return;
 
         Color newColor = new(currentRed / 255f, currentGreen / 255f, currentBlue / 255f);
-        currentMaterial.SetColor("_EmissionColor", newColor);
+
+        if (ColorSelection is CustomPupilType pupil)
+            PatchedEyes.Local.currentSelections.UpdateColorOf(pupil, newColor);
+        else if (ColorSelection is CustomIrisType iris)
+            PatchedEyes.Local.currentSelections.UpdateColorOf(iris, newColor);
+        else
+            Plugin.WARNING("Unable to set color of current selection! Invalid type!");
     }
 
     private static void UpdateHeaders()
     {
-        eyePart = GetEyePartName(currentEyePart);
-        eyeSide = GetEyeSideName(currentEyeSide);
+        eyePart = GetEyePartName(CurrentEyePart);
+        eyeSide = GetEyeSideName(CurrentEyeSide);
         eyeStyle = GetEyeStyle();
         redSlider.labelTMP.text = $"{eyeStyle}";
         greenSlider.labelTMP.text = ApplyGradient($"{eyePart}");
@@ -189,8 +202,12 @@ internal sealed class Menu
 
     private static void BackButton()
     {
-        slidersOn = true;
+        SlidersOn = true;
         MoreEyesMenu.ClosePage(true);
+
+        //Update selections if there are unsaved changes when menu is closed 
+        if (FileManager.UpdateWrite)
+            FileManager.WriteTextFile();
     }
 
     private static void CreatePopupMenu()
@@ -199,8 +216,6 @@ internal sealed class Menu
         {
             return;
         }
-
-        PatchedEyes.GetPatchedEyes(PlayerAvatar.instance);
 
         MoreEyesMenu = MenuAPI.CreateREPOPopupPage(ApplyGradient("More Eyes"), false, true, 0f, new Vector2(-150f, 5f));
         
@@ -212,14 +227,13 @@ internal sealed class Menu
         AvatarPreview.rigTransform.parent.localPosition = new Vector3(0f, -3.5f, 0f);
 
         MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("Back", BackButton, MoreEyesMenu.transform, new Vector2(190, 30)));
-        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("Randomize", RandomizeEyeSelection, MoreEyesMenu.transform, new Vector2(270, 30)));
-        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("Reset", ResetEyeSelection, MoreEyesMenu.transform, new Vector2(400, 30)));
-        CustomEyeManager.CheckForVanillaPupils();
+        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("Randomize", RandomizeLocalEyeSelection, MoreEyesMenu.transform, new Vector2(270, 30)));
+        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("Reset", ResetLocalEyeSelection, MoreEyesMenu.transform, new Vector2(400, 30)));
 
-        pupilLeft = MenuAPI.CreateREPOButton(ApplyGradient(CleanName(PlayerEyeSelection.localSelections.pupilLeft.Name), true), PupilLeftSliders, MoreEyesMenu.transform, new Vector2(215f, 265f));
-        pupilRight = MenuAPI.CreateREPOButton(ApplyGradient(CleanName(PlayerEyeSelection.localSelections.pupilRight.Name), true), PupilRightSliders, MoreEyesMenu.transform, new Vector2(360f, 265f));
-        irisLeft = MenuAPI.CreateREPOButton(ApplyGradient(CleanName(PlayerEyeSelection.localSelections.irisLeft.Name), true), IrisLeftSliders, MoreEyesMenu.transform, new Vector2(215, 215f));
-        irisRight = MenuAPI.CreateREPOButton(ApplyGradient(CleanName(PlayerEyeSelection.localSelections.irisRight.Name), true), IrisRightSliders, MoreEyesMenu.transform, new Vector2(360, 215f));
+        pupilLeft = MenuAPI.CreateREPOButton(ApplyGradient(CleanName(PatchedEyes.Local.currentSelections.pupilLeft.Name), true), PupilLeftSliders, MoreEyesMenu.transform, new Vector2(215f, 265f));
+        pupilRight = MenuAPI.CreateREPOButton(ApplyGradient(CleanName(PatchedEyes.Local.currentSelections.pupilRight.Name), true), PupilRightSliders, MoreEyesMenu.transform, new Vector2(360f, 265f));
+        irisLeft = MenuAPI.CreateREPOButton(ApplyGradient(CleanName(PatchedEyes.Local.currentSelections.irisLeft.Name), true), IrisLeftSliders, MoreEyesMenu.transform, new Vector2(215, 215f));
+        irisRight = MenuAPI.CreateREPOButton(ApplyGradient(CleanName(PatchedEyes.Local.currentSelections.irisRight.Name), true), IrisRightSliders, MoreEyesMenu.transform, new Vector2(360, 215f));
 
         SetTextStyling([pupilLeft, pupilRight, irisLeft, irisRight]);
 
@@ -249,21 +263,17 @@ internal sealed class Menu
         greenSlider.gameObject.SetActive(false);
         blueSlider.gameObject.SetActive(false);
 
-        slidersOn = false;
+        SlidersOn = false;
 
-        MoreEyesMenu.StartCoroutine(WaitForPlayerMenu());
+        MoreEyesMenu.OpenPage(false);
+
+        MoreEyesMenu.onEscapePressed += ShouldCloseMenu;
     }
 
-    //this may not need to be a coroutine
-    //originally made this an enum because I believed I needed to wait to update the visual
-    private static IEnumerator WaitForPlayerMenu()
+    private static bool ShouldCloseMenu()
     {
-        PatchedEyes local = PatchedEyes.GetPatchedEyes(PlayerAvatar.instance);
-        local.GetPlayerMenuEyes(AvatarPreview.playerAvatarVisuals);
-        yield return null;
-        PatchedEyes.SetLocalEyes();
-        MoreEyesMenu.OpenPage(false);
-        Plugin.Spam("Replaced menu eyes!");
+        BackButton();
+        return true;
     }
 
     private static void SetTextStyling(List<REPOButton> buttons)
@@ -420,97 +430,55 @@ internal sealed class Menu
 
         return result;
     }
-    private static void PupilLeftSliders()
+
+    private static void CommonSliders(EyeSide eyeSide, EyePart eyePart)
     {
-        if (!slidersOn)
+        if (!SlidersOn)
         {
             redSlider.gameObject.SetActive(true);
             greenSlider.gameObject.SetActive(true);
             blueSlider.gameObject.SetActive(true);
         }
-        slidersOn = true;
+        SlidersOn = true;
 
-        currentEyePart = EyePart.Pupil;
-        currentEyeSide = EyeSide.Left;
-        eyeStyle = pupilLeft.labelTMP.text;
+        CurrentEyePart = eyePart;
+        CurrentEyeSide = eyeSide;
+        eyeStyle = GetEyeStyle();
         UpdateHeaders();
 
-        if (PlayerEyeSelection.localSelections.pupilLeft.Prefab != null)
+        if(CurrentEyePart == EyePart.Pupil)
         {
-            renderer = PlayerEyeSelection.localSelections.pupilLeft.Prefab.GetComponentInChildren<MeshRenderer>();
-            currentMaterial = renderer.material;
-            Color color = currentMaterial.GetColor("_EmissionColor");
-            UpdateSliders(color);
+            if(eyeSide == EyeSide.Left && PatchedEyes.Local.currentSelections.pupilLeft.Prefab != null)
+                UpdateSliders(PatchedEyes.Local.currentSelections.pupilLeft);
+
+            if (eyeSide == EyeSide.Right && PatchedEyes.Local.currentSelections.pupilRight.Prefab != null)
+                UpdateSliders(PatchedEyes.Local.currentSelections.pupilRight);
         }
+        else
+        {
+            if (eyeSide == EyeSide.Left && PatchedEyes.Local.currentSelections.irisLeft.Prefab != null)
+                UpdateSliders(PatchedEyes.Local.currentSelections.irisLeft);
+
+            if (eyeSide == EyeSide.Right && PatchedEyes.Local.currentSelections.irisRight.Prefab != null)
+                UpdateSliders(PatchedEyes.Local.currentSelections.irisRight);
+        }
+    }
+
+    private static void PupilLeftSliders()
+    {
+        CommonSliders(EyeSide.Left, EyePart.Pupil);
     }
     private static void PupilRightSliders()
     {
-        if (!slidersOn)
-        {
-            redSlider.gameObject.SetActive(true);
-            greenSlider.gameObject.SetActive(true);
-            blueSlider.gameObject.SetActive(true);
-        }
-        slidersOn = true;
-
-        currentEyePart = EyePart.Pupil;
-        currentEyeSide = EyeSide.Right;
-        eyeStyle = pupilRight.labelTMP.text;
-        UpdateHeaders();
-
-        if (PlayerEyeSelection.localSelections.pupilRight.Prefab != null)
-        {
-            renderer = PlayerEyeSelection.localSelections.pupilRight.Prefab.GetComponentInChildren<MeshRenderer>();
-            currentMaterial = renderer.material;
-            Color color = currentMaterial.GetColor("_EmissionColor");
-            UpdateSliders(color);
-        }
+        CommonSliders(EyeSide.Right, EyePart.Pupil);
     }
     private static void IrisLeftSliders()
     {
-        if (!slidersOn)
-        {
-            redSlider.gameObject.SetActive(true);
-            greenSlider.gameObject.SetActive(true);
-            blueSlider.gameObject.SetActive(true);
-        }
-        slidersOn = true;
-
-        currentEyePart = EyePart.Iris;
-        currentEyeSide = EyeSide.Left;
-        eyeStyle = irisLeft.labelTMP.text;
-        UpdateHeaders();
-
-        if (PlayerEyeSelection.localSelections.irisLeft.Prefab != null)
-        {
-            renderer = PlayerEyeSelection.localSelections.irisLeft.Prefab.GetComponentInChildren<MeshRenderer>();
-            currentMaterial = renderer.material;
-            Color color = currentMaterial.GetColor("_EmissionColor");
-            UpdateSliders(color);
-        }
+        CommonSliders(EyeSide.Left, EyePart.Iris);
     }
     private static void IrisRightSliders()
     {
-        if (!slidersOn)
-        {
-            redSlider.gameObject.SetActive(true);
-            greenSlider.gameObject.SetActive(true);
-            blueSlider.gameObject.SetActive(true);
-        }
-        slidersOn = true;
-
-        currentEyePart = EyePart.Iris;
-        currentEyeSide = EyeSide.Right;
-        eyeStyle = irisRight.labelTMP.text;
-        UpdateHeaders();
-
-        if (PlayerEyeSelection.localSelections.irisRight.Prefab != null)
-        {
-            renderer = PlayerEyeSelection.localSelections.irisRight.Prefab.GetComponentInChildren<MeshRenderer>();
-            currentMaterial = renderer.material;
-            Color color = currentMaterial.GetColor("_EmissionColor");
-            UpdateSliders(color);
-        }
+        CommonSliders(EyeSide.Right, EyePart.Iris);
     }
 
     private static void RedSlider(int value)
@@ -529,211 +497,102 @@ internal sealed class Menu
     {
         currentBlue = value;
         UpdateMaterialColor();
-
     }
 
     private static void LeftIrisNext()
     {
-        CustomEyeManager.AllPatchedEyes.RemoveAll(p => p.playerRef == null);
-        PatchedEyes patchedEyes = PatchedEyes.GetPatchedEyes(PlayerAvatar.instance);
-        patchedEyes.GetPlayerMenuEyes(AvatarPreview.playerAvatarVisuals);
-
-        List<CustomIrisType> noRights = CustomEyeManager.AllIrisTypes.FindAll(i => i.AllowedPos != CustomEyeManager.Sides.Right);
-
-        noRights.Distinct();
-
-        int currentIndex = noRights.IndexOf(PlayerEyeSelection.localSelections.irisLeft);
-
-        Plugin.Spam($"CustomPupils Total: {CustomEyeManager.AllIrisTypes.Count}, Filtered: {noRights.Count}");
-
-        int selected = CycleIndex(currentIndex + 1, 0, noRights.Count - 1);
-
-        CustomIrisType newSelection = noRights[selected];
-
-        patchedEyes.SelectIris(newSelection, true);
-
-        UpdateButtons();
-
-        CustomEyeManager.EmptyTrash();
+        NewSelection(EyeSide.Left, EyePart.Iris, 1);
     }
     private static void RightIrisNext()
     {
-        CustomEyeManager.AllPatchedEyes.RemoveAll(p => p.playerRef == null);
-        PatchedEyes patchedEyes = PatchedEyes.GetPatchedEyes(PlayerAvatar.instance);
-        patchedEyes.GetPlayerMenuEyes(AvatarPreview.playerAvatarVisuals);
-
-        List<CustomIrisType> noLefts = CustomEyeManager.AllIrisTypes.FindAll(i => i.AllowedPos != CustomEyeManager.Sides.Left);
-
-        noLefts.Distinct();
-
-        int currentIndex = noLefts.IndexOf(PlayerEyeSelection.localSelections.irisRight);
-
-        Plugin.Spam($"CustomPupils Total: {CustomEyeManager.AllIrisTypes.Count}, Filtered: {noLefts.Count}");
-
-        int selected = CycleIndex(currentIndex + 1, 0, noLefts.Count - 1);
-
-        CustomIrisType newSelection = noLefts[selected];
-
-        patchedEyes.SelectIris(newSelection, false);
-
-        UpdateButtons();
-
-        CustomEyeManager.EmptyTrash();
+        NewSelection(EyeSide.Right, EyePart.Iris, 1);
     }
 
     private static void LeftIrisPrev()
     {
-        CustomEyeManager.AllPatchedEyes.RemoveAll(p => p.playerRef == null);
-        PatchedEyes patchedEyes = PatchedEyes.GetPatchedEyes(PlayerAvatar.instance);
-        patchedEyes.GetPlayerMenuEyes(AvatarPreview.playerAvatarVisuals);
-
-        List<CustomIrisType> noRights = CustomEyeManager.AllIrisTypes.FindAll(i => i.AllowedPos != CustomEyeManager.Sides.Right);
-
-        noRights.Distinct();
-
-        int currentIndex = noRights.IndexOf(PlayerEyeSelection.localSelections.irisLeft);
-
-        Plugin.Spam($"CustomPupils Total: {CustomEyeManager.AllIrisTypes.Count}, Filtered: {noRights.Count}");
-
-        int selected = CycleIndex(currentIndex - 1, 0, noRights.Count - 1);
-
-        CustomIrisType newSelection = noRights[selected];
-
-        patchedEyes.SelectIris(newSelection, true);
-
-        UpdateButtons();
-
-        CustomEyeManager.EmptyTrash();
+        NewSelection(EyeSide.Left, EyePart.Iris, -1);
     }
     private static void RightIrisPrev()
     {
-        CustomEyeManager.AllPatchedEyes.RemoveAll(p => p.playerRef == null);
-        PatchedEyes patchedEyes = PatchedEyes.GetPatchedEyes(PlayerAvatar.instance);
-        patchedEyes.GetPlayerMenuEyes(AvatarPreview.playerAvatarVisuals);
-
-        List<CustomIrisType> noLefts = CustomEyeManager.AllIrisTypes.FindAll(i => i.AllowedPos != CustomEyeManager.Sides.Left);
-
-        noLefts.Distinct();
-
-        int currentIndex = noLefts.IndexOf(PlayerEyeSelection.localSelections.irisRight);
-
-        Plugin.Spam($"CustomPupils Total: {CustomEyeManager.AllIrisTypes.Count}, Filtered: {noLefts.Count}");
-
-        int selected = CycleIndex(currentIndex - 1, 0, noLefts.Count - 1);
-
-        CustomIrisType newSelection = noLefts[selected];
-
-        patchedEyes.SelectIris(newSelection, false);
-
-        UpdateButtons();
-
-        CustomEyeManager.EmptyTrash();
+        NewSelection(EyeSide.Right, EyePart.Iris, -1);
     }
 
     private static void LeftPupilNext()
     {
-        CustomEyeManager.AllPatchedEyes.RemoveAll(p => p.playerRef == null);
-        PatchedEyes patchedEyes = PatchedEyes.GetPatchedEyes(PlayerAvatar.instance);
-        patchedEyes.GetPlayerMenuEyes(AvatarPreview.playerAvatarVisuals);
-
-        List<CustomPupilType> noRights = CustomEyeManager.AllPupilTypes.FindAll(i => i.AllowedPos != CustomEyeManager.Sides.Right);
-
-        noRights.Distinct();
-
-        int currentIndex = noRights.IndexOf(PlayerEyeSelection.localSelections.pupilLeft);
-
-        Plugin.Spam($"CustomPupils Total: {CustomEyeManager.AllPupilTypes.Count}, Filtered: {noRights.Count}");
-
-        int selected = CycleIndex(currentIndex + 1, 0, noRights.Count - 1);
-
-        CustomPupilType newSelection = noRights[selected];
-
-        patchedEyes.SelectPupil(newSelection, true);
-        patchedEyes.SelectIris(PlayerEyeSelection.localSelections.irisLeft, true);
-
-        UpdateButtons();
-
-        CustomEyeManager.EmptyTrash();
+        NewSelection(EyeSide.Left, EyePart.Pupil, 1);
     }
     private static void RightPupilNext()
     {
-        CustomEyeManager.AllPatchedEyes.RemoveAll(p => p.playerRef == null);
-        PatchedEyes patchedEyes = PatchedEyes.GetPatchedEyes(PlayerAvatar.instance);
-        patchedEyes.GetPlayerMenuEyes(AvatarPreview.playerAvatarVisuals);
-
-        List<CustomPupilType> noLefts = CustomEyeManager.AllPupilTypes.FindAll(i => i.AllowedPos != CustomEyeManager.Sides.Left);
-
-        noLefts.Distinct();
-        noLefts.Do(p => Plugin.Spam(p.Name));
-
-        int currentIndex = noLefts.IndexOf(PlayerEyeSelection.localSelections.pupilRight);
-
-        Plugin.Spam($"CustomPupils Total: {CustomEyeManager.AllPupilTypes.Count}, Filtered: {noLefts.Count}");
-
-        int selected = CycleIndex(currentIndex + 1, 0, noLefts.Count - 1);
-
-        CustomPupilType newSelection = noLefts[selected];
-
-        patchedEyes.SelectPupil(newSelection, false);
-        patchedEyes.SelectIris(PlayerEyeSelection.localSelections.irisRight, false);
-
-        UpdateButtons();
-
-        CustomEyeManager.EmptyTrash();
+        NewSelection(EyeSide.Right, EyePart.Pupil, 1);
     }
-
     private static void LeftPupilPrev()
     {
-        CustomEyeManager.AllPatchedEyes.RemoveAll(p => p.playerRef == null);
-        PatchedEyes patchedEyes = PatchedEyes.GetPatchedEyes(PlayerAvatar.instance);
-        patchedEyes.GetPlayerMenuEyes(AvatarPreview.playerAvatarVisuals);
-
-        List<CustomPupilType> noRights = CustomEyeManager.AllPupilTypes.FindAll(i => i.AllowedPos != CustomEyeManager.Sides.Right);
-
-        noRights.Distinct();
-
-        Plugin.Spam($"CustomPupils Total: {CustomEyeManager.AllPupilTypes.Count}, Filtered: {noRights.Count}");
-
-        int currentIndex = noRights.IndexOf(PlayerEyeSelection.localSelections.pupilLeft);
-
-        int selected = CycleIndex(currentIndex - 1, 0, noRights.Count - 1);
-
-        Plugin.Spam($"currentIndex = {currentIndex}, selected = {selected}");
-
-        CustomPupilType newSelection = noRights[selected];
-
-        patchedEyes.SelectPupil(newSelection, true);
-        patchedEyes.SelectIris(PlayerEyeSelection.localSelections.irisLeft, true);
-
-        UpdateButtons();
-
-        CustomEyeManager.EmptyTrash();
+        NewSelection(EyeSide.Left, EyePart.Pupil, -1);
     }
     private static void RightPupilPrev()
     {
-        CustomEyeManager.AllPatchedEyes.RemoveAll(p => p.playerRef == null);
-        PatchedEyes patchedEyes = PatchedEyes.GetPatchedEyes(PlayerAvatar.instance);
-        patchedEyes.GetPlayerMenuEyes(AvatarPreview.playerAvatarVisuals);
-
-        List<CustomPupilType> noLefts = CustomEyeManager.AllPupilTypes.FindAll(i => i.AllowedPos != CustomEyeManager.Sides.Left);
-
-        noLefts.Distinct();
-
-        int currentIndex = noLefts.IndexOf(PlayerEyeSelection.localSelections.pupilRight);
-
-        int selected = CycleIndex(currentIndex - 1, 0, noLefts.Count - 1);
-
-        Plugin.Spam($"CustomPupils Total: {CustomEyeManager.AllPupilTypes.Count}, Filtered: {noLefts.Count}");
-
-        CustomPupilType newSelection = noLefts[selected];
-
-        patchedEyes.SelectPupil(newSelection, false);
-        patchedEyes.SelectIris(PlayerEyeSelection.localSelections.irisRight, false);
-
-        UpdateButtons();
-
-        CustomEyeManager.EmptyTrash();
+        NewSelection(EyeSide.Right, EyePart.Pupil, -1);
     }
+
+    //Common method between all pupil/iris selections
+    private static void NewSelection(EyeSide side, EyePart part, int dir)
+    {
+        if (part == EyePart.Pupil)
+        {
+            List<CustomPupilType> options = [];
+
+            if (side == EyeSide.Left)
+                options = CustomEyeManager.AllPupilTypes.FindAll(i => i.AllowedPos != CustomEyeManager.Sides.Right);
+            else
+                options = CustomEyeManager.AllPupilTypes.FindAll(i => i.AllowedPos != CustomEyeManager.Sides.Left);
+
+            options.DistinctBy(p => p.Prefab);
+            Plugin.Spam($"CustomPupils Total: {CustomEyeManager.AllPupilTypes.Count}, Filtered: {options.Count}");
+            int currentIndex;
+
+            if(side == EyeSide.Left)
+                currentIndex = options.IndexOf(PatchedEyes.Local.currentSelections.pupilLeft);
+            else
+                currentIndex = options.IndexOf(PatchedEyes.Local.currentSelections.pupilRight);
+
+            int selected = CycleIndex(currentIndex + dir, 0, options.Count - 1);
+            Plugin.Spam($"currentIndex = {currentIndex}, selected = {selected}");
+            CustomPupilType newSelection = options[selected];
+
+            PatchedEyes.Local.SelectPupil(newSelection, side == EyeSide.Left);
+
+            UpdateButtons();
+        }
+        else
+        {
+            List<CustomIrisType> options = [];
+
+            if (side == EyeSide.Left)
+                options = CustomEyeManager.AllIrisTypes.FindAll(i => i.AllowedPos != CustomEyeManager.Sides.Right);
+            else
+                options = CustomEyeManager.AllIrisTypes.FindAll(i => i.AllowedPos != CustomEyeManager.Sides.Left);
+
+            options.DistinctBy(p => p.Prefab);
+            Plugin.Spam($"CustomPupils Total: {CustomEyeManager.AllIrisTypes.Count}, Filtered: {options.Count}");
+            int currentIndex;
+
+            if (side == EyeSide.Left)
+                currentIndex = options.IndexOf(PatchedEyes.Local.currentSelections.irisLeft);
+            else
+                currentIndex = options.IndexOf(PatchedEyes.Local.currentSelections.irisRight);
+
+            int selected = CycleIndex(currentIndex + dir, 0, options.Count - 1);
+            Plugin.Spam($"currentIndex = {currentIndex}, selected = {selected}");
+            CustomIrisType newSelection = options[selected];
+
+            PatchedEyes.Local.SelectIris(newSelection, side == EyeSide.Left);
+            UpdateButtons();
+        }
+
+        CommonSliders(side, part); //Set color sliders to new selection
+    }
+
+
 
     public static int CycleIndex(int value, int min, int max)
     {

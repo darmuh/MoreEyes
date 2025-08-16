@@ -4,16 +4,18 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using UnityEngine;
 
 namespace MoreEyes.Core;
 
 //save selections per steam id in this class
-public class FileManager
+internal class FileManager
 {
     //cache this for reading/writing changes
-    internal static Dictionary<string, string> playerSelections = [];
+    internal static Dictionary<string, string> PlayerSelections { get; private set; } = [];
+    internal static bool UpdateWrite { get; set; } = false;
 
-    public static void ReadTextFile()
+    internal static void ReadTextFile()
     {
         //use appdata location with folder name `moreEyes`
         string filePath = Path.Combine(@"%userprofile%\appdata\locallow\semiwork\Repo", "moreEyes");
@@ -25,7 +27,7 @@ public class FileManager
             Directory.CreateDirectory(filePath);
 
         if (!File.Exists(filePath + "\\selections.txt"))
-            Plugin.logger.LogWarning("Player selections could not be obtained!");
+            Plugin.logger.LogMessage("No saved player selections exist!");
         else
         {
             string rawText = File.ReadAllText(filePath + "\\selections.txt");
@@ -35,7 +37,7 @@ public class FileManager
                 return;
 
             //re-using this from my purchasepack stuff in lethalcompany
-            playerSelections = [];
+            PlayerSelections = [];
 
             //creates a dictionary based on the following pattern
             //123xyz:bo,ba,be;456abc:fo,fa,fe
@@ -50,7 +52,7 @@ public class FileManager
             if (rawText.EndsWith(';'))
                 rawText = rawText.TrimEnd(';');
 
-            playerSelections = rawText
+            PlayerSelections = rawText
                .Split(';')
                .Select(item => item.Trim())
                .Select(item => item.Split(':'))
@@ -58,27 +60,29 @@ public class FileManager
         }
     }
 
-    public static void UpdatePlayerSelections()
+    private static void UpdatePlayerSelections()
     {
         CustomEyeManager.AllPlayerSelections.Do(a =>
         {
-            string selections = $"pupilLeft={a.pupilLeft.Name},pupilRight={a.pupilRight.Name},irisLeft={a.irisLeft.Name},irisRight={a.irisRight.Name}";
+            string selections = $"pupilLeft={a.pupilLeft.Name},pupilLeftColor={ColorUtility.ToHtmlStringRGB(a.PupilLeftColor)},pupilRight={a.pupilRight.Name},pupilRightColor={ColorUtility.ToHtmlStringRGB(a.PupilRightColor)},irisLeft={a.irisLeft.Name},irisLeftColor={ColorUtility.ToHtmlStringRGB(a.IrisLeftColor)},irisRight={a.irisRight.Name},irisRightColor={ColorUtility.ToHtmlStringRGB(a.IrisRightColor)}";
 
-            if (playerSelections.ContainsKey(a.playerID))
+            if (PlayerSelections.ContainsKey(a.playerID))
             {
-                playerSelections[a.playerID] = selections;
+                PlayerSelections[a.playerID] = selections;
                 Plugin.Spam($"Updated {a.playerID} selections in FileManager");
             }
             else
             {
-                playerSelections.Add(a.playerID, selections);
+                PlayerSelections.Add(a.playerID, selections);
                 Plugin.Spam($"Added {a.playerID} selections in FileManager");
             }   
         });
     }
 
-    public static void WriteTextFile()
+    internal static void WriteTextFile()
     {
+        Plugin.logger.LogMessage("Updating saved selections!");
+        UpdateWrite = false;
         UpdatePlayerSelections();
         //use appdata location with folder name `moreEyes`
         string filePath = Path.Combine(@"%userprofile%\appdata\locallow\semiwork\Repo", "moreEyes");
@@ -88,7 +92,7 @@ public class FileManager
 
         string fileContents = string.Empty;
 
-        playerSelections.Do(p =>
+        PlayerSelections.Do(p =>
         {
             //reversing the dictionary back to one long string that can be parsed again
             fileContents += p.Key + ":";

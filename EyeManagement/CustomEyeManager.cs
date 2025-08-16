@@ -6,22 +6,20 @@ using UnityEngine;
 
 namespace MoreEyes.EyeManagement;
 
-public class CustomEyeManager
+internal class CustomEyeManager
 {
-    public static List<CustomPupilType> AllPupilTypes = [];
-    public static List<CustomIrisType> AllIrisTypes = [];
-    internal static List<PatchedEyes> AllPatchedEyes = [];
+    public static List<CustomPupilType> AllPupilTypes { get; internal set; } = [];
+    public static List<CustomIrisType> AllIrisTypes { get; internal set; } = [];
+    public static List<PatchedEyes> AllPatchedEyes { get; internal set; } = [];
     internal static List<PlayerEyeSelection> AllPlayerSelections = [];
 
     public static List<CustomPupilType> PupilsInUse = [];
     public static List<CustomIrisType> IrisInUse = [];
 
-    public static List<GameObject> MarkedForDeletion = [];
-
     public static bool isInitialized = false;
 
-    public static CustomPupilType VanillaPupilRight = new("Standard Right");
-    public static CustomPupilType VanillaPupilLeft = new("Standard Left");
+    public static CustomPupilType VanillaPupilRight { get; internal set; } = new("Standard Right");
+    public static CustomPupilType VanillaPupilLeft { get; internal set; } = new("Standard Left");
     public static CustomIrisType VanillaIris;
 
     public enum Sides
@@ -39,8 +37,8 @@ public class CustomEyeManager
 
     internal static void Init()
     {
-        AllIrisTypes.RemoveAll(t => t == null);
-        AllPupilTypes.RemoveAll(t => t == null);
+        AllIrisTypes = [];
+        AllPupilTypes = [VanillaPupilLeft, VanillaPupilRight];
 
         // Get all custom eye types
         // need to clear lists to not create duplicates
@@ -61,21 +59,25 @@ public class CustomEyeManager
         }
     }
 
-    internal static void CheckForVanillaPupils()
+    //not used but may be useful at some point
+    private static Transform RecursiveFindMatchingChild(Transform parent, string childName)
     {
-
-        // Create vanilla pupils
-        // This will create a copy of the object (prefab) for our class and disable it
-        if (VanillaPupilLeft.Prefab == null)
+        foreach (Transform child in parent)
         {
-            VanillaPupilLeft.VanillaSetup(true, PlayerAvatar.instance.playerAvatarVisuals.playerEyes.pupilLeft.GetChild(0).gameObject);
+            if (child.name.Contains(childName, System.StringComparison.InvariantCultureIgnoreCase))
+            {
+                return child;
+            }
+            else
+            {
+                Transform found = RecursiveFindMatchingChild(child, childName);
+                if (found != null)
+                {
+                    return found;
+                }
+            }
         }
-            
-        if(VanillaPupilRight.Prefab == null)
-        {
-            VanillaPupilRight.VanillaSetup(false, PlayerAvatar.instance.playerAvatarVisuals.playerEyes.pupilRight.GetChild(0).gameObject);
-        }
-        
+        return null;
     }
 
     internal static void GetAllTypes(LoadedAsset loadedAsset)
@@ -110,12 +112,5 @@ public class CustomEyeManager
             CustomIrisType thisType = new();
             thisType.IrisSetup(loadedAsset, n);
         });
-    }
-
-    internal static void EmptyTrash()
-    {
-        MarkedForDeletion.DoIf(d => d != null, d => Object.Destroy(d));
-        MarkedForDeletion.Clear();
-        Plugin.Spam("Deleted Trash");
     }
 }
