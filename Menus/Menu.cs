@@ -2,9 +2,9 @@
 using MenuLib;
 using MenuLib.MonoBehaviors;
 using MoreEyes.Core;
-using MoreEyes.Core.ModCompats;
 using MoreEyes.EyeManagement;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -45,6 +45,8 @@ internal sealed class Menu
     internal static string eyeSide;
     internal static string eyeStyle;
 
+    private static bool zoomedIn = true;
+    private static Coroutine zoomCoroutine;
     internal static bool SlidersOn { get; private set; } = false;
 
     internal enum EyePart
@@ -57,8 +59,6 @@ internal sealed class Menu
         Left,
         Right
     }
-
-
     private static string GetEyePartName(EyePart part)
     {
         return part switch
@@ -68,7 +68,6 @@ internal sealed class Menu
             _ => ""
         };
     }
-
     private static string GetEyeSideName(EyeSide side)
     {
         return side switch
@@ -78,7 +77,6 @@ internal sealed class Menu
             _ => ""
         };
     }
-
     private static string GetEyeStyle()
     {
         return (CurrentEyePart, CurrentEyeSide) switch
@@ -90,7 +88,6 @@ internal sealed class Menu
             _ => ""
         };
     }
-
 
     internal static void Initialize()
     {
@@ -115,7 +112,6 @@ internal sealed class Menu
         PatchedEyes.Local.RandomizeEyes();
         UpdateButtons();
     }
-
     private static void ResetLocalEyeSelection()
     {
         Plugin.Spam("Reset Eye Selections!");
@@ -226,6 +222,9 @@ internal sealed class Menu
         AvatarPreview.rigTransform.parent.localScale = new Vector3(2f, 2f, 2f); // original (1, 1, 1)
         AvatarPreview.rigTransform.parent.localPosition = new Vector3(0f, -3.5f, 0f);
 
+        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("Zoom In", () => SetAvatarPreviewZoom(true), MoreEyesMenu.transform, new Vector2(570, 30)));
+        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("Zoom Out", () => SetAvatarPreviewZoom(false), MoreEyesMenu.transform, new Vector2(470, 30)));
+
         MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("Back", BackButton, MoreEyesMenu.transform, new Vector2(190, 30)));
         MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("Randomize", RandomizeLocalEyeSelection, MoreEyesMenu.transform, new Vector2(270, 30)));
         MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("Reset", ResetLocalEyeSelection, MoreEyesMenu.transform, new Vector2(400, 30)));
@@ -268,6 +267,61 @@ internal sealed class Menu
         MoreEyesMenu.OpenPage(false);
 
         MoreEyesMenu.onEscapePressed += ShouldCloseMenu;
+    }
+
+    private static void SetAvatarPreviewZoom(bool zoomIn)
+    {
+        if (AvatarPreview == null || AvatarPreview.rigTransform == null)
+            return;
+
+        if (zoomedIn == zoomIn)
+            return;
+
+        if (zoomCoroutine != null)
+            AvatarPreview.StopCoroutine(zoomCoroutine);
+
+        zoomCoroutine = AvatarPreview.StartCoroutine(AnimateZoom(zoomIn));
+        zoomedIn = zoomIn;
+    }
+    private static IEnumerator AnimateZoom(bool zoomIn)
+    {
+        Vector2 startSize = AvatarPreview.previewSize;
+        Vector2 targetSize = zoomIn ? new Vector2(266.6667f, 500f) : new Vector2(182.4f, 342f);
+
+        Vector2 startDelta = AvatarPreview.rectTransform.sizeDelta;
+        Vector2 targetDelta = zoomIn ? new Vector2(266.6667f, 210f) : new Vector2(182.4f, 342f);
+
+        Vector3 startScale = AvatarPreview.rigTransform.parent.localScale;
+        Vector3 targetScale = zoomIn ? new Vector3(2f, 2f, 2f) : Vector3.one;
+
+        Vector3 startPos = AvatarPreview.rigTransform.parent.localPosition;
+        Vector3 targetPos = zoomIn ? new Vector3(0f, -3.5f, 0f) : new Vector3(0f, -0.6f, 0f);
+
+        Vector2 startAnchored = AvatarPreview.rectTransform.anchoredPosition;
+        Vector2 targetAnchored = zoomIn ? new Vector2(471.25f, 156.5f) : new Vector2(471.25f, 24.5f);
+
+        float duration = 0.45f;
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = Mathf.SmoothStep(0f, 1f, elapsed / duration);
+
+            AvatarPreview.previewSize = Vector2.Lerp(startSize, targetSize, t);
+            AvatarPreview.rectTransform.sizeDelta = Vector2.Lerp(startDelta, targetDelta, t);
+            AvatarPreview.rigTransform.parent.localScale = Vector3.Lerp(startScale, targetScale, t);
+            AvatarPreview.rigTransform.parent.localPosition = Vector3.Lerp(startPos, targetPos, t);
+            AvatarPreview.rectTransform.anchoredPosition = Vector2.Lerp(startAnchored, targetAnchored, t);
+
+            yield return null;
+        }
+
+        AvatarPreview.previewSize = targetSize;
+        AvatarPreview.rectTransform.sizeDelta = targetDelta;
+        AvatarPreview.rigTransform.parent.localScale = targetScale;
+        AvatarPreview.rigTransform.parent.localPosition = targetPos;
+        AvatarPreview.rectTransform.anchoredPosition = targetAnchored;
     }
 
     private static bool ShouldCloseMenu()
@@ -591,8 +645,6 @@ internal sealed class Menu
 
         CommonSliders(side, part); //Set color sliders to new selection
     }
-
-
 
     public static int CycleIndex(int value, int min, int max)
     {
