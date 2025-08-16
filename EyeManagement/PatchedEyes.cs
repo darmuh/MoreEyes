@@ -1,6 +1,7 @@
 ﻿using MoreEyes.Core;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 using static MoreEyes.EyeManagement.CustomEyeManager;
 
@@ -13,7 +14,13 @@ internal class PatchedEyes : MonoBehaviour
     internal PlayerAvatar Player { get; private set; } = null!;
     internal static PatchedEyes Local 
     { 
-        get { return PlayerAvatar.instance.GetComponent<PatchedEyes>(); }
+        get 
+        {
+            PatchedEyes local = PlayerAvatar.instance?.GetComponent<PatchedEyes>();
+            if (local == null)
+                return local.AddComponent<PatchedEyes>();
+            return local;
+        }
     }
 
     //Using EyeRef class to track transforms, game objects, and positioning
@@ -21,6 +28,14 @@ internal class PatchedEyes : MonoBehaviour
     internal EyeRef RightEye { get; private set; }
 
     internal PlayerEyeSelection currentSelections = null!;
+
+    private void Awake()
+    {
+        AllPatchedEyes.RemoveAll(p => p.Player == null);
+        Player = GetComponent<PlayerAvatar>();
+        playerID = Player.steamID;
+        AllPatchedEyes.Add(this);
+    }
 
     private void Start()
     {
@@ -45,32 +60,6 @@ internal class PatchedEyes : MonoBehaviour
         LeftEye.SetFirstPupilActual(originalLeft);
         RightEye.SetFirstPupilActual(originalRight);
         
-    }
-
-    //Created this to try to standardize the creation of the component
-    //also to get references to existing components attached to any players
-    //added the playerref bit so that it's a little easier to find by code
-    public static PatchedEyes GetPatchedEyes(PlayerAvatar player)
-    {
-        AllPatchedEyes.RemoveAll(p => p.Player == null);
-        PatchedEyes TryGetFromID = AllPatchedEyes.FirstOrDefault(p => p.playerID == PlayerAvatar.instance.steamID);
-
-        if (TryGetFromID == null)
-        {
-            PatchedEyes tryGetComponent = player.gameObject.GetComponent<PatchedEyes>();
-            if (tryGetComponent != null)
-                return tryGetComponent;
-            else
-            {
-                tryGetComponent = player.gameObject.AddComponent<PatchedEyes>();
-                tryGetComponent.playerID = player.steamID;
-                tryGetComponent.Player = player;
-                AllPatchedEyes.Add(tryGetComponent);
-                return tryGetComponent;
-            } 
-        }
-        else
-            return TryGetFromID;
     }
 
     internal void SetMenuEyes(PlayerAvatarVisuals visuals)
@@ -103,6 +92,7 @@ internal class PatchedEyes : MonoBehaviour
         eye.CreatePupil(newSelection);
         currentSelections.UpdateSelectionOf(isLeft, newSelection);
 
+        //potential RPC here
         FileManager.UpdateWrite = true;
     }
 
@@ -114,6 +104,7 @@ internal class PatchedEyes : MonoBehaviour
         eye.CreateIris(newSelection);
         currentSelections.UpdateSelectionOf(isLeft, newSelection);
 
+        //potential RPC here
         FileManager.UpdateWrite = true;
     }
 
