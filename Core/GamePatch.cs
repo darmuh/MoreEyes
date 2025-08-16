@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using MoreEyes.EyeManagement;
 using MoreEyes.Menus;
+using Unity.VisualScripting;
 using UnityEngine;
 
 namespace MoreEyes.Core;
@@ -20,7 +21,7 @@ internal class LocalPlayerMenuPatch
 
 //custom assets could probably be loaded before spawn
 //however, vanilla references will need to be created at first spawn
-[HarmonyPatch(typeof(PlayerAvatar), nameof(PlayerAvatar.Spawn))]
+[HarmonyPatch(typeof(PlayerAvatar), nameof(PlayerAvatar.SpawnRPC))]
 internal class PlayerSpawnPatch
 {
     public static void Postfix(PlayerAvatar __instance)
@@ -36,7 +37,7 @@ internal class PlayerSpawnPatch
         if (!PlayerEyeSelection.TryGetSelections(player.steamID, out PlayerEyeSelection selections))
             selections = new(player.steamID);
 
-        PatchedEyes patchedEyes = PatchedEyes.GetPatchedEyes(PlayerAvatar.instance);
+        PatchedEyes patchedEyes = player.AddComponent<PatchedEyes>();
 
         //link these two for easy back and forth
         patchedEyes.currentSelections = selections;
