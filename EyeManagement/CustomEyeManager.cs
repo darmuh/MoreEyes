@@ -2,16 +2,15 @@
 using HarmonyLib;
 using MoreEyes.Core;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace MoreEyes.EyeManagement;
 
 internal class CustomEyeManager
 {
-    public static List<CustomPupilType> AllPupilTypes = [];
-    public static List<CustomIrisType> AllIrisTypes = [];
-    internal static List<PatchedEyes> AllPatchedEyes = [];
+    public static List<CustomPupilType> AllPupilTypes { get; internal set; } = [];
+    public static List<CustomIrisType> AllIrisTypes { get; internal set; } = [];
+    public static List<PatchedEyes> AllPatchedEyes { get; internal set; } = [];
     internal static List<PlayerEyeSelection> AllPlayerSelections = [];
 
     public static List<CustomPupilType> PupilsInUse = [];
@@ -19,8 +18,8 @@ internal class CustomEyeManager
 
     public static bool isInitialized = false;
 
-    public static CustomPupilType VanillaPupilRight = new("Standard Right");
-    public static CustomPupilType VanillaPupilLeft = new("Standard Left");
+    public static CustomPupilType VanillaPupilRight { get; internal set; } = new("Standard Right");
+    public static CustomPupilType VanillaPupilLeft { get; internal set; } = new("Standard Left");
     public static CustomIrisType VanillaIris;
 
     public enum Sides
@@ -38,8 +37,8 @@ internal class CustomEyeManager
 
     internal static void Init()
     {
-        AllIrisTypes.RemoveAll(t => t == null);
-        AllPupilTypes.RemoveAll(t => t == null);
+        AllIrisTypes = [];
+        AllPupilTypes = [VanillaPupilLeft, VanillaPupilRight];
 
         // Get all custom eye types
         // need to clear lists to not create duplicates
@@ -60,18 +59,7 @@ internal class CustomEyeManager
         }
     }
 
-    internal static void CheckForVanillaPupils()
-    {
-        Transform leftPupilLocation = RecursiveFindMatchingChild(PlayerAvatar.instance.playerAvatarVisuals.playerEyes.pupilLeft, "mesh_pupil");
-        Transform rightPupilLocation = RecursiveFindMatchingChild(PlayerAvatar.instance.playerAvatarVisuals.playerEyes.pupilRight, "mesh_pupil");
-
-        // Create vanilla pupils
-        // This will create a copy of the object (prefab) for our class and disable it
-        VanillaPupilLeft.VanillaSetup(true, leftPupilLocation.gameObject);
-            
-        VanillaPupilRight.VanillaSetup(false, rightPupilLocation.gameObject); 
-    }
-
+    //not used but may be useful at some point
     private static Transform RecursiveFindMatchingChild(Transform parent, string childName)
     {
         foreach (Transform child in parent)
@@ -125,11 +113,4 @@ internal class CustomEyeManager
             thisType.IrisSetup(loadedAsset, n);
         });
     }
-
-   /* internal static void EmptyTrash()
-    {
-        MarkedForDeletion.DoIf(d => d != null, d => Object.Destroy(d));
-        MarkedForDeletion.Clear();
-        Plugin.Spam("Deleted Trash");
-    } */
 }

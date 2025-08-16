@@ -1,7 +1,6 @@
 ﻿using HarmonyLib;
 using MoreEyes.EyeManagement;
 using MoreEyes.Menus;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace MoreEyes.Core;
@@ -14,9 +13,8 @@ internal class LocalPlayerMenuPatch
         if (!__instance.isMenuAvatar)
             return;
 
-        Plugin.Spam("Getting menu player eyes");
-        CustomEyeManager.AllPatchedEyes.RemoveAll(p => p.Player == null);
-        PatchedEyes.Local.GetPlayerMenuEyes(__instance);
+        Plugin.Spam("Getting local player menu eye references");
+        PatchedEyes.Local.SetMenuEyes(__instance);
     }
 }
 
@@ -27,12 +25,9 @@ internal class PlayerSpawnPatch
 {
     public static void Postfix(PlayerAvatar __instance)
     {
-        CustomEyeManager.CheckForVanillaPupils();
-
         // Placed this here now that we are only initializing types once
         Plugin.Spam($"Player ({__instance.playerName}) spawned, updating their eyes!");
         GetPlayerEyes(__instance);
-
     }
 
     internal static void GetPlayerEyes(PlayerAvatar player)
@@ -43,16 +38,9 @@ internal class PlayerSpawnPatch
 
         PatchedEyes patchedEyes = PatchedEyes.GetPatchedEyes(PlayerAvatar.instance);
 
-        //link these two
+        //link these two for easy back and forth
         patchedEyes.currentSelections = selections;
         selections.patchedEyes = patchedEyes;
-
-        if (player.isLocal)
-        {
-            Plugin.Spam("No need to change local player's eyes for player object. They can't see them.");
-            return;
-        }
-
         patchedEyes.SetSelectedEyes(player);
     }
 }
@@ -60,7 +48,7 @@ internal class PlayerSpawnPatch
 [HarmonyPatch(typeof(MenuPageEsc), nameof(MenuPageEsc.Update))]
 internal class MenuEscPatch
 {
-    private static GameObject target;
+    private static GameObject playerTarget;
     public static void Postfix(MenuPageEsc __instance)
     {
         if (Menu.MoreEyesMenu.menuPage != null)
@@ -68,18 +56,18 @@ internal class MenuEscPatch
             Transform playerAvatar = __instance.transform.Find("Menu Element Player Avatar");
             if (playerAvatar != null)
             {
-                target = playerAvatar.gameObject;
+                playerTarget = playerAvatar.gameObject;
             }
-            if (target != null && target.activeSelf)
+            if (playerTarget != null && playerTarget.activeSelf)
             {
-                target.SetActive(false);
+                playerTarget.SetActive(false);
             }
         }
         else
         {
-            if (target != null && !target.activeSelf)
+            if (playerTarget != null && !playerTarget.activeSelf)
             {
-                target.SetActive(true);
+                playerTarget.SetActive(true);
             }
         }
     }

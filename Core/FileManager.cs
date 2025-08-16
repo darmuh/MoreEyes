@@ -13,6 +13,7 @@ internal class FileManager
 {
     //cache this for reading/writing changes
     internal static Dictionary<string, string> PlayerSelections { get; private set; } = [];
+    internal static bool UpdateWrite { get; set; } = false;
 
     internal static void ReadTextFile()
     {
@@ -80,6 +81,8 @@ internal class FileManager
 
     internal static void WriteTextFile()
     {
+        Plugin.logger.LogMessage("Updating saved selections!");
+        UpdateWrite = false;
         UpdatePlayerSelections();
         //use appdata location with folder name `moreEyes`
         string filePath = Path.Combine(@"%userprofile%\appdata\locallow\semiwork\Repo", "moreEyes");

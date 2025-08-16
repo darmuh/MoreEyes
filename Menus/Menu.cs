@@ -5,7 +5,6 @@ using MoreEyes.Core;
 using MoreEyes.Core.ModCompats;
 using MoreEyes.EyeManagement;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -110,25 +109,21 @@ internal sealed class Menu
         MenuAPI.AddElementToEscapeMenu(p => MenuAPI.CreateREPOButton("More Eyes", CreatePopupMenu, p, new Vector2(600f, 22f)));
     }
 
-    private static void RandomizeEyeSelection()
+    private static void RandomizeLocalEyeSelection()
     {
         Plugin.Spam("Randomize Eye Selections!");
-        PatchedEyes patchedEyes = PatchedEyes.GetPatchedEyes(PlayerAvatar.instance);
-        patchedEyes.GetPlayerMenuEyes(AvatarPreview.playerAvatarVisuals);
-        patchedEyes.RandomizeEyes(PlayerAvatar.instance);
+        PatchedEyes.Local.RandomizeEyes();
         UpdateButtons();
     }
 
-    private static void ResetEyeSelection()
+    private static void ResetLocalEyeSelection()
     {
         Plugin.Spam("Reset Eye Selections!");
-        PatchedEyes patchedEyes = PatchedEyes.GetPatchedEyes(PlayerAvatar.instance);
-        patchedEyes.GetPlayerMenuEyes(AvatarPreview.playerAvatarVisuals);
-        patchedEyes.ResetEyes(PlayerAvatar.instance);
+        PatchedEyes.Local.ResetEyes();
         UpdateButtons();
     }
 
-    private static void UpdateButtons()
+    internal static void UpdateButtons()
     {
         pupilLeft.labelTMP.text = ApplyGradient(CleanName(PatchedEyes.Local.currentSelections.pupilLeft.Name), true);
         pupilRight.labelTMP.text = ApplyGradient(CleanName(PatchedEyes.Local.currentSelections.pupilRight.Name), true);
@@ -209,8 +204,10 @@ internal sealed class Menu
     {
         SlidersOn = true;
         MoreEyesMenu.ClosePage(true);
-        //Save final color selections here rather than writing to the file every time the material updates
-        FileManager.WriteTextFile();
+
+        //Update selections if there are unsaved changes when menu is closed 
+        if (FileManager.UpdateWrite)
+            FileManager.WriteTextFile();
     }
 
     private static void CreatePopupMenu()
@@ -219,8 +216,6 @@ internal sealed class Menu
         {
             return;
         }
-
-        PatchedEyes.GetPatchedEyes(PlayerAvatar.instance);
 
         MoreEyesMenu = MenuAPI.CreateREPOPopupPage(ApplyGradient("More Eyes"), false, true, 0f, new Vector2(-150f, 5f));
         
@@ -232,9 +227,8 @@ internal sealed class Menu
         AvatarPreview.rigTransform.parent.localPosition = new Vector3(0f, -3.5f, 0f);
 
         MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("Back", BackButton, MoreEyesMenu.transform, new Vector2(190, 30)));
-        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("Randomize", RandomizeEyeSelection, MoreEyesMenu.transform, new Vector2(270, 30)));
-        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("Reset", ResetEyeSelection, MoreEyesMenu.transform, new Vector2(400, 30)));
-        CustomEyeManager.CheckForVanillaPupils();
+        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("Randomize", RandomizeLocalEyeSelection, MoreEyesMenu.transform, new Vector2(270, 30)));
+        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("Reset", ResetLocalEyeSelection, MoreEyesMenu.transform, new Vector2(400, 30)));
 
         pupilLeft = MenuAPI.CreateREPOButton(ApplyGradient(CleanName(PatchedEyes.Local.currentSelections.pupilLeft.Name), true), PupilLeftSliders, MoreEyesMenu.transform, new Vector2(215f, 265f));
         pupilRight = MenuAPI.CreateREPOButton(ApplyGradient(CleanName(PatchedEyes.Local.currentSelections.pupilRight.Name), true), PupilRightSliders, MoreEyesMenu.transform, new Vector2(360f, 265f));
@@ -271,18 +265,15 @@ internal sealed class Menu
 
         SlidersOn = false;
 
-        MoreEyesMenu.StartCoroutine(WaitForPlayerMenu());
+        MoreEyesMenu.OpenPage(false);
+
+        MoreEyesMenu.onEscapePressed += ShouldCloseMenu;
     }
 
-    //this may not need to be a coroutine
-    //originally made this an enum because I believed I needed to wait to update the visual
-    private static IEnumerator WaitForPlayerMenu()
+    private static bool ShouldCloseMenu()
     {
-        PatchedEyes local = PatchedEyes.GetPatchedEyes(PlayerAvatar.instance);
-        local.GetPlayerMenuEyes(AvatarPreview.playerAvatarVisuals);
-        yield return null;
-        MoreEyesMenu.OpenPage(false);
-        Plugin.Spam("Replaced menu eyes!");
+        BackButton();
+        return true;
     }
 
     private static void SetTextStyling(List<REPOButton> buttons)
@@ -546,8 +537,6 @@ internal sealed class Menu
     //Common method between all pupil/iris selections
     private static void NewSelection(EyeSide side, EyePart part, int dir)
     {
-        PatchedEyes.Local.GetPlayerMenuEyes(AvatarPreview.playerAvatarVisuals);
-
         if (part == EyePart.Pupil)
         {
             List<CustomPupilType> options = [];
@@ -571,11 +560,6 @@ internal sealed class Menu
             CustomPupilType newSelection = options[selected];
 
             PatchedEyes.Local.SelectPupil(newSelection, side == EyeSide.Left);
-            
-            if (side == EyeSide.Left)
-                PatchedEyes.Local.SelectIris(PatchedEyes.Local.currentSelections.irisLeft, true);
-            else
-                PatchedEyes.Local.SelectIris(PatchedEyes.Local.currentSelections.irisRight, false);
 
             UpdateButtons();
         }

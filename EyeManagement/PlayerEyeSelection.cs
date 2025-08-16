@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using MoreEyes.Core;
+using MoreEyes.Menus;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -8,8 +9,6 @@ namespace MoreEyes.EyeManagement;
 
 internal class PlayerEyeSelection
 {
-    //internal static PlayerEyeSelection localSelections;
-    //should save all selections to a text file in appdata probably
     internal string playerID = string.Empty;
     internal PatchedEyes patchedEyes;
 
@@ -25,7 +24,7 @@ internal class PlayerEyeSelection
         set
         {
             _irisLeftColor = value;
-            patchedEyes.LeftIrisObjects.DoIf(o => o != null, o => o.GetComponentInChildren<MeshRenderer>().material.SetColor("_EmissionColor", value));
+            patchedEyes.LeftEye?.SetColorIris(value);
         }
     }
 
@@ -36,7 +35,7 @@ internal class PlayerEyeSelection
         set
         {
             _irisRightColor = value;
-            patchedEyes.RightIrisObjects.DoIf(o => o != null, o => o.GetComponentInChildren<MeshRenderer>().material.SetColor("_EmissionColor", value));
+            patchedEyes.RightEye?.SetColorIris(value);
         }
     }
 
@@ -47,7 +46,7 @@ internal class PlayerEyeSelection
         set
         {
             _pupilLeftColor = value;
-            patchedEyes.LeftPupilObjects.DoIf(o => o != null, o => o.GetComponentInChildren<MeshRenderer>().material.SetColor("_EmissionColor", value));
+            patchedEyes.LeftEye?.SetColorPupil(value);
         }
     }
 
@@ -58,17 +57,47 @@ internal class PlayerEyeSelection
         set
         {
             _pupilRightColor = value;
-            patchedEyes.RightPupilObjects.DoIf(o => o != null, o => o.GetComponentInChildren<MeshRenderer>().material.SetColor("_EmissionColor", value));
+            patchedEyes.RightEye?.SetColorPupil(value);
         }
     }
 
     public PlayerEyeSelection(string steamID)
     {
         playerID = steamID;
-        //if (steamID == PlayerAvatar.instance.steamID)
-            //localSelections = this;
         
         CustomEyeManager.AllPlayerSelections.Add(this);
+    }
+
+    public void UpdateSelectionOf(bool isLeft, CustomPupilType selection)
+    {
+        if(isLeft)
+        {
+            pupilLeft.inUse = false;
+            pupilLeft = selection;
+            pupilLeft.inUse = true;
+        }
+        else
+        {
+            pupilRight.inUse = false;
+            pupilRight = selection;
+            pupilRight.inUse = true;
+        }
+    }
+
+    public void UpdateSelectionOf(bool isLeft, CustomIrisType selection)
+    {
+        if (isLeft)
+        {
+            irisLeft.inUse = false;
+            irisLeft = selection;
+            irisLeft.inUse = true;
+        }
+        else
+        {
+            irisRight.inUse = false;
+            irisRight = selection;
+            irisRight.inUse = true;
+        }
     }
 
     public static bool TryGetSelections(string steamID, out PlayerEyeSelection playerSelections)
@@ -179,29 +208,63 @@ internal class PlayerEyeSelection
             }
             else if (s.Key == "pupilLeftColor")
             {
-                if (ColorUtility.TryParseHtmlString(s.Value, out Color color))
+                if (ColorUtility.TryParseHtmlString($"#{s.Value}", out Color color))
                     PupilLeftColor = color;
+                else
+                    Plugin.WARNING($"Failed to parse color from saved value! ({s.Value})");
             }
             else if (s.Key == "pupilRightColor")
             {
-                if (ColorUtility.TryParseHtmlString(s.Value, out Color color))
+                if (ColorUtility.TryParseHtmlString($"#{s.Value}", out Color color))
                     PupilRightColor = color;
+                else
+                    Plugin.WARNING($"Failed to parse color from saved value! ({s.Value})");
             }
             else if (s.Key == "irisLeftColor")
             {
-                if (ColorUtility.TryParseHtmlString(s.Value, out Color color))
+                if (ColorUtility.TryParseHtmlString($"#{s.Value}", out Color color))
                     IrisLeftColor = color;
+                else
+                    Plugin.WARNING($"Failed to parse color from saved value! ({s.Value})");
             }
             else if (s.Key == "irisRightColor")
             {
-                if (ColorUtility.TryParseHtmlString(s.Value, out Color color))
+                if (ColorUtility.TryParseHtmlString($"#{s.Value}", out Color color))
                     IrisRightColor = color;
+                else
+                    Plugin.WARNING($"Failed to parse color from saved value! ({s.Value})");
             }
             else
             {
                 Plugin.logger.LogWarning($"Unexpected key in saved selections: {s.Key}");
             }
         });
+
+        if (patchedEyes.LeftEye == null || patchedEyes.RightEye == null)
+            return;
+
+        //color has to be first for some reason
+
+        patchedEyes.SelectPupil(pupilLeft, true);
+        patchedEyes.SelectPupil(pupilRight, false);
+
+        patchedEyes.SelectIris(irisLeft, true);
+        patchedEyes.SelectIris(irisRight, false);
+
+        ForceColors();
+
+        if (Menu.MoreEyesMenu.menuPage != null)
+            Menu.UpdateButtons();
+
+        Plugin.logger.LogMessage($"Updated {patchedEyes.Player} selection!\n\npupilLeft: {pupilRight.Name}\npupilRight: {pupilLeft.Name}\nirisLeft: {irisLeft.Name}\nirisRight: {irisRight.Name}\nPupilLeftColor: {PupilLeftColor}\nPupilRightColor: {PupilRightColor}\nIrisLeftColor: {IrisLeftColor}\nIrisRightColor: {IrisRightColor}");
+    }
+
+    public void ForceColors()
+    {
+        patchedEyes.LeftEye.SetColorPupil(PupilLeftColor);
+        patchedEyes.LeftEye.SetColorIris(IrisLeftColor);
+        patchedEyes.RightEye.SetColorPupil(PupilRightColor);
+        patchedEyes.RightEye.SetColorIris(IrisRightColor);
     }
 
     public void SetDefaultColors()
@@ -210,6 +273,14 @@ internal class PlayerEyeSelection
         PupilRightColor = Color.black;
         IrisLeftColor = Color.black;
         IrisRightColor = Color.black;
+    }
+
+    public void SetRandomColors()
+    {
+        PupilLeftColor = new(Random.Range(0f, 1f), Random.Range(0f, 1f), Random.Range(0f, 1f));
+        PupilRightColor = new(Random.Range(0f, 1f), Random.Range(0f, 1f), Random.Range(0f, 1f));
+        IrisLeftColor = new(Random.Range(0f, 1f), Random.Range(0f, 1f), Random.Range(0f, 1f));
+        IrisRightColor = new(Random.Range(0f, 1f), Random.Range(0f, 1f), Random.Range(0f, 1f));
     }
 
     public bool TryGetPupil(string value, out CustomPupilType saved)

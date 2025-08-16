@@ -1,7 +1,6 @@
 ﻿using MoreEyes.Core;
 using System;
 using System.Linq;
-using Unity.VisualScripting;
 using UnityEngine;
 using static MoreEyes.EyeManagement.CustomEyeManager;
 
@@ -76,12 +75,9 @@ internal class CustomPupilType
         }
 
         AddVanillaEye(original);
-
-        AllPupilTypes.Add(this);
-        AllPupilTypes.RemoveAll(p => p.Prefab == null);
     }
 
-    internal void AddVanillaEye(GameObject eyeObject)
+    private void AddVanillaEye(GameObject eyeObject)
     {
         Prefab = UnityEngine.Object.Instantiate(eyeObject);
         UnityEngine.Object.DontDestroyOnLoad(Prefab);
