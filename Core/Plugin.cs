@@ -9,15 +9,14 @@ using System.Reflection;
 namespace MoreEyes.Core;
 
 [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
-[BepInDependency("nickklmao.menulib", BepInDependency.DependencyFlags.HardDependency)]
-[BepInDependency("soundedsquash.spawnmanager", BepInDependency.DependencyFlags.SoftDependency)]
-[BepInDependency("TwitchChatAPI.REPO", BepInDependency.DependencyFlags.SoftDependency)]
-[BepInDependency("com.github.zehsteam.TwitchTrolling", BepInDependency.DependencyFlags.SoftDependency)]
+[BepInDependency(ModCompats.MenuLib_PLUGIN_GUID, BepInDependency.DependencyFlags.HardDependency)]
+[BepInDependency(ModCompats.SpawnManager_PLUGIN_GUID, BepInDependency.DependencyFlags.SoftDependency)]
+[BepInDependency(ModCompats.TwitchChatAPI_PLUGIN_GUID, BepInDependency.DependencyFlags.SoftDependency)]
+[BepInDependency(ModCompats.TwitchTrolling_PLUGIN_GUID, BepInDependency.DependencyFlags.SoftDependency)]
 internal class Plugin : BaseUnityPlugin
 {
     internal static ManualLogSource logger;
     internal static System.Random Rand = new();
-
     public void Awake()
     {
         logger = Logger;
@@ -33,7 +32,6 @@ internal class Plugin : BaseUnityPlugin
 
     internal static void Spam(string message)
     {
-        // Config item to disable dev logging here
         logger.LogDebug(message);
     }
 
