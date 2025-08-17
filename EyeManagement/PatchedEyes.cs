@@ -155,5 +155,7 @@ internal class PatchedEyes : MonoBehaviour
         SelectPupil(VanillaPupilRight, false);
         SelectIris(VanillaIris, true);
         SelectIris(VanillaIris, false);
+
+        FileManager.UpdateWrite = true;
     }
 }
