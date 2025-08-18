@@ -26,7 +26,6 @@ internal class PlayerSpawnPatch
 {
     public static void Postfix(PlayerAvatar __instance)
     {
-        // Placed this here now that we are only initializing types once
         Plugin.Spam($"Player ({__instance.playerName}) spawned, updating their eyes!");
         GetPlayerEyes(__instance);
     }

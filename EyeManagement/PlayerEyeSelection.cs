@@ -162,7 +162,11 @@ internal class PlayerEyeSelection
 
     public void GetSavedSelection()
     {
-        if(!FileManager.PlayerSelections.ContainsKey(playerID))
+        //Wait until we have vanilla prefabs
+        if (!CustomEyeManager.VanillaPupilsExist)
+            return;
+
+        if (!FileManager.PlayerSelections.ContainsKey(playerID))
         {
             Plugin.logger.LogMessage($"Unable to get saved selection for [ {playerID} ]");
             return;
@@ -183,14 +187,14 @@ internal class PlayerEyeSelection
                 if(TryGetPupil(s.Value, out CustomPupilType saved))
                     pupilLeft = saved;
                 else
-                    Plugin.logger.LogWarning($"Selected left iris, \"{s.Value}\" could not be found in AllPupilTypes");
+                    Plugin.logger.LogWarning($"Selected left pupil, \"{s.Value}\" could not be found in AllPupilTypes");
             }
             else if (s.Key == "pupilRight")
             {
                 if (TryGetPupil(s.Value, out CustomPupilType saved))
                     pupilRight = saved;
                 else
-                    Plugin.logger.LogWarning($"Selected right iris, \"{s.Value}\" could not be found in AllPupilTypes");
+                    Plugin.logger.LogWarning($"Selected right pupil, \"{s.Value}\" could not be found in AllPupilTypes");
             }
             else if (s.Key == "irisLeft")
             {
@@ -285,13 +289,13 @@ internal class PlayerEyeSelection
 
     public bool TryGetPupil(string value, out CustomPupilType saved)
     {
-        saved = CustomEyeManager.AllPupilTypes.FirstOrDefault(p => value == p.Name);
+        saved = CustomEyeManager.AllPupilTypes.FirstOrDefault(p => value == p.Path);
         return saved != null;
     }
 
     public bool TryGetIris(string value, out CustomIrisType saved)
     {
-        saved = CustomEyeManager.AllIrisTypes.FirstOrDefault(i => value == i.Name);
+        saved = CustomEyeManager.AllIrisTypes.FirstOrDefault(i => value == i.Path);
         return saved != null;
     }
 }

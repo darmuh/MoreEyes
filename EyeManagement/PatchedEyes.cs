@@ -151,12 +151,11 @@ internal class PatchedEyes : MonoBehaviour
 
     internal void ResetEyes()
     {
-        //set color before destroying Irises
-        currentSelections.SetDefaultColors();
         SelectPupil(VanillaPupilLeft, true);
         SelectPupil(VanillaPupilRight, false);
         SelectIris(VanillaIris, true);
         SelectIris(VanillaIris, false);
+        currentSelections.SetDefaultColors();
 
         FileManager.UpdateWrite = true;
     }

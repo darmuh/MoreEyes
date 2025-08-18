@@ -21,6 +21,7 @@ internal class CustomEyeManager
     public static CustomPupilType VanillaPupilRight { get; internal set; } = new("Standard Right");
     public static CustomPupilType VanillaPupilLeft { get; internal set; } = new("Standard Left");
     public static CustomIrisType VanillaIris;
+    public static bool VanillaPupilsExist => VanillaPupilLeft?.Prefab != null && VanillaPupilRight?.Prefab != null;
 
     public enum Sides
     {

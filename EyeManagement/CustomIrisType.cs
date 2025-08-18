@@ -22,6 +22,7 @@ internal class CustomIrisType
     internal void VanillaSetup()
     {
         Name = "None";
+        Path = "None";
         isVanilla = true;
         AllIrisTypes.Add(this);
     }
