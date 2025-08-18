@@ -93,6 +93,7 @@ internal class PatchedEyes : MonoBehaviour
         currentSelections.UpdateSelectionOf(isLeft, newSelection);
 
         //potential RPC here
+        FileManager.UpdateWrite = true;
     }
 
     //used to change existing iris to new selection
@@ -104,6 +105,7 @@ internal class PatchedEyes : MonoBehaviour
         currentSelections.UpdateSelectionOf(isLeft, newSelection);
 
         //potential RPC here
+        FileManager.UpdateWrite = true;
     }
 
     internal void SetSelectedEyes(PlayerAvatar player)
@@ -149,12 +151,11 @@ internal class PatchedEyes : MonoBehaviour
 
     internal void ResetEyes()
     {
-        //set color before destroying Irises
-        currentSelections.SetDefaultColors();
         SelectPupil(VanillaPupilLeft, true);
         SelectPupil(VanillaPupilRight, false);
         SelectIris(VanillaIris, true);
         SelectIris(VanillaIris, false);
+        currentSelections.SetDefaultColors();
 
         FileManager.UpdateWrite = true;
     }
