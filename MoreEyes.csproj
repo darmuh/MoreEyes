@@ -88,8 +88,7 @@
 		<Warning Text="Full MenuLib path: $(MenuLibFullPath)" Condition="'$(GaleDebug)' == 'true'" />
 		<Warning Text="File exists: $([System.IO.File]::Exists('$(MenuLibFullPath)'))" Condition="'$(GaleDebug)' == 'true'" />
 
-		<Error Text="MenuLib.dll not found at $(MenuLibFullPath)"
-			   Condition="!Exists('$(MenuLibFullPath)') AND '$(SkipMenuLibCheck)' != 'true'" />
+		<Error Text="MenuLib.dll not found at $(MenuLibFullPath)" Condition="!Exists('$(MenuLibFullPath)') AND '$(SkipMenuLibCheck)' != 'true'" />
 	</Target>
   
   <!-- Copy DLL to Gale plugin folder -->
