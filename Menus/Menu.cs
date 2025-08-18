@@ -1,14 +1,10 @@
-﻿using HarmonyLib;
-using MenuLib;
+﻿using MenuLib;
 using MenuLib.MonoBehaviors;
 using MoreEyes.Core;
 using MoreEyes.EyeManagement;
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace MoreEyes.Menus;
 
@@ -45,8 +41,6 @@ internal sealed class Menu
     internal static string eyeSide;
     internal static string eyeStyle;
 
-    private static bool zoomedIn = true;
-    private static Coroutine zoomCoroutine;
     internal static bool SlidersOn { get; private set; } = false;
 
     internal enum EyePart
@@ -121,10 +115,10 @@ internal sealed class Menu
 
     internal static void UpdateButtons()
     {
-        pupilLeft.labelTMP.text = ApplyGradient(CleanName(PatchedEyes.Local.currentSelections.pupilLeft.Name), true);
-        pupilRight.labelTMP.text = ApplyGradient(CleanName(PatchedEyes.Local.currentSelections.pupilRight.Name), true);
-        irisLeft.labelTMP.text = ApplyGradient(CleanName(PatchedEyes.Local.currentSelections.irisLeft.Name), true);
-        irisRight.labelTMP.text = ApplyGradient(CleanName(PatchedEyes.Local.currentSelections.irisRight.Name), true);
+        pupilLeft.labelTMP.text = MenuUtils.ApplyGradient(MenuUtils.CleanName(PatchedEyes.Local.currentSelections.pupilLeft.Name), true);
+        pupilRight.labelTMP.text = MenuUtils.ApplyGradient(MenuUtils.CleanName(PatchedEyes.Local.currentSelections.pupilRight.Name), true);
+        irisLeft.labelTMP.text = MenuUtils.ApplyGradient(MenuUtils.CleanName(PatchedEyes.Local.currentSelections.irisLeft.Name), true);
+        irisRight.labelTMP.text = MenuUtils.ApplyGradient(MenuUtils.CleanName(PatchedEyes.Local.currentSelections.irisRight.Name), true);
 
         UpdateHeaders();
     }
@@ -192,8 +186,8 @@ internal sealed class Menu
         eyeSide = GetEyeSideName(CurrentEyeSide);
         eyeStyle = GetEyeStyle();
         redSlider.labelTMP.text = $"{eyeStyle}";
-        greenSlider.labelTMP.text = ApplyGradient($"{eyePart}");
-        blueSlider.labelTMP.text = ApplyGradient($"{eyeSide}");
+        greenSlider.labelTMP.text = MenuUtils.ApplyGradient($"{eyePart}");
+        blueSlider.labelTMP.text = MenuUtils.ApplyGradient($"{eyeSide}");
     }
 
     private static void BackButton()
@@ -213,35 +207,34 @@ internal sealed class Menu
             return;
         }
 
-        MoreEyesMenu = MenuAPI.CreateREPOPopupPage(ApplyGradient("More Eyes"), false, true, 0f, new Vector2(-150f, 5f));
+        MoreEyesMenu = MenuAPI.CreateREPOPopupPage(MenuUtils.ApplyGradient("More Eyes"), false, true, 0f, new Vector2(-150f, 5f));
         
-        AvatarPreview = MenuAPI.CreateREPOAvatarPreview(MoreEyesMenu.transform, new Vector2(471.25f, 156.5f), true, new Color(0f, 0f, 0f, 0.58f));
+        AvatarPreview = MenuAPI.CreateREPOAvatarPreview(MoreEyesMenu.transform, new Vector2(471.25f, 156.5f), false);
 
         AvatarPreview.previewSize = new Vector2(266.6667f, 500f); // original numbers (184, 345)
         AvatarPreview.rectTransform.sizeDelta = new Vector2(266.6667f, 210f); // original (184, 345) same way as previewSize
         AvatarPreview.rigTransform.parent.localScale = new Vector3(2f, 2f, 2f); // original (1, 1, 1)
         AvatarPreview.rigTransform.parent.localPosition = new Vector3(0f, -3.5f, 0f);
 
-        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("Zoom In", () => SetAvatarPreviewZoom(true), MoreEyesMenu.transform, new Vector2(570, 30)));
-        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("Zoom Out", () => SetAvatarPreviewZoom(false), MoreEyesMenu.transform, new Vector2(470, 30)));
+        MenuUtils.HandleScrollZoom(AvatarPreview);
 
         MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("Back", BackButton, MoreEyesMenu.transform, new Vector2(190, 30)));
         MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("Randomize", RandomizeLocalEyeSelection, MoreEyesMenu.transform, new Vector2(270, 30)));
         MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("Reset", ResetLocalEyeSelection, MoreEyesMenu.transform, new Vector2(400, 30)));
 
-        pupilLeft = MenuAPI.CreateREPOButton(ApplyGradient(CleanName(PatchedEyes.Local.currentSelections.pupilLeft.Name), true), PupilLeftSliders, MoreEyesMenu.transform, new Vector2(215f, 265f));
-        pupilRight = MenuAPI.CreateREPOButton(ApplyGradient(CleanName(PatchedEyes.Local.currentSelections.pupilRight.Name), true), PupilRightSliders, MoreEyesMenu.transform, new Vector2(360f, 265f));
-        irisLeft = MenuAPI.CreateREPOButton(ApplyGradient(CleanName(PatchedEyes.Local.currentSelections.irisLeft.Name), true), IrisLeftSliders, MoreEyesMenu.transform, new Vector2(215, 215f));
-        irisRight = MenuAPI.CreateREPOButton(ApplyGradient(CleanName(PatchedEyes.Local.currentSelections.irisRight.Name), true), IrisRightSliders, MoreEyesMenu.transform, new Vector2(360, 215f));
+        pupilLeft = MenuAPI.CreateREPOButton(MenuUtils.ApplyGradient(MenuUtils.CleanName(PatchedEyes.Local.currentSelections.pupilLeft.Name), true), PupilLeftSliders, MoreEyesMenu.transform, new Vector2(215f, 265f));
+        pupilRight = MenuAPI.CreateREPOButton(MenuUtils.ApplyGradient(MenuUtils.CleanName(PatchedEyes.Local.currentSelections.pupilRight.Name), true), PupilRightSliders, MoreEyesMenu.transform, new Vector2(360f, 265f));
+        irisLeft = MenuAPI.CreateREPOButton(MenuUtils.ApplyGradient(MenuUtils.CleanName(PatchedEyes.Local.currentSelections.irisLeft.Name), true), IrisLeftSliders, MoreEyesMenu.transform, new Vector2(215, 215f));
+        irisRight = MenuAPI.CreateREPOButton(MenuUtils.ApplyGradient(MenuUtils.CleanName(PatchedEyes.Local.currentSelections.irisRight.Name), true), IrisRightSliders, MoreEyesMenu.transform, new Vector2(360, 215f));
 
-        SetTextStyling([pupilLeft, pupilRight, irisLeft, irisRight]);
+        MenuUtils.SetTextStyling([pupilLeft, pupilRight, irisLeft, irisRight]);
 
         pupilLeftHeader = MenuAPI.CreateREPOLabel("Pupil Left", MoreEyesMenu.transform, new Vector2(151.5f, 285f));
         pupilRightHeader = MenuAPI.CreateREPOLabel("Pupil Right", MoreEyesMenu.transform, new Vector2(297.5f, 285f));
         irisLeftHeader = MenuAPI.CreateREPOLabel("Iris Left", MoreEyesMenu.transform, new Vector2(151.5f, 235f));
         irisRightHeader = MenuAPI.CreateREPOLabel("Iris Right", MoreEyesMenu.transform, new Vector2(297.5f, 235f));
 
-        SetHeaderTextStyling([pupilLeftHeader, pupilRightHeader, irisLeftHeader, irisRightHeader]);
+        MenuUtils.SetHeaderTextStyling([pupilLeftHeader, pupilRightHeader, irisLeftHeader, irisRightHeader]);
 
         MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("<", LeftPupilPrev, pupilLeft.transform, new Vector2(-25f, -10f)));
         MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("<", RightPupilPrev, pupilRight.transform, new Vector2(-25f, -10f)));
@@ -252,11 +245,11 @@ internal sealed class Menu
         MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton(">", LeftIrisNext, irisLeft.transform, new Vector2(70f, -10f)));
         MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton(">", RightIrisNext, irisRight.transform, new Vector2(70f, -10f)));
 
-        redSlider = MenuAPI.CreateREPOSlider(ApplyGradient($"{eyeStyle}"), "<color=#FF0000>Red</color>", RedSlider, MoreEyesMenu.transform, new Vector2(205f, 180f), min: 0, max: 255, barBehavior: REPOSlider.BarBehavior.UpdateWithValue);
-        greenSlider = MenuAPI.CreateREPOSlider(ApplyGradient($"{eyePart}"), "<color=#00FF00>Green</color>", GreenSlider, MoreEyesMenu.transform, new Vector2(205f, 135f), min: 0, max: 255, barBehavior: REPOSlider.BarBehavior.UpdateWithValue);
-        blueSlider = MenuAPI.CreateREPOSlider(ApplyGradient($"{eyeSide}"), "<color=#0000FF>Blue</color>", BlueSlider, MoreEyesMenu.transform, new Vector2(205f, 90f), min: 0, max: 255, barBehavior: REPOSlider.BarBehavior.UpdateWithValue);
+        redSlider = MenuAPI.CreateREPOSlider(MenuUtils.ApplyGradient($"{eyeStyle}"), "<color=#FF0000>Red</color>", RedSlider, MoreEyesMenu.transform, new Vector2(205f, 180f), min: 0, max: 255, barBehavior: REPOSlider.BarBehavior.UpdateWithValue);
+        greenSlider = MenuAPI.CreateREPOSlider(MenuUtils.ApplyGradient($"{eyePart}"), "<color=#00FF00>Green</color>", GreenSlider, MoreEyesMenu.transform, new Vector2(205f, 135f), min: 0, max: 255, barBehavior: REPOSlider.BarBehavior.UpdateWithValue);
+        blueSlider = MenuAPI.CreateREPOSlider(MenuUtils.ApplyGradient($"{eyeSide}"), "<color=#0000FF>Blue</color>", BlueSlider, MoreEyesMenu.transform, new Vector2(205f, 90f), min: 0, max: 255, barBehavior: REPOSlider.BarBehavior.UpdateWithValue);
 
-        SliderSetups([redSlider, greenSlider, blueSlider]);
+        MenuUtils.SliderSetups([redSlider, greenSlider, blueSlider]);
 
         redSlider.gameObject.SetActive(false);
         greenSlider.gameObject.SetActive(false);
@@ -269,220 +262,10 @@ internal sealed class Menu
         MoreEyesMenu.onEscapePressed += ShouldCloseMenu;
     }
 
-    private static void SetAvatarPreviewZoom(bool zoomIn)
-    {
-        if (AvatarPreview == null || AvatarPreview.rigTransform == null)
-            return;
-
-        if (zoomedIn == zoomIn)
-            return;
-
-        if (zoomCoroutine != null)
-            AvatarPreview.StopCoroutine(zoomCoroutine);
-
-        zoomCoroutine = AvatarPreview.StartCoroutine(AnimateZoom(zoomIn));
-        zoomedIn = zoomIn;
-    }
-    private static IEnumerator AnimateZoom(bool zoomIn)
-    {
-        Vector2 startSize = AvatarPreview.previewSize;
-        Vector2 targetSize = zoomIn ? new Vector2(266.6667f, 500f) : new Vector2(182.4f, 342f);
-
-        Vector2 startDelta = AvatarPreview.rectTransform.sizeDelta;
-        Vector2 targetDelta = zoomIn ? new Vector2(266.6667f, 210f) : new Vector2(182.4f, 342f);
-
-        Vector3 startScale = AvatarPreview.rigTransform.parent.localScale;
-        Vector3 targetScale = zoomIn ? new Vector3(2f, 2f, 2f) : Vector3.one;
-
-        Vector3 startPos = AvatarPreview.rigTransform.parent.localPosition;
-        Vector3 targetPos = zoomIn ? new Vector3(0f, -3.5f, 0f) : new Vector3(0f, -0.6f, 0f);
-
-        Vector2 startAnchored = AvatarPreview.rectTransform.anchoredPosition;
-        Vector2 targetAnchored = zoomIn ? new Vector2(471.25f, 156.5f) : new Vector2(471.25f, 24.5f);
-
-        float duration = 0.45f;
-        float elapsed = 0f;
-
-        while (elapsed < duration)
-        {
-            elapsed += Time.deltaTime;
-            float t = Mathf.SmoothStep(0f, 1f, elapsed / duration);
-
-            AvatarPreview.previewSize = Vector2.Lerp(startSize, targetSize, t);
-            AvatarPreview.rectTransform.sizeDelta = Vector2.Lerp(startDelta, targetDelta, t);
-            AvatarPreview.rigTransform.parent.localScale = Vector3.Lerp(startScale, targetScale, t);
-            AvatarPreview.rigTransform.parent.localPosition = Vector3.Lerp(startPos, targetPos, t);
-            AvatarPreview.rectTransform.anchoredPosition = Vector2.Lerp(startAnchored, targetAnchored, t);
-
-            yield return null;
-        }
-
-        AvatarPreview.previewSize = targetSize;
-        AvatarPreview.rectTransform.sizeDelta = targetDelta;
-        AvatarPreview.rigTransform.parent.localScale = targetScale;
-        AvatarPreview.rigTransform.parent.localPosition = targetPos;
-        AvatarPreview.rectTransform.anchoredPosition = targetAnchored;
-    }
-
     private static bool ShouldCloseMenu()
     {
         BackButton();
         return true;
-    }
-
-    private static void SetTextStyling(List<REPOButton> buttons)
-    {
-        buttons.Do(t =>
-        {
-            t.overrideButtonSize = new Vector2(75f, 20f);
-            t.labelTMP.fontSize = 18f;
-            t.labelTMP.horizontalAlignment = TMPro.HorizontalAlignmentOptions.Center;
-        });
-    }
-
-    private static void SetHeaderTextStyling(List<REPOLabel> labels)
-    {
-        labels.Do(t =>
-        {
-            t.labelTMP.fontStyle = TMPro.FontStyles.Underline;
-            t.labelTMP.fontSize = 18f;
-            t.labelTMP.horizontalAlignment = TMPro.HorizontalAlignmentOptions.Center;
-            t.labelTMP.color = Color.white;
-        });
-    }
-
-    private static void SliderSetups(List<REPOSlider> root)
-    {
-        if (root == null) return;
-
-        Material material = PlayerAvatar.instance.playerHealth.bodyMaterial;
-        Color baseColor = material.GetColor(Shader.PropertyToID("_AlbedoColor"));
-        Color compColor = new(1f - baseColor.r, 1f - baseColor.g, 1f - baseColor.b, baseColor.a);
-
-        foreach (REPOSlider slider in root)
-        {
-            foreach (Transform t in slider.GetComponentsInChildren<Transform>(true))
-            {
-                if (t.name == "SliderBG")
-                {
-                    var raws = t.GetComponentsInChildren<RawImage>(true);
-                    foreach (var raw in raws)
-                    {
-                        if (raw != null)
-                        {
-                            Color zeroAlpha = raw.color;
-                            zeroAlpha.a = 0f;
-                            raw.color = zeroAlpha;
-                        }
-                    }
-                }
-                if (t.name == "Bar")
-                {
-                    var raws = t.GetComponentsInChildren<RawImage>(true);
-                    foreach (var raw in raws)
-                    {
-                        if (raw != null)
-                        {
-                            float brightness = 0.299f * compColor.r + 0.587f * compColor.g + 0.114f * compColor.b;
-                            float minBrightness = 0.5f;
-                            if (brightness < minBrightness)
-                            {
-                                float boost = Mathf.Clamp01((minBrightness - brightness) * 0.5f);
-                                compColor = Color.Lerp(compColor, Color.white, boost);
-                            }
-                            raw.color = compColor;
-                        }
-                    }
-                }
-                if (t.name == "Bar Text")
-                {
-                    var texts = t.GetComponentsInChildren<TMPro.TextMeshProUGUI>(true);
-                    foreach (var text in texts)
-                    {
-                        if (text != null)
-                        {
-                            float brightness = 0.299f * compColor.r + 0.587f * compColor.g + 0.114f * compColor.b;
-                            float minBrightness = 0.5f;
-                            if (brightness < minBrightness)
-                            {
-                                float boost = Mathf.Clamp01((minBrightness - brightness) * 0.5f);
-                                compColor = Color.Lerp(compColor, Color.white, boost);
-                            }
-                            text.color = compColor;
-                        }
-                    }
-                }
-                if (t.name == "Bar Text (1)")
-                {
-                    var raws = t.GetComponentsInChildren<TMPro.TextMeshProUGUI>(true);
-                    foreach (var raw in raws)
-                    {
-                        if (raw != null)
-                        {
-                            raw.color = Color.black;
-                        }
-                    }
-                }
-            }
-        }
-    }
-    public static string CleanName(string fileName)
-    {
-        string[] toRemove = ["pupil", "pupils", "iris", "irises", "left", "right"];
-
-        string cleaned = fileName.Replace('_', ' ');
-
-        foreach (var word in toRemove)
-            cleaned = cleaned.Replace(word, "", StringComparison.OrdinalIgnoreCase);
-
-        return string.Join(' ', cleaned.Split(' ', StringSplitOptions.RemoveEmptyEntries));
-    }
-
-    private static string ApplyGradient(string input, bool inverse = false, float minBrightness = 0.15f)
-    {
-        Material material = PlayerAvatar.instance.playerHealth.bodyMaterial;
-        Color baseColor = material.GetColor(Shader.PropertyToID("_AlbedoColor"));
-        Color startColor = baseColor;
-        Color endColor;
-
-        float luminance = 0.299f * baseColor.r + 0.587f * baseColor.g + 0.114f * baseColor.b;
-
-        float adjustmentAmount = 0.6f;
-
-        if (luminance < 0.5f)
-        {
-            endColor = Color.Lerp(baseColor, Color.white, adjustmentAmount);
-        }
-        else
-        {
-            endColor = Color.Lerp(baseColor, Color.black, adjustmentAmount);
-        }
-        // Using this one on pupil and iris names to break up using the same style too much
-        if (inverse)
-        {
-            (endColor, startColor) = (startColor, endColor);
-        }
-
-        string result = "";
-        int len = input.Length;
-
-        for (int i = 0; i < len; i++)
-        {
-            float t = (float)i / Mathf.Max(1, len - 1);
-            Color lerped = Color.Lerp(startColor, endColor, t);
-            // Needed a min brightness because of darker colors (like black if you have custom colors on)
-            float brightness = 0.299f * lerped.r + 0.587f * lerped.g + 0.114f * lerped.b;
-            if (brightness < minBrightness)
-            {
-                float boost = Mathf.Clamp01((minBrightness - brightness) * 0.5f);
-                lerped = Color.Lerp(lerped, Color.white, boost);
-            }
-
-            string hex = ColorUtility.ToHtmlStringRGB(lerped);
-            result += $"<color=#{hex}>{input[i]}</color>";
-        }
-
-        return result;
     }
 
     private static void CommonSliders(EyeSide eyeSide, EyePart eyePart)
