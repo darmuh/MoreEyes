@@ -16,6 +16,16 @@ namespace MoreEyes.EyeManagement
         internal List<GameObject> IrisMenu { get; private set; } = [];
         internal GameObject IrisActual { get; private set; } = null!;
 
+        internal void PlayerSetup(PlayerAvatarVisuals visuals)
+        {
+            var originalLeft = visuals.playerEyes.pupilLeft.GetChild(0).GetChild(0).gameObject;
+            var originalRight = visuals.playerEyes.pupilRight.GetChild(0).GetChild(0).gameObject;
+
+            //Set as current pupils
+            SetFirstPupilActual(originalLeft);
+            SetFirstPupilActual(originalRight); 
+        }
+
         internal void SetFirstPupilActual(GameObject pupil)
         {
             PupilActual = pupil;

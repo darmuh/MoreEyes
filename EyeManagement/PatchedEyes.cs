@@ -20,16 +20,16 @@ internal class PatchedEyes : MonoBehaviour
                 Plugin.logger.LogError("Unable to return PatchedEyes Local, PlayerAvatar instance is null!");
                 return null;
             }    
-            PatchedEyes local = PlayerAvatar.instance?.GetComponent<PatchedEyes>();
+            PatchedEyes local = PlayerAvatar.instance.GetComponent<PatchedEyes>();
             if (local == null)
-                return local.AddComponent<PatchedEyes>();
+                return PlayerAvatar.instance.AddComponent<PatchedEyes>();
             return local;
         }
     }
 
     //Using EyeRef class to track transforms, game objects, and positioning
-    internal EyeRef LeftEye { get; private set; }
-    internal EyeRef RightEye { get; private set; }
+    internal EyeRef LeftEye { get; set; }
+    internal EyeRef RightEye { get; set; }
 
     internal PlayerEyeSelection currentSelections = null!;
 
@@ -45,25 +45,24 @@ internal class PatchedEyes : MonoBehaviour
     {
         GameObject originalLeft = Player.playerAvatarVisuals.playerEyes.pupilLeft.GetChild(0).GetChild(0).gameObject;
         GameObject originalRight = Player.playerAvatarVisuals.playerEyes.pupilRight.GetChild(0).GetChild(0).gameObject;
+
         //Create EyeRefs
+        //Must be done at launch for menu eyes to work properly
         GameObject left = new("MoreEyes-LEFT");
         left.transform.SetParent(Player.playerAvatarVisuals.playerEyes.pupilLeft.GetChild(0));
+
         GameObject right = new("MoreEyes-RIGHT");
         right.transform.SetParent(Player.playerAvatarVisuals.playerEyes.pupilRight.GetChild(0));
+
         LeftEye = left.AddComponent<EyeRef>();
-        LeftEye.EyePlayerPos = left.transform.parent;
         RightEye = right.AddComponent<EyeRef>();
-        RightEye.EyePlayerPos = right.transform.parent;
+
+        Plugin.Spam($"EyeRefs set for {Player.playerName}");
 
         // Create vanilla pupils
         // This will create a copy of the object (prefab) for our class and disable it
         VanillaPupilLeft.VanillaSetup(true, originalLeft);
         VanillaPupilRight.VanillaSetup(false, originalRight);
-
-        //Set as current pupils
-        LeftEye.SetFirstPupilActual(originalLeft);
-        RightEye.SetFirstPupilActual(originalRight);
-        
     }
 
     internal void SetMenuEyes(PlayerAvatarVisuals visuals)

@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using MoreEyes.EyeManagement;
 using MoreEyes.Menus;
+using Photon.Realtime;
 using Unity.VisualScripting;
 using UnityEngine;
 
@@ -25,37 +26,43 @@ internal class LocalPlayerMenuPatch
 {
     public static void Postfix(PlayerAvatarVisuals __instance)
     {
+        if (PlayerAvatar.instance == null)
+            return;
+
         if (__instance.isMenuAvatar)
         {
-            if (PlayerAvatar.instance == null)
-                return;
-
-            Plugin.Spam("Getting local player menu eye references");
+                        Plugin.Spam("Getting local player menu eye references");
             PatchedEyes.Local.SetMenuEyes(__instance);
         }
         else
         {
-            if(string.IsNullOrEmpty(__instance.playerAvatar.steamID))
+            PatchedEyes patchedEyes = null!;
+            if (__instance.playerAvatar.isLocal)
             {
-                Plugin.logger.LogError("Unknown steamID for player!");
-                return;
+                patchedEyes = PatchedEyes.Local;
             }
+            else
+            {
+                if (string.IsNullOrEmpty(__instance.playerAvatar.steamID))
+                    return;
 
-            var patchedEyes = CustomEyeManager.AllPatchedEyes.Find(p => p.playerID == __instance.playerAvatar.steamID);
+                patchedEyes = CustomEyeManager.AllPatchedEyes.Find(p => p.playerID == __instance.playerAvatar.steamID); 
+            }
 
             if (patchedEyes == null)
             {
                 Plugin.WARNING($"Could not get PatchedEyes for player {__instance.playerAvatar.playerName}");
                 return;
-            }   
-
-            if (patchedEyes.LeftEye == null || patchedEyes.RightEye == null)
-            {
-                Plugin.WARNING($"Eye references are null for {patchedEyes.Player.playerName}");
-                return;
             }
 
-            //set player selections!!!
+            //Only run below code in actual game
+            if (!SemiFunc.RunIsLevel() && !SemiFunc.RunIsShop() && !SemiFunc.RunIsArena())
+                return;
+
+            patchedEyes.LeftEye.PlayerSetup(__instance);
+            patchedEyes.RightEye.PlayerSetup(__instance);
+
+            //set player selections for spawned player!!
             patchedEyes.currentSelections.PlayerEyesSpawn();
         }
         
