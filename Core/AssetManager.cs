@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using BepInEx;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using UnityEngine;
 
@@ -53,18 +55,24 @@ internal class LoadedAsset
 internal class AssetManager
 {
     internal static List<LoadedAsset> LoadedAssets = [];
-    internal static LoadedAsset DefaultAssets = null!;
 
-    public static LoadedAsset InitBundle(string bundlePath)
+    public static LoadedAsset InitBundles()
     {
-        LoadedAsset existing = LoadedAssets.FirstOrDefault(a => a.isLoaded == true && a.FilePath == bundlePath);
+        List<string> paths = [.. Directory.GetFiles(Paths.PluginPath, "*.eyesbundle")];
 
-        if(existing == null)
-            existing = new(bundlePath);
-        else
-            Plugin.logger.LogWarning($"The asset at path {bundlePath} has already been loaded!");
-            
-        return existing;
+        foreach(string path in paths)
+        {
+            LoadedAsset existing = LoadedAssets.FirstOrDefault(a => a.isLoaded == true && a.FilePath == path);
+
+            if (existing == null)
+                existing = new(path);
+            else
+                Plugin.logger.LogWarning($"The asset at path {path} has already been loaded!");
+
+            return existing;
+        }
+
+        
     }
 
     internal static void UnloadBundle(string bundlePath)
