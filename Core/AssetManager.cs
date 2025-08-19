@@ -58,10 +58,11 @@ internal class AssetManager
 
     public static void InitBundles()
     {
-        List<string> paths = [.. Directory.GetFiles(Paths.PluginPath, "*.eyesbundle")];
+        List<string> paths = [.. Directory.GetFiles(Path.Combine(Paths.BepInExRootPath, "plugins"), "*.eyesbundle", SearchOption.AllDirectories)];
 
         foreach(string path in paths)
         {
+            Plugin.Spam($"Loading eyesbundle at path: {path}");
             LoadedAsset existing = LoadedAssets.FirstOrDefault(a => a.isLoaded == true && a.FilePath == path);
 
             if (existing == null)
