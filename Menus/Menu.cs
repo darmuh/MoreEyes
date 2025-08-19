@@ -197,7 +197,14 @@ internal sealed class Menu
 
         //Update selections if there are unsaved changes when menu is closed 
         if (FileManager.UpdateWrite)
+        {
+            //Sync changes to others
+            MoreEyesNetwork.SyncMoreEyesChanges();
+
+            //write changes to file
             FileManager.WriteTextFile();
+        }
+            
     }
 
     private static void CreatePopupMenu()

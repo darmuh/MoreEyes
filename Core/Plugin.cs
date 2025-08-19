@@ -20,13 +20,12 @@ internal class Plugin : BaseUnityPlugin
     public void Awake()
     {
         logger = Logger;
-        string pluginFolderPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-        string assetBundleFilePath = Path.Combine(pluginFolderPath, "eyes");
-        AssetManager.DefaultAssets = AssetManager.InitBundle(assetBundleFilePath);
+        AssetManager.InitBundles();
         Menu.Initialize();
         CustomEyeManager.Init();
 
         Spam("Plugin initialized!");
+
         Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
     }
 

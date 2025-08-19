@@ -17,22 +17,32 @@ internal static class MenuUtils
         if (preview == null || preview.rigTransform == null)
             return;
 
-        float scrollDelta = InputManager.instance.KeyPullAndPush();
-        Plugin.Spam($"HandleScrollZoom called. ScrollDelta: {scrollDelta}");
+        Plugin.Spam("Starting AvatarZoomCoroutine!");
+        preview.StartCoroutine(AvatarZoomCoroutine(preview));
+    }
 
-        if (Mathf.Abs(scrollDelta) > 0.001f)
+    private static IEnumerator AvatarZoomCoroutine(REPOAvatarPreview preview)
+    {
+        while(preview != null && preview.rigTransform != null)
         {
-            bool zoomIn = scrollDelta > 0f;
-            Plugin.Spam($"Zoom direction: {(zoomIn ? "In" : "Out")}");
+            float scrollDelta = InputManager.instance.KeyPullAndPush();
+            //Plugin.Spam($"HandleScrollZoom called. ScrollDelta: {scrollDelta}");
 
-            if (zoomCoroutine != null)
+            if (Mathf.Abs(scrollDelta) > 0.001f)
             {
-                Plugin.Spam("Stopping previous zoom coroutine.");
-                preview.StopCoroutine(zoomCoroutine);
-            }
+                bool zoomIn = scrollDelta > 0f;
+                Plugin.Spam($"Zoom direction: {(zoomIn ? "In" : "Out")}");
 
-            Plugin.Spam("Starting new zoom coroutine.");
-            zoomCoroutine = preview.StartCoroutine(AnimateZoom(preview, zoomIn));
+                if (zoomCoroutine != null)
+                {
+                    Plugin.Spam("Stopping previous zoom coroutine.");
+                    preview.StopCoroutine(zoomCoroutine);
+                }
+
+                Plugin.Spam("Starting new zoom coroutine.");
+                zoomCoroutine = preview.StartCoroutine(AnimateZoom(preview, zoomIn));
+            }
+            yield return null;
         }
     }
 

@@ -9,6 +9,8 @@ namespace MoreEyes.EyeManagement;
 
 internal class PlayerEyeSelection
 {
+    internal static PlayerEyeSelection LocalCache = null!;
+    internal bool isLocalCache = false;
     internal string playerID = string.Empty;
     internal PatchedEyes patchedEyes;
 
@@ -24,7 +26,8 @@ internal class PlayerEyeSelection
         set
         {
             _irisLeftColor = value;
-            patchedEyes.LeftEye?.SetColorIris(value);
+            if(this != LocalCache)
+                patchedEyes.LeftEye?.SetColorIris(value);
         }
     }
 
@@ -35,7 +38,8 @@ internal class PlayerEyeSelection
         set
         {
             _irisRightColor = value;
-            patchedEyes.RightEye?.SetColorIris(value);
+            if (this != LocalCache)
+                patchedEyes.RightEye?.SetColorIris(value);
         }
     }
 
@@ -46,7 +50,8 @@ internal class PlayerEyeSelection
         set
         {
             _pupilLeftColor = value;
-            patchedEyes.LeftEye?.SetColorPupil(value);
+            if (this != LocalCache)
+                patchedEyes.LeftEye?.SetColorPupil(value);
         }
     }
 
@@ -57,7 +62,8 @@ internal class PlayerEyeSelection
         set
         {
             _pupilRightColor = value;
-            patchedEyes.RightEye?.SetColorPupil(value);
+            if (this != LocalCache)
+                patchedEyes.RightEye?.SetColorPupil(value);
         }
     }
 
@@ -68,16 +74,25 @@ internal class PlayerEyeSelection
         CustomEyeManager.AllPlayerSelections.Add(this);
     }
 
+    public PlayerEyeSelection(bool isCache)
+    {
+        playerID = "";
+        isLocalCache = isCache;
+        LocalCache = this;
+    }
+
     public void UpdateSelectionOf(bool isLeft, CustomPupilType selection)
     {
         if(isLeft)
         {
+            LocalCache.pupilLeft = pupilLeft;
             pupilLeft.inUse = false;
             pupilLeft = selection;
             pupilLeft.inUse = true;
         }
         else
         {
+            LocalCache.pupilRight = pupilRight;
             pupilRight.inUse = false;
             pupilRight = selection;
             pupilRight.inUse = true;
@@ -88,12 +103,14 @@ internal class PlayerEyeSelection
     {
         if (isLeft)
         {
+            LocalCache.irisLeft = irisLeft;
             irisLeft.inUse = false;
             irisLeft = selection;
             irisLeft.inUse = true;
         }
         else
         {
+            LocalCache.irisRight = irisRight;
             irisRight.inUse = false;
             irisRight = selection;
             irisRight.inUse = true;
@@ -115,17 +132,29 @@ internal class PlayerEyeSelection
     public void UpdateColorOf(CustomPupilType pupil, Color color)
     {
         if (pupil == pupilLeft)
+        {
+            LocalCache.PupilLeftColor = PupilLeftColor;
             PupilLeftColor = color;
+        }   
         else if(pupil == pupilRight)
+        {
+            LocalCache.PupilRightColor = PupilRightColor;
             PupilRightColor = color;
+        }
     }
 
     public void UpdateColorOf(CustomIrisType iris, Color color)
     {
         if (iris == irisLeft)
+        {
+            LocalCache.IrisLeftColor = IrisLeftColor;
             IrisLeftColor = color;
+        }    
         else if (iris == irisRight)
+        {
+            LocalCache.IrisRightColor = IrisRightColor;
             IrisRightColor = color;
+        }     
     }
 
     public Color GetColorOf(CustomPupilType pupil)
@@ -243,11 +272,11 @@ internal class PlayerEyeSelection
                 Plugin.logger.LogWarning($"Unexpected key in saved selections: {s.Key}");
             }
         });
+    }
 
-        if (patchedEyes.LeftEye == null || patchedEyes.RightEye == null)
-            return;
-
-        //color has to be first for some reason
+    internal void PlayerEyesSpawn()
+    {
+        Plugin.Spam($"Setting {patchedEyes.Player.playerName}'s eyes at spawn!");
 
         patchedEyes.SelectPupil(pupilLeft, true);
         patchedEyes.SelectPupil(pupilRight, false);
