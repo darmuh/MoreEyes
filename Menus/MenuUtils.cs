@@ -8,6 +8,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 namespace MoreEyes.Menus;
+
 internal static class MenuUtils
 {
     private static Coroutine zoomCoroutine;
@@ -17,74 +18,54 @@ internal static class MenuUtils
         if (preview == null || preview.rigTransform == null)
             return;
 
-        Plugin.Spam("Starting AvatarZoomCoroutine!");
-        preview.StartCoroutine(AvatarZoomCoroutine(preview));
+        zoomCoroutine ??= preview.StartCoroutine(SmoothZoomCoroutine(preview));
     }
-
-    private static IEnumerator AvatarZoomCoroutine(REPOAvatarPreview preview)
+    private static IEnumerator SmoothZoomCoroutine(REPOAvatarPreview preview)
     {
-        while(preview != null && preview.rigTransform != null)
+        const float minScale = 1f;
+        const float maxScale = 2f;
+        const float scrollStep = 0.05f;
+        const float zoomSpeed = 1.5f;
+
+        float targetScale = preview.rigTransform.parent.localScale.x;
+
+        while (preview != null && preview.rigTransform != null)
         {
             float scrollDelta = InputManager.instance.KeyPullAndPush();
-            //Plugin.Spam($"HandleScrollZoom called. ScrollDelta: {scrollDelta}");
 
             if (Mathf.Abs(scrollDelta) > 0.001f)
             {
-                bool zoomIn = scrollDelta > 0f;
-                Plugin.Spam($"Zoom direction: {(zoomIn ? "In" : "Out")}");
-
-                if (zoomCoroutine != null)
-                {
-                    Plugin.Spam("Stopping previous zoom coroutine.");
-                    preview.StopCoroutine(zoomCoroutine);
-                }
-
-                Plugin.Spam("Starting new zoom coroutine.");
-                zoomCoroutine = preview.StartCoroutine(AnimateZoom(preview, zoomIn));
+                targetScale = Mathf.Clamp(targetScale + scrollDelta * scrollStep, minScale, maxScale);
             }
+
+            float currentScale = preview.rigTransform.parent.localScale.x;
+
+            currentScale = Mathf.MoveTowards(currentScale, targetScale, zoomSpeed * Time.deltaTime);
+            preview.rigTransform.parent.localScale = Vector3.one * currentScale;
+
+            float t = Mathf.InverseLerp(minScale, maxScale, currentScale);
+
+            preview.rigTransform.parent.localPosition = Vector3.Lerp(
+                new Vector3(0f, -0.6f, 0f), new Vector3(0f, -3.5f, 0f), t);
+
+            preview.previewSize = Vector2.Lerp(
+                new Vector2(182.4f, 342f), new Vector2(266.6667f, 500f), t);
+
+            preview.rectTransform.sizeDelta = Vector2.Lerp(
+                new Vector2(182.4f, 342f), new Vector2(266.6667f, 210f), t);
+
+            preview.rectTransform.anchoredPosition = Vector2.Lerp(
+                new Vector2(471.25f, 24.5f), new Vector2(471.25f, 156.5f), t);
             yield return null;
         }
+        zoomCoroutine = null;
     }
 
-    private static IEnumerator AnimateZoom(REPOAvatarPreview preview, bool zoomIn)
+    public static void SetTipTextStyling(REPOLabel label)
     {
-        Vector2 startSize = preview.previewSize;
-        Vector2 targetSize = zoomIn ? new Vector2(266.6667f, 500f) : new Vector2(182.4f, 342f);
-
-        Vector2 startDelta = preview.rectTransform.sizeDelta;
-        Vector2 targetDelta = zoomIn ? new Vector2(266.6667f, 210f) : new Vector2(182.4f, 342f);
-
-        Vector3 startScale = preview.rigTransform.parent.localScale;
-        Vector3 targetScale = zoomIn ? new Vector3(2f, 2f, 2f) : Vector3.one;
-
-        Vector3 startPos = preview.rigTransform.parent.localPosition;
-        Vector3 targetPos = zoomIn ? new Vector3(0f, -3.5f, 0f) : new Vector3(0f, -0.6f, 0f);
-
-        Vector2 startAnchored = preview.rectTransform.anchoredPosition;
-        Vector2 targetAnchored = zoomIn ? new Vector2(471.25f, 156.5f) : new Vector2(471.25f, 24.5f);
-
-        float duration = 0.45f;
-        float elapsed = 0f;
-
-        while (elapsed < duration)
-        {
-            elapsed += Time.deltaTime;
-            float t = Mathf.SmoothStep(0f, 1f, elapsed / duration);
-
-            preview.previewSize = Vector2.Lerp(startSize, targetSize, t);
-            preview.rectTransform.sizeDelta = Vector2.Lerp(startDelta, targetDelta, t);
-            preview.rigTransform.parent.localScale = Vector3.Lerp(startScale, targetScale, t);
-            preview.rigTransform.parent.localPosition = Vector3.Lerp(startPos, targetPos, t);
-            preview.rectTransform.anchoredPosition = Vector2.Lerp(startAnchored, targetAnchored, t);
-
-            yield return null;
-        }
-
-        preview.previewSize = targetSize;
-        preview.rectTransform.sizeDelta = targetDelta;
-        preview.rigTransform.parent.localScale = targetScale;
-        preview.rigTransform.parent.localPosition = targetPos;
-        preview.rectTransform.anchoredPosition = targetAnchored;
+        label.labelTMP.fontSize = 20f;
+        label.labelTMP.horizontalAlignment = TMPro.HorizontalAlignmentOptions.Center;
+        label.labelTMP.alpha = 0.15f;
     }
     public static void SetTextStyling(List<REPOButton> buttons)
     {

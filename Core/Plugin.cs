@@ -5,6 +5,8 @@ using MoreEyes.EyeManagement;
 using MoreEyes.Menus;
 using System.IO;
 using System.Reflection;
+using TMPro;
+using UnityEngine;
 
 namespace MoreEyes.Core;
 

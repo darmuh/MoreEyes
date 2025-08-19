@@ -19,6 +19,7 @@ internal sealed class Menu
     internal static REPOButton irisLeft;
     internal static REPOButton irisRight;
 
+    internal static REPOLabel zoomTip;
     internal static REPOLabel pupilLeftHeader;
     internal static REPOLabel pupilRightHeader;
     internal static REPOLabel irisLeftHeader;
@@ -224,6 +225,10 @@ internal sealed class Menu
         AvatarPreview.rigTransform.parent.localPosition = new Vector3(0f, -3.5f, 0f);
 
         MenuUtils.HandleScrollZoom(AvatarPreview);
+
+        zoomTip = MenuAPI.CreateREPOLabel("! Scroll to zoom", MoreEyesMenu.transform, new Vector2(480, 0));
+
+        MenuUtils.SetTipTextStyling(zoomTip);
 
         MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("Back", BackButton, MoreEyesMenu.transform, new Vector2(190, 30)));
         MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("Randomize", RandomizeLocalEyeSelection, MoreEyesMenu.transform, new Vector2(270, 30)));
