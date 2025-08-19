@@ -1,44 +1,42 @@
 ﻿using MoreEyes.Core;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace MoreEyes.EyeManagement
 {
     internal class EyeRef : MonoBehaviour
     {
-        internal Transform eyePlayerPos;
-        internal Transform eyeMenuPos;
+        internal Transform EyePlayerPos { get; set; }
+        internal List<Transform> EyeMenuPos { get; set; } = [];
 
-        internal Vector3 pupilPlayerOrigPos;
-        internal Quaternion pupilPlayerOrigRot;
-        internal Vector3 pupilMenuOrigPos;
-        internal Quaternion pupilMenuOrigRot;
-
-        internal GameObject PupilMenu { get; private set; } = null!;
+        //Menu is list because there can be multiple menu visuals
+        internal List<GameObject> PupilMenu { get; private set; } = [];
         internal GameObject PupilActual { get; private set; } = null!;
 
-        internal GameObject IrisMenu { get; private set; } = null!;
+        internal List<GameObject> IrisMenu { get; private set; } = [];
         internal GameObject IrisActual { get; private set; } = null!;
 
         internal void SetFirstPupilActual(GameObject pupil)
         {
             PupilActual = pupil;
-            pupilPlayerOrigPos = pupil.transform.position;
-            pupilPlayerOrigRot = pupil.transform.rotation;
         }
 
         internal void SetFirstPupilMenu(GameObject pupil)
         {
-            PupilMenu = pupil;
-            pupilMenuOrigPos = pupil.transform.position;
-            pupilMenuOrigRot = pupil.transform.rotation;
+            PupilMenu.RemoveAll(x => x == null);
+            PupilMenu.Add(pupil);
         }
 
         internal void SetColorPupil(Color color)
         {
-            //can't use null coalescing operator as Unity Objects do not return null with this operator when they are destroyed 
-            //https://discussions.unity.com/t/c-null-coalescing-operator-does-not-work-for-unityengine-object-types/710219
-            if (PupilMenu != null)
-                PupilMenu.GetComponentInChildren<MeshRenderer>()?.material.SetColor("_EmissionColor", color);
+            PupilMenu.RemoveAll(x => x == null);
+            if (PupilMenu.Count > 0)
+            {
+                foreach(var pupil in PupilMenu)
+                {
+                    pupil.GetComponentInChildren<MeshRenderer>()?.material.SetColor("_EmissionColor", color);
+                }
+            }
 
             if(PupilActual != null)
                 PupilActual.GetComponentInChildren<MeshRenderer>()?.material.SetColor("_EmissionColor", color);
@@ -48,11 +46,16 @@ namespace MoreEyes.EyeManagement
 
         internal void SetColorIris(Color color)
         {
-            //can't use null coalescing operator as Unity Objects do not return null with this operator when they are destroyed 
-            //https://discussions.unity.com/t/c-null-coalescing-operator-does-not-work-for-unityengine-object-types/710219
-            if (IrisMenu != null)
-                IrisMenu.GetComponentInChildren<MeshRenderer>()?.material.SetColor("_EmissionColor", color);
-            if(IrisActual != null)
+            IrisMenu.RemoveAll(x => x == null);
+            if (IrisMenu.Count > 0)
+            {
+                foreach (var iris in IrisMenu)
+                {
+                    iris.GetComponentInChildren<MeshRenderer>()?.material.SetColor("_EmissionColor", color);
+                }
+            }
+
+            if (IrisActual != null)
                 IrisActual.GetComponentInChildren<MeshRenderer>()?.material.SetColor("_EmissionColor", color);
 
             FileManager.UpdateWrite = true;
@@ -60,8 +63,11 @@ namespace MoreEyes.EyeManagement
 
         internal void RemovePupil()
         {
-            if(PupilMenu != null)
-                Destroy(PupilMenu);
+            PupilMenu.RemoveAll(x => x == null);
+            for(int i = PupilMenu.Count - 1; i >= 0; i--)
+            {
+                Destroy(PupilMenu[i]);
+            }
 
             if(PupilActual != null)
                 Destroy(PupilActual);
@@ -75,13 +81,18 @@ namespace MoreEyes.EyeManagement
                 return;
             }
 
-            if (eyeMenuPos != null)
-                PupilMenu = Instantiate(selection.Prefab, eyeMenuPos);  
+            EyeMenuPos.RemoveAll(x => x == null);
+            foreach(var eye in EyeMenuPos)
+            {
+                var pupil = Instantiate(selection.Prefab, eye);
+                PupilMenu.Add(pupil);
+                SetTransformAndActive(pupil, selection.isVanilla);
+            }            
 
-            if (eyePlayerPos != null)
-                PupilActual = Instantiate(selection.Prefab, eyePlayerPos);
+            if (EyePlayerPos != null)
+                PupilActual = Instantiate(selection.Prefab, EyePlayerPos);
 
-            SetTransformAndActive(PupilMenu, selection.isVanilla);
+            
             SetTransformAndActive(PupilActual, selection.isVanilla);
         }
 
@@ -99,8 +110,11 @@ namespace MoreEyes.EyeManagement
 
         internal void RemoveIris()
         {
-            if (IrisMenu != null)
-                Destroy(IrisMenu);
+            IrisMenu.RemoveAll(x => x == null);
+            for (int i = IrisMenu.Count - 1; i >= 0; i--)
+            {
+                Destroy(IrisMenu[i]);
+            }
 
             if (IrisActual != null)
                 Destroy(IrisActual);
@@ -119,14 +133,18 @@ namespace MoreEyes.EyeManagement
             }
 
             //creating the iris as child of static objects that will NOT be deleted
-            if (eyeMenuPos != null)
-                IrisMenu = Instantiate(selection.Prefab, eyeMenuPos);
+            EyeMenuPos.RemoveAll(x => x == null);
+            foreach (var eye in EyeMenuPos)
+            {
+                var iris = Instantiate(selection.Prefab, eye);
+                IrisMenu.Add(iris);
+                SetTransformAndActive(iris, selection.isVanilla);
+            }
 
-            if (eyePlayerPos != null)
-                IrisActual = Instantiate(selection.Prefab, eyePlayerPos);
+            if (EyePlayerPos != null)
+                IrisActual = Instantiate(selection.Prefab, EyePlayerPos);
 
             //Show new iris!
-            SetTransformAndActive(IrisMenu, selection.isVanilla);
             SetTransformAndActive(IrisActual, selection.isVanilla);
         }
     }

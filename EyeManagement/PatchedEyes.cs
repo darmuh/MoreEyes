@@ -1,6 +1,5 @@
 ﻿using MoreEyes.Core;
 using System.Collections.Generic;
-using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
 using static MoreEyes.EyeManagement.CustomEyeManager;
@@ -16,6 +15,11 @@ internal class PatchedEyes : MonoBehaviour
     { 
         get 
         {
+            if(PlayerAvatar.instance == null)
+            {
+                Plugin.logger.LogError("Unable to return PatchedEyes Local, PlayerAvatar instance is null!");
+                return null;
+            }    
             PatchedEyes local = PlayerAvatar.instance?.GetComponent<PatchedEyes>();
             if (local == null)
                 return local.AddComponent<PatchedEyes>();
@@ -31,7 +35,7 @@ internal class PatchedEyes : MonoBehaviour
 
     private void Awake()
     {
-        AllPatchedEyes.RemoveAll(p => p.Player == null);
+        AllPatchedEyes.RemoveAll(p => p == null);
         Player = GetComponent<PlayerAvatar>();
         playerID = Player.steamID;
         AllPatchedEyes.Add(this);
@@ -47,9 +51,9 @@ internal class PatchedEyes : MonoBehaviour
         GameObject right = new("MoreEyes-RIGHT");
         right.transform.SetParent(Player.playerAvatarVisuals.playerEyes.pupilRight.GetChild(0));
         LeftEye = left.AddComponent<EyeRef>();
-        LeftEye.eyePlayerPos = left.transform.parent;
+        LeftEye.EyePlayerPos = left.transform.parent;
         RightEye = right.AddComponent<EyeRef>();
-        RightEye.eyePlayerPos = right.transform.parent;
+        RightEye.EyePlayerPos = right.transform.parent;
 
         // Create vanilla pupils
         // This will create a copy of the object (prefab) for our class and disable it
@@ -71,11 +75,11 @@ internal class PatchedEyes : MonoBehaviour
         left.transform.SetParent(visuals.playerEyes.pupilLeft.GetChild(0));
         GameObject right = new("MoreEyes-RIGHT-MENU");
         right.transform.SetParent(visuals.playerEyes.pupilRight.GetChild(0));
-        LeftEye.eyeMenuPos = left.transform.parent;
-        RightEye.eyeMenuPos = right.transform.parent;
+        LeftEye.EyeMenuPos.Add(left.transform.parent);
+        RightEye.EyeMenuPos.Add(right.transform.parent);
         LeftEye.SetFirstPupilMenu(originalLeft);
         RightEye.SetFirstPupilMenu(originalRight);
-        SetSelectedEyes(Player);
+        SetPlayerSavedSelection(Player);
     }
 
     //used to change existing pupil to new selection
@@ -92,7 +96,6 @@ internal class PatchedEyes : MonoBehaviour
         eye.CreatePupil(newSelection);
         currentSelections.UpdateSelectionOf(isLeft, newSelection);
 
-        //potential RPC here
         FileManager.UpdateWrite = true;
     }
 
@@ -104,11 +107,10 @@ internal class PatchedEyes : MonoBehaviour
         eye.CreateIris(newSelection);
         currentSelections.UpdateSelectionOf(isLeft, newSelection);
 
-        //potential RPC here
         FileManager.UpdateWrite = true;
     }
 
-    internal void SetSelectedEyes(PlayerAvatar player)
+    internal void SetPlayerSavedSelection(PlayerAvatar player)
     {
         PlayerEyeSelection playerChoices = PlayerEyeSelection.GetPlayerEyeSelection(player.steamID);
         if (playerChoices == null)
