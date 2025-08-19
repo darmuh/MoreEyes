@@ -56,7 +56,7 @@ internal class AssetManager
 {
     internal static List<LoadedAsset> LoadedAssets = [];
 
-    public static LoadedAsset InitBundles()
+    public static void InitBundles()
     {
         List<string> paths = [.. Directory.GetFiles(Paths.PluginPath, "*.eyesbundle")];
 
@@ -68,11 +68,7 @@ internal class AssetManager
                 existing = new(path);
             else
                 Plugin.logger.LogWarning($"The asset at path {path} has already been loaded!");
-
-            return existing;
-        }
-
-        
+        }  
     }
 
     internal static void UnloadBundle(string bundlePath)
