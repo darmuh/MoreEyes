@@ -12,52 +12,83 @@ namespace MoreEyes.Menus;
 internal static class MenuUtils
 {
     private static Coroutine zoomCoroutine;
+    internal static float zoomLevel = 0f;
 
     public static void HandleScrollZoom(REPOAvatarPreview preview)
     {
         if (preview == null || preview.rigTransform == null)
             return;
 
-        zoomCoroutine ??= preview.StartCoroutine(SmoothZoomCoroutine(preview));
+        if (zoomCoroutine == null)
+            preview.StartCoroutine(AvatarZoomCoroutine(preview));
     }
-    private static IEnumerator SmoothZoomCoroutine(REPOAvatarPreview preview)
+
+    private static IEnumerator AvatarZoomCoroutine(REPOAvatarPreview preview)
     {
-        const float minScale = 1f;
-        const float maxScale = 2f;
-        const float scrollStep = 0.05f;
-        const float zoomSpeed = 1.5f;
-
-        float targetScale = preview.rigTransform.parent.localScale.x;
-
         while (preview != null && preview.rigTransform != null)
         {
             float scrollDelta = InputManager.instance.KeyPullAndPush();
 
             if (Mathf.Abs(scrollDelta) > 0.001f)
             {
-                targetScale = Mathf.Clamp(targetScale + scrollDelta * scrollStep, minScale, maxScale);
+                float targetZoom = Mathf.Clamp01(zoomLevel + Mathf.Sign(scrollDelta));
+
+                if (!Mathf.Approximately(targetZoom, zoomLevel))
+                {
+                    if (zoomCoroutine != null)
+                    {
+                        preview.StopCoroutine(zoomCoroutine);
+                        zoomCoroutine = null;
+                    }
+
+                    zoomCoroutine = preview.StartCoroutine(AnimateZoom(preview, targetZoom));
+                    zoomLevel = targetZoom;
+                }
             }
-
-            float currentScale = preview.rigTransform.parent.localScale.x;
-
-            currentScale = Mathf.MoveTowards(currentScale, targetScale, zoomSpeed * Time.deltaTime);
-            preview.rigTransform.parent.localScale = Vector3.one * currentScale;
-
-            float t = Mathf.InverseLerp(minScale, maxScale, currentScale);
-
-            preview.rigTransform.parent.localPosition = Vector3.Lerp(
-                new Vector3(0f, -0.6f, 0f), new Vector3(0f, -3.5f, 0f), t);
-
-            preview.previewSize = Vector2.Lerp(
-                new Vector2(182.4f, 342f), new Vector2(266.6667f, 500f), t);
-
-            preview.rectTransform.sizeDelta = Vector2.Lerp(
-                new Vector2(182.4f, 342f), new Vector2(266.6667f, 210f), t);
-
-            preview.rectTransform.anchoredPosition = Vector2.Lerp(
-                new Vector2(471.25f, 24.5f), new Vector2(471.25f, 156.5f), t);
             yield return null;
         }
+    }
+
+    private static IEnumerator AnimateZoom(REPOAvatarPreview preview, float targetZoom)
+    {
+        Vector2 sizeOut = new(182.4f, 342f);
+        Vector2 sizeIn = new(266.6667f, 500f);
+
+        Vector2 deltaOut = new(182.4f, 342f);
+        Vector2 deltaIn = new(266.6667f, 210f);
+
+        Vector3 scaleOut = Vector3.one;
+        Vector3 scaleIn = new(2f, 2f, 2f);
+
+        Vector3 posOut = new(0f, -0.6f, 0f);
+        Vector3 posIn = new(0f, -3.5f, 0f);
+
+        Vector2 anchorOut = new(471.25f, 24.5f);
+        Vector2 anchorIn = new(471.25f, 156.5f);
+
+        float startZoom = zoomLevel;
+        float duration = 0.45f;
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = Mathf.SmoothStep(0f, 1f, elapsed / duration);
+
+            float z = Mathf.Lerp(startZoom, targetZoom, t);
+
+            preview.previewSize = Vector2.Lerp(sizeOut, sizeIn, z);
+            preview.rectTransform.sizeDelta = Vector2.Lerp(deltaOut, deltaIn, z);
+            preview.rigTransform.parent.localScale = Vector3.Lerp(scaleOut, scaleIn, z);
+            preview.rigTransform.parent.localPosition = Vector3.Lerp(posOut, posIn, z);
+            preview.rectTransform.anchoredPosition = Vector2.Lerp(anchorOut, anchorIn, z);
+            yield return null;
+        }
+        preview.previewSize = Vector2.Lerp(sizeOut, sizeIn, targetZoom);
+        preview.rectTransform.sizeDelta = Vector2.Lerp(deltaOut, deltaIn, targetZoom);
+        preview.rigTransform.parent.localScale = Vector3.Lerp(scaleOut, scaleIn, targetZoom);
+        preview.rigTransform.parent.localPosition = Vector3.Lerp(posOut, posIn, targetZoom);
+        preview.rectTransform.anchoredPosition = Vector2.Lerp(anchorOut, anchorIn, targetZoom);
         zoomCoroutine = null;
     }
 

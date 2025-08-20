@@ -223,6 +223,7 @@ internal sealed class Menu
         AvatarPreview.rectTransform.sizeDelta = new Vector2(266.6667f, 210f); // original (184, 345) same way as previewSize
         AvatarPreview.rigTransform.parent.localScale = new Vector3(2f, 2f, 2f); // original (1, 1, 1)
         AvatarPreview.rigTransform.parent.localPosition = new Vector3(0f, -3.5f, 0f);
+        MenuUtils.zoomLevel = 1f;
 
         MenuUtils.HandleScrollZoom(AvatarPreview);
 
