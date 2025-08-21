@@ -1,6 +1,5 @@
 ﻿using HarmonyLib;
 using MenuLib.MonoBehaviors;
-using MoreEyes.Core;
 using System;
 using System.Collections;
 using System.Collections.Generic;
