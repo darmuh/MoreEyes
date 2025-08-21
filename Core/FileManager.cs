@@ -64,7 +64,7 @@ internal class FileManager
     {
         CustomEyeManager.AllPlayerSelections.Do(a =>
         {
-            string selections = $"pupilLeft={a.pupilLeft.Path},pupilLeftColor={ColorUtility.ToHtmlStringRGB(a.PupilLeftColor)},pupilRight={a.pupilRight.Path},pupilRightColor={ColorUtility.ToHtmlStringRGB(a.PupilRightColor)},irisLeft={a.irisLeft.Path},irisLeftColor={ColorUtility.ToHtmlStringRGB(a.IrisLeftColor)},irisRight={a.irisRight.Path},irisRightColor={ColorUtility.ToHtmlStringRGB(a.IrisRightColor)}";
+            string selections = $"pupilLeft={a.pupilLeft.UID},pupilLeftColor={ColorUtility.ToHtmlStringRGB(a.PupilLeftColor)},pupilRight={a.pupilRight.UID},pupilRightColor={ColorUtility.ToHtmlStringRGB(a.PupilRightColor)},irisLeft={a.irisLeft.UID},irisLeftColor={ColorUtility.ToHtmlStringRGB(a.IrisLeftColor)},irisRight={a.irisRight.UID},irisRightColor={ColorUtility.ToHtmlStringRGB(a.IrisRightColor)}";
 
             if (PlayerSelections.ContainsKey(a.playerID))
             {

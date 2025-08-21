@@ -4,8 +4,11 @@ using MoreEyes.Core;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
+using Image = UnityEngine.UI.Image;
 
 namespace MoreEyes.Menus;
 
@@ -104,7 +107,19 @@ internal static class MenuUtils
         {
             t.overrideButtonSize = new Vector2(75f, 20f);
             t.labelTMP.fontSize = 18f;
-            t.labelTMP.horizontalAlignment = TMPro.HorizontalAlignmentOptions.Center;
+            GameObject maskParent = new($"{t.name} Mask Object");
+            var image = maskParent.AddComponent<Image>();
+            image.color = new(0, 0, 0, 0.05f);
+            maskParent.AddComponent<Mask>();
+            maskParent.transform.SetParent(t.transform);
+            image.rectTransform.anchoredPosition = new(0f, -2f);
+            image.rectTransform.sizeDelta = new Vector2(80f, 20f);
+            t.labelTMP.gameObject.transform.SetParent(maskParent.transform);
+            t.menuButton.buttonTextSelectedOriginalPos = new(-42, -18, 0);
+
+            var scroller = t.labelTMP.AddComponent<HorizontalTextScroller>();
+            scroller.startPos = t.menuButton.buttonTextSelectedOriginalPos;
+            scroller.SetButtonRef(t.menuButton);
         });
     }
 
@@ -231,5 +246,70 @@ internal static class MenuUtils
         }
 
         return result;
+    }
+
+    internal class HorizontalTextScroller : MonoBehaviour
+    {
+        internal float scrollSpeed = 14f;
+        internal float widthOfText = 180f;
+
+        internal TextMeshProUGUI textMesh;
+        private RectTransform textRect;
+
+        private float scrollPos = 0f;
+        private float xOffset = 0f;
+        internal Vector3 startPos = Vector3.zero;
+        private bool ready = false;
+        private bool shouldScroll = false;
+
+        //MenuButtonRef
+        private MenuButton _button = null!;
+
+        void Awake()
+        {
+            textMesh = GetComponent<TextMeshProUGUI>();
+            textRect = GetComponent<RectTransform>();
+        }
+
+        void Start()
+        {
+            xOffset = textRect.localPosition.x * -1f;
+            scrollPos = textRect.localPosition.x - (xOffset);
+            ready = true;
+            
+        }
+
+        
+        void LateUpdate()
+        {
+            if (textMesh == null || !ready)
+                return;
+
+            shouldScroll = textMesh.preferredWidth > 80f;
+
+            if (shouldScroll && _button != null)
+                shouldScroll = _button.hovering;
+
+            if (!shouldScroll)
+            {
+                textRect.localPosition = startPos;
+                scrollPos = textRect.localPosition.x - (xOffset);
+                textMesh.horizontalAlignment = HorizontalAlignmentOptions.Center;
+                return;
+            }
+
+            textRect.localPosition = new(scrollPos % WidthMultiplier() + (xOffset), startPos.y, startPos.z);
+            scrollPos -= scrollSpeed * Time.deltaTime;
+        }
+
+        private float WidthMultiplier()
+        {
+            return textMesh.preferredWidth * 1.5f;
+        }
+
+        internal void SetButtonRef(MenuButton button)
+        {
+            _button = button;
+        }
     }
 }

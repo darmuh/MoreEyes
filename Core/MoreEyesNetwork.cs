@@ -26,23 +26,23 @@ internal class MoreEyesNetwork : MonoBehaviour
 
         Plugin.Spam("Syncing changes with all other clients!");
 
-        var local = PatchedEyes.Local.currentSelections;
+        var local = PatchedEyes.Local.CurrentSelections;
 
         // -- Check Pupil for prefab changes
 
         if (old.pupilLeft != local.pupilLeft)
-            instance.photonView.RPC("SetPlayerSelection", RpcTarget.OthersBuffered, local.playerID, true, true, local.pupilLeft.Path);
+            instance.photonView.RPC("SetPlayerSelection", RpcTarget.OthersBuffered, local.playerID, true, true, local.pupilLeft.UID);
 
         if (old.pupilRight != local.pupilRight)
-            instance.photonView.RPC("SetPlayerSelection", RpcTarget.OthersBuffered, local.playerID, false, true, local.pupilRight.Path);
+            instance.photonView.RPC("SetPlayerSelection", RpcTarget.OthersBuffered, local.playerID, false, true, local.pupilRight.UID);
 
         // -- Check Iris for prefab changes
 
         if (old.irisLeft != local.irisLeft)
-            instance.photonView.RPC("SetPlayerSelection", RpcTarget.OthersBuffered, local.playerID, true, false, local.irisLeft.Path);
+            instance.photonView.RPC("SetPlayerSelection", RpcTarget.OthersBuffered, local.playerID, true, false, local.irisLeft.UID);
 
         if (old.irisRight != local.irisRight)
-            instance.photonView.RPC("SetPlayerSelection", RpcTarget.OthersBuffered, local.playerID, false, false, local.irisRight.Path);
+            instance.photonView.RPC("SetPlayerSelection", RpcTarget.OthersBuffered, local.playerID, false, false, local.irisRight.UID);
 
         // --- Color changes must follow any prefab changes!! --- //
 
@@ -72,7 +72,7 @@ internal class MoreEyesNetwork : MonoBehaviour
     }
 
     [PunRPC]
-    internal void SetPlayerSelection(string playerID, bool isLeft, bool isPupil, string path)
+    internal void SetPlayerSelection(string playerID, bool isLeft, bool isPupil, string uniqueID)
     {
         Plugin.Spam($"Received selections from player with ID - {playerID}");
         if (!PlayerEyeSelection.TryGetSelections(playerID, out PlayerEyeSelection selections))
@@ -80,21 +80,21 @@ internal class MoreEyesNetwork : MonoBehaviour
 
         if(isPupil)
         {
-            CustomPupilType selection = CustomEyeManager.AllPupilTypes.FirstOrDefault(x => x.Path == path);
+            CustomPupilType selection = CustomEyeManager.AllPupilTypes.FirstOrDefault(x => x.UID == uniqueID);
             if (selection == null)
-                Plugin.WARNING($"Unable to sync pupil at path: {path}\nPlease verify all clients have the same MoreEyes mods");
+                Plugin.WARNING($"Unable to sync pupil with Unique ID: {uniqueID}\nPlease verify all clients have the same MoreEyes mods (and the same versions!)");
 
             selections.patchedEyes.SelectPupil(selection, isLeft);
-            Plugin.Spam($"Updated player's pupil to {selection.Name} at path {selection.Path}");
+            Plugin.Spam($"Updated player's pupil to {selection.Name} with Unique ID: {selection.UID}");
         }
         else
         {
-            CustomIrisType selection = CustomEyeManager.AllIrisTypes.FirstOrDefault(x => x.Path == path);
+            CustomIrisType selection = CustomEyeManager.AllIrisTypes.FirstOrDefault(x => x.UID == uniqueID);
             if (selection == null)
-                Plugin.WARNING($"Unable to sync iris at path: {path}\nPlease verify all clients have the same MoreEyes mods");
+                Plugin.WARNING($"Unable to sync iris with Unique ID: {uniqueID}\nPlease verify all clients have the same MoreEyes mods (and the same versions!)");
 
             selections.patchedEyes.SelectIris(selection, isLeft);
-            Plugin.Spam($"Updated player's iris to {selection.Name} at path {selection.Path}");
+            Plugin.Spam($"Updated player's iris to {selection.Name} with Unique ID: {selection.UID}");
         }
 
         FileManager.UpdateWrite = true;

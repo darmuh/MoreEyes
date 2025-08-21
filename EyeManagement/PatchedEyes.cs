@@ -31,7 +31,19 @@ internal class PatchedEyes : MonoBehaviour
     internal EyeRef LeftEye { get; set; }
     internal EyeRef RightEye { get; set; }
 
-    internal PlayerEyeSelection currentSelections = null!;
+    internal PlayerEyeSelection CurrentSelections
+    {
+        get
+        {
+            if(PlayerEyeSelection.TryGetSelections(playerID, out var selections))
+                return selections;
+            else
+            {
+                Plugin.logger.LogError($"TRYING TO GET NULL PLAYEREYESELECTIONS!! [{playerID}]");
+                return null!;
+            }
+        }
+    }
 
     private void Awake()
     {
@@ -79,6 +91,8 @@ internal class PatchedEyes : MonoBehaviour
         LeftEye.SetFirstPupilMenu(originalLeft);
         RightEye.SetFirstPupilMenu(originalRight);
         SetPlayerSavedSelection(Player);
+        //Actually change eyes
+        CurrentSelections.PlayerEyesSpawn();
     }
 
     //used to change existing pupil to new selection
@@ -93,7 +107,7 @@ internal class PatchedEyes : MonoBehaviour
         EyeRef eye = isLeft ? LeftEye : RightEye;
         eye.RemovePupil();
         eye.CreatePupil(newSelection);
-        currentSelections.UpdateSelectionOf(isLeft, newSelection);
+        CurrentSelections.UpdateSelectionOf(isLeft, newSelection);
 
         FileManager.UpdateWrite = true;
     }
@@ -104,7 +118,7 @@ internal class PatchedEyes : MonoBehaviour
         EyeRef eye = isLeft ? LeftEye : RightEye;
         eye.RemoveIris();
         eye.CreateIris(newSelection);
-        currentSelections.UpdateSelectionOf(isLeft, newSelection);
+        CurrentSelections.UpdateSelectionOf(isLeft, newSelection);
 
         FileManager.UpdateWrite = true;
     }
@@ -147,7 +161,7 @@ internal class PatchedEyes : MonoBehaviour
         SelectIris(irisL, true);
         SelectIris(irisR, false);
 
-        currentSelections.SetRandomColors();
+        CurrentSelections.SetRandomColors();
     }
 
     internal void ResetEyes()
@@ -156,7 +170,7 @@ internal class PatchedEyes : MonoBehaviour
         SelectPupil(VanillaPupilRight, false);
         SelectIris(VanillaIris, true);
         SelectIris(VanillaIris, false);
-        currentSelections.SetDefaultColors();
+        CurrentSelections.SetDefaultColors();
 
         FileManager.UpdateWrite = true;
     }

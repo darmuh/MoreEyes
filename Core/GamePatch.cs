@@ -30,7 +30,7 @@ internal class LocalPlayerMenuPatch
 
         if (__instance.isMenuAvatar)
         {
-                        Plugin.Spam("Getting local player menu eye references");
+            Plugin.Spam("Getting local player menu eye references");
             PatchedEyes.Local.SetMenuEyes(__instance);
         }
         else
@@ -62,7 +62,7 @@ internal class LocalPlayerMenuPatch
             patchedEyes.RightEye.PlayerSetup(__instance);
 
             //set player selections for spawned player!!
-            patchedEyes.currentSelections.PlayerEyesSpawn();
+            patchedEyes.CurrentSelections.PlayerEyesSpawn();
         }
         
     }
@@ -87,7 +87,6 @@ internal class PlayerSpawnPatch
         PatchedEyes patchedEyes = player.AddComponent<PatchedEyes>();
 
         //link these two for easy back and forth
-        patchedEyes.currentSelections = selections;
         selections.patchedEyes = patchedEyes;
         patchedEyes.SetPlayerSavedSelection(player);
     }
