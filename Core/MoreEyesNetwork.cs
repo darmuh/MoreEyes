@@ -103,12 +103,14 @@ internal class MoreEyesNetwork : MonoBehaviour
     [PunRPC]
     internal void SetPlayerColorSelection(string playerID, bool isLeft, bool isPupil, Vector3 colorVector)
     {
-        Plugin.Spam($"Received new color selection(s) from player with ID - {playerID}");
+        Plugin.Spam($"Received new color selection from player with ID - {playerID}");
         if (!PlayerEyeSelection.TryGetSelections(playerID, out PlayerEyeSelection selections))
             return;
 
         //https://discussions.unity.com/t/syncing-color-materials-pun/557222/10
-        var color = new Color(colorVector.x / 255f, colorVector.y / 255f, colorVector.z / 255f);
+        var color = new Color(colorVector.x, colorVector.y, colorVector.z);
+
+        Plugin.Spam($"ColorVector: {colorVector} | Color = {color}");
 
         if (isPupil)
         {

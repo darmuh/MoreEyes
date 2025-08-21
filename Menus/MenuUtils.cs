@@ -247,10 +247,11 @@ internal static class MenuUtils
         return result;
     }
 
+    //Scrolling element made for Iris/Pupil selections
     internal class HorizontalTextScroller : MonoBehaviour
     {
-        internal float scrollSpeed = 14f;
-        internal float widthOfText = 180f;
+        internal float scrollSpeed = 14f; //how fast the text scrolls, can be configurable
+        internal float widthOfText = 180f; //text area to scroll
 
         internal TextMeshProUGUI textMesh;
         private RectTransform textRect;
@@ -284,9 +285,9 @@ internal static class MenuUtils
             if (textMesh == null || !ready)
                 return;
 
-            shouldScroll = textMesh.preferredWidth > 80f;
+            shouldScroll = textMesh.preferredWidth > 85f; //if text is large enough, make it scroll
 
-            if (shouldScroll && _button != null)
+            if (shouldScroll && _button != null) //added so that text only scrolls if the button is hovered
                 shouldScroll = _button.hovering;
 
             if (!shouldScroll)

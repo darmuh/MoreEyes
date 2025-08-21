@@ -16,14 +16,15 @@ internal class EyeRef : MonoBehaviour
     internal List<GameObject> IrisMenu { get; private set; } = [];
     internal GameObject IrisActual { get; private set; } = null!;
 
-    internal void PlayerSetup(PlayerAvatarVisuals visuals)
+    internal void PlayerSetup(GameObject pupil)
     {
-        var originalLeft = visuals.playerEyes.pupilLeft.GetChild(0).GetChild(0).gameObject;
-        var originalRight = visuals.playerEyes.pupilRight.GetChild(0).GetChild(0).gameObject;
+        Plugin.Spam($"PlayerSetup called on original pupil!");
 
-        //Set as current pupils
-        SetFirstPupilActual(originalLeft);
-        SetFirstPupilActual(originalRight); 
+        if (pupil == null)
+            Plugin.logger.LogError("Null pupil at PlayerSetup!!!");
+
+        //Set as current pupil
+        SetFirstPupilActual(pupil);
     }
 
     internal void SetFirstPupilActual(GameObject pupil)
@@ -44,7 +45,8 @@ internal class EyeRef : MonoBehaviour
         {
             foreach(var pupil in PupilMenu)
             {
-                pupil.GetComponentInChildren<MeshRenderer>()?.material.SetColor("_EmissionColor", color);
+                if(pupil != null)
+                    pupil.GetComponentInChildren<MeshRenderer>()?.material.SetColor("_EmissionColor", color);
             }
         }
 

@@ -94,7 +94,6 @@ internal class CustomPupilType
 
     private void AddVanillaEye(GameObject eyeObject)
     {
-        AssetPath = eyeObject.name; //set for getting via rpc?
         Prefab = UnityEngine.Object.Instantiate(eyeObject);
         UnityEngine.Object.DontDestroyOnLoad(Prefab);
         Prefab.transform.SetParent(null);

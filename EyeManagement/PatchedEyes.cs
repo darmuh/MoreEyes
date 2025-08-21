@@ -45,11 +45,26 @@ internal class PatchedEyes : MonoBehaviour
         }
     }
 
+    internal static PatchedEyes GetPatchedEyes(PlayerAvatar player)
+    {
+        if(player.GetComponent<PatchedEyes>() == null)
+            return player.AddComponent<PatchedEyes>();
+        else
+            return player.GetComponent<PatchedEyes>();
+    }
+
     private void Awake()
     {
         AllPatchedEyes.RemoveAll(p => p == null);
         Player = GetComponent<PlayerAvatar>();
         playerID = Player.steamID;
+
+        if (!PlayerEyeSelection.TryGetSelections(Player.steamID, out PlayerEyeSelection selections))
+            selections = new(Player.steamID);
+
+        selections.patchedEyes = this;
+        SetPlayerSavedSelection(Player);
+
         AllPatchedEyes.Add(this);
     }
 
@@ -62,19 +77,35 @@ internal class PatchedEyes : MonoBehaviour
         //Must be done at launch for menu eyes to work properly
         GameObject left = new("MoreEyes-LEFT");
         left.transform.SetParent(Player.playerAvatarVisuals.playerEyes.pupilLeft.GetChild(0));
+        left.transform.localPosition = Vector3.zero;
 
         GameObject right = new("MoreEyes-RIGHT");
         right.transform.SetParent(Player.playerAvatarVisuals.playerEyes.pupilRight.GetChild(0));
+        right.transform.localPosition = Vector3.zero;
 
         LeftEye = left.AddComponent<EyeRef>();
         RightEye = right.AddComponent<EyeRef>();
+        LeftEye.EyePlayerPos = left.transform;
+        RightEye.EyePlayerPos = right.transform;
+        LeftEye.SetFirstPupilActual(originalLeft);
+        RightEye.SetFirstPupilActual(originalRight);
 
-        Plugin.Spam($"EyeRefs set for {Player.playerName}");
+        Plugin.Spam($"EyeRefs set for {Player.playerName} created!");
 
         // Create vanilla pupils
         // This will create a copy of the object (prefab) for our class and disable it
-        VanillaPupilLeft.VanillaSetup(true, originalLeft);
-        VanillaPupilRight.VanillaSetup(false, originalRight);
+        if (!VanillaPupilsExist)
+        {
+            VanillaPupilLeft.VanillaSetup(true, originalLeft);
+            VanillaPupilRight.VanillaSetup(false, originalRight);
+        }
+
+        //no need to set values of own eyes
+        if (Player.isLocal)
+            return;
+
+        SetPlayerSavedSelection(Player);
+        CurrentSelections.PlayerEyesSpawn();
     }
 
     internal void SetMenuEyes(PlayerAvatarVisuals visuals)
