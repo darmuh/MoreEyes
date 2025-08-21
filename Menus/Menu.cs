@@ -116,10 +116,12 @@ internal sealed class Menu
 
     internal static void UpdateButtons()
     {
-        pupilLeft.labelTMP.text = MenuUtils.ApplyGradient(MenuUtils.CleanName(PatchedEyes.Local.currentSelections.pupilLeft.Name), true);
-        pupilRight.labelTMP.text = MenuUtils.ApplyGradient(MenuUtils.CleanName(PatchedEyes.Local.currentSelections.pupilRight.Name), true);
-        irisLeft.labelTMP.text = MenuUtils.ApplyGradient(MenuUtils.CleanName(PatchedEyes.Local.currentSelections.irisLeft.Name), true);
-        irisRight.labelTMP.text = MenuUtils.ApplyGradient(MenuUtils.CleanName(PatchedEyes.Local.currentSelections.irisRight.Name), true);
+        var currentSelections = PatchedEyes.Local.CurrentSelections;
+
+        pupilLeft.labelTMP.text = MenuUtils.ApplyGradient(currentSelections.pupilLeft.MenuName, true);
+        pupilRight.labelTMP.text = MenuUtils.ApplyGradient(currentSelections.pupilRight.MenuName, true);
+        irisLeft.labelTMP.text = MenuUtils.ApplyGradient(currentSelections.irisLeft.MenuName, true);
+        irisRight.labelTMP.text = MenuUtils.ApplyGradient(currentSelections.irisRight.MenuName, true);
 
         UpdateHeaders();
     }
@@ -143,12 +145,12 @@ internal sealed class Menu
         if (selection is CustomPupilType pupil)
         {
             ColorSelection = selection;
-            color = PatchedEyes.Local.currentSelections.GetColorOf(pupil);
+            color = PatchedEyes.Local.CurrentSelections.GetColorOf(pupil);
         }        
         else if (selection is CustomIrisType iris)
         {
             ColorSelection = selection;
-            color = PatchedEyes.Local.currentSelections.GetColorOf(iris);
+            color = PatchedEyes.Local.CurrentSelections.GetColorOf(iris);
         }
         else
         {
@@ -174,9 +176,9 @@ internal sealed class Menu
         Color newColor = new(currentRed / 255f, currentGreen / 255f, currentBlue / 255f);
 
         if (ColorSelection is CustomPupilType pupil)
-            PatchedEyes.Local.currentSelections.UpdateColorOf(pupil, newColor);
+            PatchedEyes.Local.CurrentSelections.UpdateColorOf(pupil, newColor);
         else if (ColorSelection is CustomIrisType iris)
-            PatchedEyes.Local.currentSelections.UpdateColorOf(iris, newColor);
+            PatchedEyes.Local.CurrentSelections.UpdateColorOf(iris, newColor);
         else
             Plugin.WARNING("Unable to set color of current selection! Invalid type!");
     }
@@ -215,6 +217,8 @@ internal sealed class Menu
             return;
         }
 
+        var currentSelections = PatchedEyes.Local.CurrentSelections;
+
         MoreEyesMenu = MenuAPI.CreateREPOPopupPage(MenuUtils.ApplyGradient("More Eyes"), false, true, 0f, new Vector2(-150f, 5f));
         
         AvatarPreview = MenuAPI.CreateREPOAvatarPreview(MoreEyesMenu.transform, new Vector2(471.25f, 156.5f), false);
@@ -235,11 +239,10 @@ internal sealed class Menu
         MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("Randomize", RandomizeLocalEyeSelection, MoreEyesMenu.transform, new Vector2(270, 30)));
         MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("Reset", ResetLocalEyeSelection, MoreEyesMenu.transform, new Vector2(400, 30)));
 
-        pupilLeft = MenuAPI.CreateREPOButton(MenuUtils.ApplyGradient(MenuUtils.CleanName(PatchedEyes.Local.currentSelections.pupilLeft.Name), true), PupilLeftSliders, MoreEyesMenu.transform, new Vector2(215f, 265f));
-        pupilRight = MenuAPI.CreateREPOButton(MenuUtils.ApplyGradient(MenuUtils.CleanName(PatchedEyes.Local.currentSelections.pupilRight.Name), true), PupilRightSliders, MoreEyesMenu.transform, new Vector2(360f, 265f));
-        irisLeft = MenuAPI.CreateREPOButton(MenuUtils.ApplyGradient(MenuUtils.CleanName(PatchedEyes.Local.currentSelections.irisLeft.Name), true), IrisLeftSliders, MoreEyesMenu.transform, new Vector2(215, 215f));
-        irisRight = MenuAPI.CreateREPOButton(MenuUtils.ApplyGradient(MenuUtils.CleanName(PatchedEyes.Local.currentSelections.irisRight.Name), true), IrisRightSliders, MoreEyesMenu.transform, new Vector2(360, 215f));
-
+        pupilLeft = MenuAPI.CreateREPOButton(MenuUtils.ApplyGradient(currentSelections.pupilLeft.MenuName, true), PupilLeftSliders, MoreEyesMenu.transform, new Vector2(215f, 265f));
+        pupilRight = MenuAPI.CreateREPOButton(MenuUtils.ApplyGradient(currentSelections.pupilRight.MenuName, true), PupilRightSliders, MoreEyesMenu.transform, new Vector2(360f, 265f));
+        irisLeft = MenuAPI.CreateREPOButton(MenuUtils.ApplyGradient(currentSelections.irisLeft.MenuName, true), IrisLeftSliders, MoreEyesMenu.transform, new Vector2(215, 215f));
+        irisRight = MenuAPI.CreateREPOButton(MenuUtils.ApplyGradient(currentSelections.irisRight.MenuName, true), IrisRightSliders, MoreEyesMenu.transform, new Vector2(360, 215f));
         MenuUtils.SetTextStyling([pupilLeft, pupilRight, irisLeft, irisRight]);
 
         pupilLeftHeader = MenuAPI.CreateREPOLabel("Pupil Left", MoreEyesMenu.transform, new Vector2(151.5f, 285f));
@@ -298,19 +301,19 @@ internal sealed class Menu
 
         if(CurrentEyePart == EyePart.Pupil)
         {
-            if(eyeSide == EyeSide.Left && PatchedEyes.Local.currentSelections.pupilLeft.Prefab != null)
-                UpdateSliders(PatchedEyes.Local.currentSelections.pupilLeft);
+            if(eyeSide == EyeSide.Left && PatchedEyes.Local.CurrentSelections.pupilLeft.Prefab != null)
+                UpdateSliders(PatchedEyes.Local.CurrentSelections.pupilLeft);
 
-            if (eyeSide == EyeSide.Right && PatchedEyes.Local.currentSelections.pupilRight.Prefab != null)
-                UpdateSliders(PatchedEyes.Local.currentSelections.pupilRight);
+            if (eyeSide == EyeSide.Right && PatchedEyes.Local.CurrentSelections.pupilRight.Prefab != null)
+                UpdateSliders(PatchedEyes.Local.CurrentSelections.pupilRight);
         }
         else
         {
-            if (eyeSide == EyeSide.Left && PatchedEyes.Local.currentSelections.irisLeft.Prefab != null)
-                UpdateSliders(PatchedEyes.Local.currentSelections.irisLeft);
+            if (eyeSide == EyeSide.Left && PatchedEyes.Local.CurrentSelections.irisLeft.Prefab != null)
+                UpdateSliders(PatchedEyes.Local.CurrentSelections.irisLeft);
 
-            if (eyeSide == EyeSide.Right && PatchedEyes.Local.currentSelections.irisRight.Prefab != null)
-                UpdateSliders(PatchedEyes.Local.currentSelections.irisRight);
+            if (eyeSide == EyeSide.Right && PatchedEyes.Local.CurrentSelections.irisRight.Prefab != null)
+                UpdateSliders(PatchedEyes.Local.CurrentSelections.irisRight);
         }
     }
 
@@ -401,9 +404,9 @@ internal sealed class Menu
             int currentIndex;
 
             if(side == EyeSide.Left)
-                currentIndex = options.IndexOf(PatchedEyes.Local.currentSelections.pupilLeft);
+                currentIndex = options.IndexOf(PatchedEyes.Local.CurrentSelections.pupilLeft);
             else
-                currentIndex = options.IndexOf(PatchedEyes.Local.currentSelections.pupilRight);
+                currentIndex = options.IndexOf(PatchedEyes.Local.CurrentSelections.pupilRight);
 
             int selected = CycleIndex(currentIndex + dir, 0, options.Count - 1);
             Plugin.Spam($"currentIndex = {currentIndex}, selected = {selected}");
@@ -427,9 +430,9 @@ internal sealed class Menu
             int currentIndex;
 
             if (side == EyeSide.Left)
-                currentIndex = options.IndexOf(PatchedEyes.Local.currentSelections.irisLeft);
+                currentIndex = options.IndexOf(PatchedEyes.Local.CurrentSelections.irisLeft);
             else
-                currentIndex = options.IndexOf(PatchedEyes.Local.currentSelections.irisRight);
+                currentIndex = options.IndexOf(PatchedEyes.Local.CurrentSelections.irisRight);
 
             int selected = CycleIndex(currentIndex + dir, 0, options.Count - 1);
             Plugin.Spam($"currentIndex = {currentIndex}, selected = {selected}");

@@ -1,7 +1,9 @@
 ﻿using BepInEx;
 using HarmonyLib;
 using MoreEyes.Core;
+using MoreEyes.SDK;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace MoreEyes.EyeManagement;
@@ -39,19 +41,17 @@ internal class CustomEyeManager
     internal static void Init()
     {
         AllIrisTypes = [];
+        //Add vanilla pupils here to avoid any duplicates
         AllPupilTypes = [VanillaPupilLeft, VanillaPupilRight];
 
-        // Get all custom eye types
-        // need to clear lists to not create duplicates
-        // CustomEyeManager.ClearLists();
-        // OR
-        // We set an initialization bool and only load types once!
-        // neither may be needed since we init at plugin awake
         if (!isInitialized)
         {
+            //Moved this out of the loop so only one vanilla iris is set
+            VanillaIris = new();
+            VanillaIris.VanillaSetup();
             Core.AssetManager.LoadedAssets.Do(asset =>
             {
-                //This will go through any assets that have been registered with our mod
+                //This will go through any assets that have been registered with MoreEyesMod scriptable objects
                 GetAllTypes(asset);
             });
 
@@ -89,6 +89,13 @@ internal class CustomEyeManager
             return;
         }
 
+        //Get Mod Info from loaded asset
+        var scriptableObjects = loadedAsset.Bundle.LoadAllAssets<ScriptableObject>();
+        loadedAsset.ModInfo = scriptableObjects.FirstOrDefault(p => p is MoreEyesMod) as MoreEyesMod;
+        if (loadedAsset.ModInfo == null)
+            Plugin.logger.LogError($"Mod info is null for {loadedAsset.Bundle.name}!");
+        List<GameObject> prefabsLoaded = [];
+
         List<string> allAssets = [.. loadedAsset.Bundle.GetAllAssetNames()];
         List<string> irisNames = allAssets.FindAll(n => n.Contains("_iris_"));
         List<string> pupilNames = allAssets.FindAll(n => n.Contains("_pupil_"));
@@ -98,20 +105,20 @@ internal class CustomEyeManager
         pupilNames.RemoveAll(p => p.IsNullOrWhiteSpace());
 
         // Load all custom pupils from asset into memory
-        // Each pupil will load an object prefab that can be used to create a clone
-        // since there's no fast/easy way to unload an individual asset, no need to hotload
         pupilNames.Do(n =>
         {
-            CustomPupilType thisType = new(loadedAsset, n);
+            CustomPupilType thisType = new(loadedAsset, n, loadedAsset.ModInfo);
+            prefabsLoaded.Add(thisType.Prefab);
         });
-
-        VanillaIris = new();
-        VanillaIris.VanillaSetup();
 
         irisNames.Do(n =>
         {
             CustomIrisType thisType = new();
-            thisType.IrisSetup(loadedAsset, n);
+            thisType.IrisSetup(loadedAsset, n, loadedAsset.ModInfo);
+            prefabsLoaded.Add(thisType.Prefab);
         });
+
+        //Replace prefabs list with what has been loaded
+        loadedAsset.ModInfo.SetPrefabs(prefabsLoaded);
     }
 }

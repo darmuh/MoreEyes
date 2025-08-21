@@ -16,14 +16,15 @@ internal class EyeRef : MonoBehaviour
     internal List<GameObject> IrisMenu { get; private set; } = [];
     internal GameObject IrisActual { get; private set; } = null!;
 
-    internal void PlayerSetup(PlayerAvatarVisuals visuals)
+    internal void PlayerSetup(GameObject pupil)
     {
-        var originalLeft = visuals.playerEyes.pupilLeft.GetChild(0).GetChild(0).gameObject;
-        var originalRight = visuals.playerEyes.pupilRight.GetChild(0).GetChild(0).gameObject;
+        Plugin.Spam($"PlayerSetup called on original pupil!");
 
-        //Set as current pupils
-        SetFirstPupilActual(originalLeft);
-        SetFirstPupilActual(originalRight); 
+        if (pupil == null)
+            Plugin.logger.LogError("Null pupil at PlayerSetup!!!");
+
+        //Set as current pupil
+        SetFirstPupilActual(pupil);
     }
 
     internal void SetFirstPupilActual(GameObject pupil)
@@ -44,7 +45,8 @@ internal class EyeRef : MonoBehaviour
         {
             foreach(var pupil in PupilMenu)
             {
-                pupil.GetComponentInChildren<MeshRenderer>()?.material.SetColor("_EmissionColor", color);
+                if(pupil != null)
+                    pupil.GetComponentInChildren<MeshRenderer>()?.material.SetColor("_EmissionColor", color);
             }
         }
 
@@ -73,13 +75,14 @@ internal class EyeRef : MonoBehaviour
 
     internal void RemovePupil()
     {
-        PupilMenu.RemoveAll(x => x == null);
         for(int i = PupilMenu.Count - 1; i >= 0; i--)
         {
             Destroy(PupilMenu[i]);
         }
 
-        if(PupilActual != null)
+        PupilMenu.RemoveAll(x => x == null);
+
+        if (PupilActual != null)
             Destroy(PupilActual);
     }
 
@@ -91,13 +94,17 @@ internal class EyeRef : MonoBehaviour
             return;
         }
 
-        EyeMenuPos.RemoveAll(x => x == null);
+        
         foreach(var eye in EyeMenuPos)
         {
+            if(eye == null)
+                continue;
             var pupil = Instantiate(selection.Prefab, eye);
             PupilMenu.Add(pupil);
             SetTransformAndActive(pupil, selection.isVanilla);
-        }            
+        }
+
+        EyeMenuPos.RemoveAll(x => x == null);
 
         if (EyePlayerPos != null)
             PupilActual = Instantiate(selection.Prefab, EyePlayerPos);
@@ -119,12 +126,12 @@ internal class EyeRef : MonoBehaviour
     }
 
     internal void RemoveIris()
-    {
-        IrisMenu.RemoveAll(x => x == null);
+    { 
         for (int i = IrisMenu.Count - 1; i >= 0; i--)
         {
             Destroy(IrisMenu[i]);
         }
+        IrisMenu.RemoveAll(x => x == null);
 
         if (IrisActual != null)
             Destroy(IrisActual);

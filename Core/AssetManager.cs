@@ -1,4 +1,5 @@
 ﻿using BepInEx;
+using MoreEyes.SDK;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -11,6 +12,7 @@ internal class LoadedAsset
     public AssetBundle Bundle = null!;
     internal string FilePath = string.Empty;
     internal bool isLoaded = false;
+    internal MoreEyesMod ModInfo = null!;
 
     public LoadedAsset(string assetPath)
     {
@@ -38,7 +40,6 @@ internal class LoadedAsset
         Bundle = null!;
         isLoaded = false;
     }
-
 
     internal void LoadAssetGameObject(string name, out GameObject gameObject)
     {

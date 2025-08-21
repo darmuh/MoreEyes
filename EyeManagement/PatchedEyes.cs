@@ -31,13 +31,40 @@ internal class PatchedEyes : MonoBehaviour
     internal EyeRef LeftEye { get; set; }
     internal EyeRef RightEye { get; set; }
 
-    internal PlayerEyeSelection currentSelections = null!;
+    internal PlayerEyeSelection CurrentSelections
+    {
+        get
+        {
+            if(PlayerEyeSelection.TryGetSelections(playerID, out var selections))
+                return selections;
+            else
+            {
+                Plugin.logger.LogError($"TRYING TO GET NULL PLAYEREYESELECTIONS!! [{playerID}]");
+                return null!;
+            }
+        }
+    }
+
+    internal static PatchedEyes GetPatchedEyes(PlayerAvatar player)
+    {
+        if(player.GetComponent<PatchedEyes>() == null)
+            return player.AddComponent<PatchedEyes>();
+        else
+            return player.GetComponent<PatchedEyes>();
+    }
 
     private void Awake()
     {
         AllPatchedEyes.RemoveAll(p => p == null);
         Player = GetComponent<PlayerAvatar>();
         playerID = Player.steamID;
+
+        if (!PlayerEyeSelection.TryGetSelections(Player.steamID, out PlayerEyeSelection selections))
+            selections = new(Player.steamID);
+
+        selections.patchedEyes = this;
+        SetPlayerSavedSelection(Player);
+
         AllPatchedEyes.Add(this);
     }
 
@@ -50,19 +77,35 @@ internal class PatchedEyes : MonoBehaviour
         //Must be done at launch for menu eyes to work properly
         GameObject left = new("MoreEyes-LEFT");
         left.transform.SetParent(Player.playerAvatarVisuals.playerEyes.pupilLeft.GetChild(0));
+        left.transform.localPosition = Vector3.zero;
 
         GameObject right = new("MoreEyes-RIGHT");
         right.transform.SetParent(Player.playerAvatarVisuals.playerEyes.pupilRight.GetChild(0));
+        right.transform.localPosition = Vector3.zero;
 
         LeftEye = left.AddComponent<EyeRef>();
         RightEye = right.AddComponent<EyeRef>();
+        LeftEye.EyePlayerPos = left.transform;
+        RightEye.EyePlayerPos = right.transform;
+        LeftEye.SetFirstPupilActual(originalLeft);
+        RightEye.SetFirstPupilActual(originalRight);
 
-        Plugin.Spam($"EyeRefs set for {Player.playerName}");
+        Plugin.Spam($"EyeRefs set for {Player.playerName} created!");
 
         // Create vanilla pupils
         // This will create a copy of the object (prefab) for our class and disable it
-        VanillaPupilLeft.VanillaSetup(true, originalLeft);
-        VanillaPupilRight.VanillaSetup(false, originalRight);
+        if (!VanillaPupilsExist)
+        {
+            VanillaPupilLeft.VanillaSetup(true, originalLeft);
+            VanillaPupilRight.VanillaSetup(false, originalRight);
+        }
+
+        //no need to set values of own eyes
+        if (Player.isLocal)
+            return;
+
+        SetPlayerSavedSelection(Player);
+        CurrentSelections.PlayerEyesSpawn();
     }
 
     internal void SetMenuEyes(PlayerAvatarVisuals visuals)
@@ -79,6 +122,8 @@ internal class PatchedEyes : MonoBehaviour
         LeftEye.SetFirstPupilMenu(originalLeft);
         RightEye.SetFirstPupilMenu(originalRight);
         SetPlayerSavedSelection(Player);
+        //Actually change eyes
+        CurrentSelections.PlayerEyesSpawn();
     }
 
     //used to change existing pupil to new selection
@@ -93,7 +138,7 @@ internal class PatchedEyes : MonoBehaviour
         EyeRef eye = isLeft ? LeftEye : RightEye;
         eye.RemovePupil();
         eye.CreatePupil(newSelection);
-        currentSelections.UpdateSelectionOf(isLeft, newSelection);
+        CurrentSelections.UpdateSelectionOf(isLeft, newSelection);
 
         FileManager.UpdateWrite = true;
     }
@@ -104,7 +149,7 @@ internal class PatchedEyes : MonoBehaviour
         EyeRef eye = isLeft ? LeftEye : RightEye;
         eye.RemoveIris();
         eye.CreateIris(newSelection);
-        currentSelections.UpdateSelectionOf(isLeft, newSelection);
+        CurrentSelections.UpdateSelectionOf(isLeft, newSelection);
 
         FileManager.UpdateWrite = true;
     }
@@ -147,7 +192,7 @@ internal class PatchedEyes : MonoBehaviour
         SelectIris(irisL, true);
         SelectIris(irisR, false);
 
-        currentSelections.SetRandomColors();
+        CurrentSelections.SetRandomColors();
     }
 
     internal void ResetEyes()
@@ -156,7 +201,7 @@ internal class PatchedEyes : MonoBehaviour
         SelectPupil(VanillaPupilRight, false);
         SelectIris(VanillaIris, true);
         SelectIris(VanillaIris, false);
-        currentSelections.SetDefaultColors();
+        CurrentSelections.SetDefaultColors();
 
         FileManager.UpdateWrite = true;
     }

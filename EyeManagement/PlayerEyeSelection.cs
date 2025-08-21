@@ -276,7 +276,7 @@ internal class PlayerEyeSelection
 
     internal void PlayerEyesSpawn()
     {
-        Plugin.Spam($"Setting {patchedEyes.Player.playerName}'s eyes at spawn!");
+        Plugin.Spam($"Setting {patchedEyes.Player.playerName}'s eyes!");
 
         patchedEyes.SelectPupil(pupilLeft, true);
         patchedEyes.SelectPupil(pupilRight, false);
@@ -318,13 +318,13 @@ internal class PlayerEyeSelection
 
     public bool TryGetPupil(string value, out CustomPupilType saved)
     {
-        saved = CustomEyeManager.AllPupilTypes.FirstOrDefault(p => value == p.Path);
+        saved = CustomEyeManager.AllPupilTypes.FirstOrDefault(p => value == p.UID);
         return saved != null;
     }
 
     public bool TryGetIris(string value, out CustomIrisType saved)
     {
-        saved = CustomEyeManager.AllIrisTypes.FirstOrDefault(i => value == i.Path);
+        saved = CustomEyeManager.AllIrisTypes.FirstOrDefault(i => value == i.UID);
         return saved != null;
     }
 }
