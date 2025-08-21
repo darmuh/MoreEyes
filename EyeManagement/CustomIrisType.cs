@@ -7,7 +7,6 @@ using UnityEngine;
 using static MoreEyes.EyeManagement.CustomEyeManager;
 
 namespace MoreEyes.EyeManagement;
-
 internal class CustomIrisType
 {
     internal string ModName = string.Empty;
@@ -66,24 +65,11 @@ internal class CustomIrisType
 
         MyBundle.LoadAssetGameObject(AssetPath, out Prefab);
         if (Prefab == null)
-            Plugin.logger.LogWarning($"IRIS IS NULL FOR ASSETNAME - [ {Name} ]");
+            Loggers.Warning($"IRIS IS NULL FOR ASSETNAME - [ {Name} ]");
         Prefab.SetActive(false);
         UnityEngine.Object.DontDestroyOnLoad(Prefab);
 
         AllIrisTypes.Add(this);
         AllIrisTypes.Distinct();
-        Plugin.Spam($"AllIrisTypes count - {AllIrisTypes.Count}");
-    }
-
-    //note sure if we are gonna use this to be honest
-    internal void MarkIrisUnused()
-    {
-        //might just use this lol
-        inUse = false;
-
-        if (IrisInUse.Contains(this))
-        {
-            IrisInUse.Remove(this);
-        }
     }
 }

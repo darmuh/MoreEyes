@@ -5,7 +5,6 @@ using UnityEngine;
 using static MoreEyes.EyeManagement.CustomEyeManager;
 
 namespace MoreEyes.EyeManagement;
-
 //Each player should have their own PatchedEyes component
 internal class PatchedEyes : MonoBehaviour
 {
@@ -17,7 +16,7 @@ internal class PatchedEyes : MonoBehaviour
         {
             if(PlayerAvatar.instance == null)
             {
-                Plugin.logger.LogError("Unable to return PatchedEyes Local, PlayerAvatar instance is null!");
+                Loggers.Error("Unable to return PatchedEyes Local, PlayerAvatar instance is null!");
                 return null;
             }    
             PatchedEyes local = PlayerAvatar.instance.GetComponent<PatchedEyes>();
@@ -39,7 +38,7 @@ internal class PatchedEyes : MonoBehaviour
                 return selections;
             else
             {
-                Plugin.logger.LogError($"TRYING TO GET NULL PLAYEREYESELECTIONS!! [{playerID}]");
+                Loggers.Error($"TRYING TO GET NULL PLAYEREYESELECTIONS!! [{playerID}]");
                 return null!;
             }
         }
@@ -73,8 +72,6 @@ internal class PatchedEyes : MonoBehaviour
         GameObject originalLeft = Player.playerAvatarVisuals.playerEyes.pupilLeft.GetChild(0).GetChild(0).gameObject;
         GameObject originalRight = Player.playerAvatarVisuals.playerEyes.pupilRight.GetChild(0).GetChild(0).gameObject;
 
-        //Create EyeRefs
-        //Must be done at launch for menu eyes to work properly
         GameObject left = new("MoreEyes-LEFT");
         left.transform.SetParent(Player.playerAvatarVisuals.playerEyes.pupilLeft.GetChild(0));
         left.transform.localPosition = Vector3.zero;
@@ -90,17 +87,12 @@ internal class PatchedEyes : MonoBehaviour
         LeftEye.SetFirstPupilActual(originalLeft);
         RightEye.SetFirstPupilActual(originalRight);
 
-        Plugin.Spam($"EyeRefs set for {Player.playerName} created!");
-
-        // Create vanilla pupils
-        // This will create a copy of the object (prefab) for our class and disable it
         if (!VanillaPupilsExist)
         {
             VanillaPupilLeft.VanillaSetup(true, originalLeft);
             VanillaPupilRight.VanillaSetup(false, originalRight);
         }
 
-        //no need to set values of own eyes
         if (Player.isLocal)
             return;
 
@@ -122,16 +114,15 @@ internal class PatchedEyes : MonoBehaviour
         LeftEye.SetFirstPupilMenu(originalLeft);
         RightEye.SetFirstPupilMenu(originalRight);
         SetPlayerSavedSelection(Player);
-        //Actually change eyes
+
         CurrentSelections.PlayerEyesSpawn();
     }
 
-    //used to change existing pupil to new selection
     internal void SelectPupil(CustomPupilType newSelection, bool isLeft)
     {
         if (newSelection.Prefab == null)
         {
-            Plugin.logger.LogWarning($"Invalid Selection! Pupil reference object for {newSelection.Name} is null");
+            Loggers.Warning($"Invalid Selection! Pupil reference object for {newSelection.Name} is null");
             return;
         }
 
@@ -143,7 +134,6 @@ internal class PatchedEyes : MonoBehaviour
         FileManager.UpdateWrite = true;
     }
 
-    //used to change existing iris to new selection
     internal void SelectIris(CustomIrisType newSelection, bool isLeft)
     {
         EyeRef eye = isLeft ? LeftEye : RightEye;
@@ -159,18 +149,15 @@ internal class PatchedEyes : MonoBehaviour
         PlayerEyeSelection playerChoices = PlayerEyeSelection.GetPlayerEyeSelection(player.steamID);
         if (playerChoices == null)
         {
-            Plugin.logger.LogWarning($"{player.playerName} does not have PlayerEyeSelection component!");
+            Loggers.Warning($"{player.playerName} does not have PlayerEyeSelection component!");
             return;
         }
-            
-        //Get from save file
+
         playerChoices.GetSavedSelection();
     }
 
     internal void RandomizeEyes()
     {
-        Plugin.Spam($"Randomizing local eye settings!");
-
         // --- Create Lists for each Pupil/Iris
         //There's prob a better way of doing this
         List<CustomPupilType> NoRightPupils = AllPupilTypes.FindAll(p => !p.Name.EndsWith("_right"));

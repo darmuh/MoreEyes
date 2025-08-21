@@ -6,7 +6,6 @@ using System.Linq;
 using UnityEngine;
 
 namespace MoreEyes.Core;
-
 internal class LoadedAsset
 {
     public AssetBundle Bundle = null!;
@@ -27,7 +26,6 @@ internal class LoadedAsset
             return;
 
         Bundle = AssetBundle.LoadFromFile(FilePath);
-        Plugin.Spam($"Bundle loaded from {FilePath}");
         isLoaded = true;
     }
 
@@ -46,7 +44,7 @@ internal class LoadedAsset
         gameObject = null!;
         if (Bundle == null)
         {
-            Plugin.logger.LogError("Unable to loadasset, Bundle is null!");
+            Loggers.Error("Unable to loadasset, Bundle is null!");
             return;
         }
 
@@ -59,17 +57,16 @@ internal class AssetManager
 
     public static void InitBundles()
     {
-        List<string> paths = [.. Directory.GetFiles(Path.Combine(Paths.BepInExRootPath, "plugins"), "*.eyesbundle", SearchOption.AllDirectories)];
+        List<string> paths = [.. Directory.GetFiles(Path.Combine(Paths.BepInExRootPath, "plugins"), "*.eyes", SearchOption.AllDirectories)];
 
         foreach(string path in paths)
         {
-            Plugin.Spam($"Loading eyesbundle at path: {path}");
             LoadedAsset existing = LoadedAssets.FirstOrDefault(a => a.isLoaded == true && a.FilePath == path);
 
             if (existing == null)
                 existing = new(path);
             else
-                Plugin.logger.LogWarning($"The asset at path {path} has already been loaded!");
+                Loggers.Warning($"The asset at path {path} has already been loaded!");
         }  
     }
 
@@ -78,7 +75,7 @@ internal class AssetManager
         LoadedAsset existing = LoadedAssets.FirstOrDefault(a => a.isLoaded == true && a.FilePath == bundlePath);
         if(existing == null)
         {
-            Plugin.logger.LogWarning("There is no bundles that are currently loaded at that path!");
+            Loggers.Warning("There is no bundles that are currently loaded at that path!");
             return;
         }
 
@@ -89,7 +86,7 @@ internal class AssetManager
     {
         if(bundleRef == null)
         {
-            Plugin.logger.LogWarning("Cannot unload a null bundleRef!");
+            Loggers.Warning("Cannot unload a null bundleRef!");
             return;
         }
         
@@ -97,7 +94,7 @@ internal class AssetManager
 
         if(existing == null)
         {
-            Plugin.logger.LogWarning("The provided bundleRef is not being detected as loaded.");
+            Loggers.Warning("The provided bundleRef is not being detected as loaded.");
             return;
         }
 

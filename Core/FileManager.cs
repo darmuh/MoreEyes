@@ -7,8 +7,6 @@ using System.Linq;
 using UnityEngine;
 
 namespace MoreEyes.Core;
-
-//save selections per steam id in this class
 internal class FileManager
 {
     //cache this for reading/writing changes
@@ -27,11 +25,11 @@ internal class FileManager
             Directory.CreateDirectory(filePath);
 
         if (!File.Exists(filePath + "\\selections.txt"))
-            Plugin.logger.LogMessage("No saved player selections exist!");
+            Loggers.Message("No saved player selections exist!");
         else
         {
             string rawText = File.ReadAllText(filePath + "\\selections.txt");
-            Plugin.logger.LogMessage($"Assigning saved player selections!");
+            Loggers.Message($"Assigning saved player selections!");
 
             if (rawText.Length == 0)
                 return;
@@ -69,19 +67,17 @@ internal class FileManager
             if (PlayerSelections.ContainsKey(a.playerID))
             {
                 PlayerSelections[a.playerID] = selections;
-                Plugin.Spam($"Updated {a.playerID} selections in FileManager");
             }
             else
             {
                 PlayerSelections.Add(a.playerID, selections);
-                Plugin.Spam($"Added {a.playerID} selections in FileManager");
             }   
         });
     }
 
     internal static void WriteTextFile()
     {
-        Plugin.logger.LogMessage("Updating saved selections!");
+        Loggers.Message("Updating saved selections!");
         UpdateWrite = false;
         UpdatePlayerSelections();
         //use appdata location with folder name `moreEyes`

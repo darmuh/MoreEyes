@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 
 namespace MoreEyes.EyeManagement;
-
 internal class EyeRef : MonoBehaviour
 {
     internal Transform EyePlayerPos { get; set; }
@@ -18,12 +17,9 @@ internal class EyeRef : MonoBehaviour
 
     internal void PlayerSetup(GameObject pupil)
     {
-        Plugin.Spam($"PlayerSetup called on original pupil!");
-
         if (pupil == null)
-            Plugin.logger.LogError("Null pupil at PlayerSetup!!!");
+            Loggers.Error("Null pupil at PlayerSetup!!!");
 
-        //Set as current pupil
         SetFirstPupilActual(pupil);
     }
 
@@ -90,7 +86,7 @@ internal class EyeRef : MonoBehaviour
     {
         if (selection.Prefab == null)
         {
-            Plugin.WARNING("Cannot create NULL Pupil!!!");
+            Loggers.Warning("Cannot create NULL Pupil!!!");
             return;
         }
 
@@ -145,7 +141,7 @@ internal class EyeRef : MonoBehaviour
         //Non-vanilla custom iris with null prefab should not exist
         if (selection.Prefab == null)
         {
-            Plugin.WARNING("Cannot create NULL Iris!!!");
+            Loggers.Warning("Cannot create NULL Iris!!!");
             return;
         }
 
@@ -161,7 +157,6 @@ internal class EyeRef : MonoBehaviour
         if (EyePlayerPos != null)
             IrisActual = Instantiate(selection.Prefab, EyePlayerPos);
 
-        //Show new iris!
         SetTransformAndActive(IrisActual, selection.isVanilla);
     }
 }

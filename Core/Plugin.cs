@@ -3,13 +3,9 @@ using BepInEx.Logging;
 using HarmonyLib;
 using MoreEyes.EyeManagement;
 using MoreEyes.Menus;
-using System.IO;
 using System.Reflection;
-using TMPro;
-using UnityEngine;
 
 namespace MoreEyes.Core;
-
 [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
 [BepInDependency(ModCompats.MenuLib_PLUGIN_GUID, BepInDependency.DependencyFlags.HardDependency)]
 [BepInDependency(ModCompats.SpawnManager_PLUGIN_GUID, BepInDependency.DependencyFlags.SoftDependency)]
@@ -17,27 +13,16 @@ namespace MoreEyes.Core;
 [BepInDependency(ModCompats.TwitchTrolling_PLUGIN_GUID, BepInDependency.DependencyFlags.SoftDependency)]
 internal class Plugin : BaseUnityPlugin
 {
-    internal static ManualLogSource logger;
     internal static System.Random Rand = new();
+    internal static new ManualLogSource Logger { get; private set; }
     public void Awake()
     {
-        logger = Logger;
+        Logger = BepInEx.Logging.Logger.CreateLogSource(MyPluginInfo.PLUGIN_GUID);
+
         AssetManager.InitBundles();
         Menu.Initialize();
         CustomEyeManager.Init();
 
-        Spam("Plugin initialized!");
-
         Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
-    }
-
-    internal static void Spam(string message)
-    {
-        logger.LogDebug(message);
-    }
-
-    internal static void WARNING(string message)
-    {
-        logger.LogWarning(message);
     }
 }

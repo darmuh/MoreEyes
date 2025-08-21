@@ -1,11 +1,11 @@
 ﻿using HarmonyLib;
+using MenuLib.MonoBehaviors;
 using MoreEyes.EyeManagement;
 using MoreEyes.Menus;
 using Unity.VisualScripting;
 using UnityEngine;
 
 namespace MoreEyes.Core;
-
 [HarmonyPatch(typeof(RunManagerPUN), nameof(RunManagerPUN.Start))]
 internal class NetworkComponentPatch
 {
@@ -30,7 +30,6 @@ internal class LocalPlayerMenuPatch
 
         if (__instance.isMenuAvatar)
         {
-            Plugin.Spam("Getting local player menu eye references");
             PatchedEyes.Local.SetMenuEyes(__instance);
         }
     }
@@ -42,7 +41,6 @@ internal class PlayerSpawnPatch
 {
     public static void Postfix(PlayerAvatar __instance)
     {
-        Plugin.Spam($"Player ({__instance.playerName}) spawned, updating their eyes!");
         PatchedEyes.GetPatchedEyes(__instance);
     }
 }
@@ -51,13 +49,14 @@ internal class PlayerSpawnPatch
 internal class MenuEscPatch
 {
     private static GameObject playerTarget;
+    private static Transform playerAvatar;
     public static void Postfix(MenuPageEsc __instance)
     {
         if (Menu.MoreEyesMenu.menuPage != null)
         {
-            if(playerTarget == null) //only find transform if we need to
+            if(playerTarget == null)
             {
-                Transform playerAvatar = __instance.transform.Find("Menu Element Player Avatar");
+                playerAvatar = __instance.transform.Find("Menu Element Player Avatar");
                 if (playerAvatar != null)
                 {
                     playerTarget = playerAvatar.gameObject;

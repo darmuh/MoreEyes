@@ -7,13 +7,11 @@ using Unity.VisualScripting;
 using UnityEngine;
 
 namespace MoreEyes.Menus;
-
 internal sealed class Menu
 {
     internal static REPOPopupPage MoreEyesMenu = new();
     internal static REPOAvatarPreview AvatarPreview;
 
-    //internal static REPOButton clickedButton;
     internal static REPOButton pupilLeft;
     internal static REPOButton pupilRight;
     internal static REPOButton irisLeft;
@@ -103,13 +101,11 @@ internal sealed class Menu
 
     private static void RandomizeLocalEyeSelection()
     {
-        Plugin.Spam("Randomize Eye Selections!");
         PatchedEyes.Local.RandomizeEyes();
         UpdateButtons();
     }
     private static void ResetLocalEyeSelection()
     {
-        Plugin.Spam("Reset Eye Selections!");
         PatchedEyes.Local.ResetEyes();
         UpdateButtons();
     }
@@ -154,7 +150,7 @@ internal sealed class Menu
         }
         else
         {
-            Plugin.WARNING("Selection is invalid type at UpdateSliders!");
+            Loggers.Warning("Selection is invalid type at UpdateSliders!");
             return;
         }
 
@@ -180,7 +176,7 @@ internal sealed class Menu
         else if (ColorSelection is CustomIrisType iris)
             PatchedEyes.Local.CurrentSelections.UpdateColorOf(iris, newColor);
         else
-            Plugin.WARNING("Unable to set color of current selection! Invalid type!");
+            Loggers.Warning("Unable to set color of current selection! Invalid type!");
     }
 
     private static void UpdateHeaders()
@@ -198,16 +194,14 @@ internal sealed class Menu
         SlidersOn = true;
         MoreEyesMenu.ClosePage(true);
 
+        MenuPageEsc.instance?.ButtonEventContinue();
+
         //Update selections if there are unsaved changes when menu is closed 
         if (FileManager.UpdateWrite)
         {
-            //Sync changes to others
             MoreEyesNetwork.SyncMoreEyesChanges();
-
-            //write changes to file
             FileManager.WriteTextFile();
-        }
-            
+        }       
     }
 
     private static void CreatePopupMenu()
@@ -387,7 +381,6 @@ internal sealed class Menu
         NewSelection(EyeSide.Right, EyePart.Pupil, -1);
     }
 
-    //Common method between all pupil/iris selections
     private static void NewSelection(EyeSide side, EyePart part, int dir)
     {
         if (part == EyePart.Pupil)
@@ -400,7 +393,7 @@ internal sealed class Menu
                 options = CustomEyeManager.AllPupilTypes.FindAll(i => i.AllowedPos != CustomEyeManager.Sides.Left);
 
             options.DistinctBy(p => p.Prefab);
-            Plugin.Spam($"CustomPupils Total: {CustomEyeManager.AllPupilTypes.Count}, Filtered: {options.Count}");
+
             int currentIndex;
 
             if(side == EyeSide.Left)
@@ -409,11 +402,9 @@ internal sealed class Menu
                 currentIndex = options.IndexOf(PatchedEyes.Local.CurrentSelections.pupilRight);
 
             int selected = CycleIndex(currentIndex + dir, 0, options.Count - 1);
-            Plugin.Spam($"currentIndex = {currentIndex}, selected = {selected}");
+
             CustomPupilType newSelection = options[selected];
-
             PatchedEyes.Local.SelectPupil(newSelection, side == EyeSide.Left);
-
             UpdateButtons();
         }
         else
@@ -426,7 +417,7 @@ internal sealed class Menu
                 options = CustomEyeManager.AllIrisTypes.FindAll(i => i.AllowedPos != CustomEyeManager.Sides.Left);
 
             options.DistinctBy(p => p.Prefab);
-            Plugin.Spam($"CustomPupils Total: {CustomEyeManager.AllIrisTypes.Count}, Filtered: {options.Count}");
+
             int currentIndex;
 
             if (side == EyeSide.Left)
@@ -435,31 +426,26 @@ internal sealed class Menu
                 currentIndex = options.IndexOf(PatchedEyes.Local.CurrentSelections.irisRight);
 
             int selected = CycleIndex(currentIndex + dir, 0, options.Count - 1);
-            Plugin.Spam($"currentIndex = {currentIndex}, selected = {selected}");
-            CustomIrisType newSelection = options[selected];
 
+            CustomIrisType newSelection = options[selected];
             PatchedEyes.Local.SelectIris(newSelection, side == EyeSide.Left);
             UpdateButtons();
         }
 
-        CommonSliders(side, part); //Set color sliders to new selection
+        CommonSliders(side, part);
     }
 
     public static int CycleIndex(int value, int min, int max)
     {
         if (value < min)
         {
-            Plugin.Spam($"Returning max! {max}");
-            return max; // added this because im lazy
+            return max;
         }
 
         if (value > max)
         {
-            Plugin.Spam($"Returning min! {min}");
             return min;
         }
-
-        Plugin.Spam($"Returning value! {value}");
         return value;
     }
 }

@@ -4,13 +4,11 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 using Image = UnityEngine.UI.Image;
 
 namespace MoreEyes.Menus;
-
 internal static class MenuUtils
 {
     private static Coroutine zoomCoroutine;
@@ -93,11 +91,10 @@ internal static class MenuUtils
         preview.rectTransform.anchoredPosition = Vector2.Lerp(anchorOut, anchorIn, targetZoom);
         zoomCoroutine = null;
     }
-
     public static void SetTipTextStyling(REPOLabel label)
     {
         label.labelTMP.fontSize = 20f;
-        label.labelTMP.horizontalAlignment = TMPro.HorizontalAlignmentOptions.Center;
+        label.labelTMP.horizontalAlignment = HorizontalAlignmentOptions.Center;
         label.labelTMP.alpha = 0.15f;
     }
     public static void SetTextStyling(List<REPOButton> buttons)
@@ -116,7 +113,7 @@ internal static class MenuUtils
             t.labelTMP.gameObject.transform.SetParent(maskParent.transform);
             t.menuButton.buttonTextSelectedOriginalPos = new(-42, -18, 0);
 
-            var scroller = t.labelTMP.AddComponent<HorizontalTextScroller>();
+            var scroller = t.labelTMP.gameObject.AddComponent<HorizontalTextScroller>();
             scroller.startPos = t.menuButton.buttonTextSelectedOriginalPos;
             scroller.SetButtonRef(t.menuButton);
         });
@@ -126,9 +123,9 @@ internal static class MenuUtils
     {
         labels.Do(t =>
         {
-            t.labelTMP.fontStyle = TMPro.FontStyles.Underline;
+            t.labelTMP.fontStyle = FontStyles.Underline;
             t.labelTMP.fontSize = 18f;
-            t.labelTMP.horizontalAlignment = TMPro.HorizontalAlignmentOptions.Center;
+            t.labelTMP.horizontalAlignment = HorizontalAlignmentOptions.Center;
             t.labelTMP.color = Color.white;
         });
     }

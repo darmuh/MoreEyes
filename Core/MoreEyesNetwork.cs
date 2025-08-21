@@ -4,7 +4,6 @@ using System.Linq;
 using UnityEngine;
 
 namespace MoreEyes.Core;
-
 internal class MoreEyesNetwork : MonoBehaviour
 {
     internal static MoreEyesNetwork instance;
@@ -23,8 +22,6 @@ internal class MoreEyesNetwork : MonoBehaviour
 
         if (PhotonNetwork.MasterClient == null || old == null)
             return;
-
-        Plugin.Spam("Syncing changes with all other clients!");
 
         var local = PatchedEyes.Local.CurrentSelections;
 
@@ -61,8 +58,6 @@ internal class MoreEyesNetwork : MonoBehaviour
 
         if (old.IrisRightColor != local.IrisRightColor)
             instance.photonView.RPC("SetPlayerColorSelection", RpcTarget.OthersBuffered, local.playerID, false, false, ColorToVector(local.IrisRightColor));
-
-        Plugin.Spam("Sync complete!");
     }
 
     //no alpha info but that's okay
@@ -74,7 +69,6 @@ internal class MoreEyesNetwork : MonoBehaviour
     [PunRPC]
     internal void SetPlayerSelection(string playerID, bool isLeft, bool isPupil, string uniqueID)
     {
-        Plugin.Spam($"Received selections from player with ID - {playerID}");
         if (!PlayerEyeSelection.TryGetSelections(playerID, out PlayerEyeSelection selections))
             return;
 
@@ -82,19 +76,17 @@ internal class MoreEyesNetwork : MonoBehaviour
         {
             CustomPupilType selection = CustomEyeManager.AllPupilTypes.FirstOrDefault(x => x.UID == uniqueID);
             if (selection == null)
-                Plugin.WARNING($"Unable to sync pupil with Unique ID: {uniqueID}\nPlease verify all clients have the same MoreEyes mods (and the same versions!)");
+                Loggers.Warning($"Unable to sync pupil with Unique ID: {uniqueID}\nPlease verify all clients have the same MoreEyes mods (and the same versions!)");
 
             selections.patchedEyes.SelectPupil(selection, isLeft);
-            Plugin.Spam($"Updated player's pupil to {selection.Name} with Unique ID: {selection.UID}");
         }
         else
         {
             CustomIrisType selection = CustomEyeManager.AllIrisTypes.FirstOrDefault(x => x.UID == uniqueID);
             if (selection == null)
-                Plugin.WARNING($"Unable to sync iris with Unique ID: {uniqueID}\nPlease verify all clients have the same MoreEyes mods (and the same versions!)");
+                Loggers.Warning($"Unable to sync iris with Unique ID: {uniqueID}\nPlease verify all clients have the same MoreEyes mods (and the same versions!)");
 
             selections.patchedEyes.SelectIris(selection, isLeft);
-            Plugin.Spam($"Updated player's iris to {selection.Name} with Unique ID: {selection.UID}");
         }
 
         FileManager.UpdateWrite = true;
@@ -103,14 +95,11 @@ internal class MoreEyesNetwork : MonoBehaviour
     [PunRPC]
     internal void SetPlayerColorSelection(string playerID, bool isLeft, bool isPupil, Vector3 colorVector)
     {
-        Plugin.Spam($"Received new color selection from player with ID - {playerID}");
         if (!PlayerEyeSelection.TryGetSelections(playerID, out PlayerEyeSelection selections))
             return;
 
         //https://discussions.unity.com/t/syncing-color-materials-pun/557222/10
         var color = new Color(colorVector.x, colorVector.y, colorVector.z);
-
-        Plugin.Spam($"ColorVector: {colorVector} | Color = {color}");
 
         if (isPupil)
         {
@@ -118,8 +107,6 @@ internal class MoreEyesNetwork : MonoBehaviour
                 selections.patchedEyes.LeftEye.SetColorPupil(color); 
             else 
                 selections.patchedEyes.RightEye.SetColorPupil(color);
-
-            Plugin.Spam($"Updated player's pupil color");
         }
         else
         {
@@ -127,8 +114,6 @@ internal class MoreEyesNetwork : MonoBehaviour
                 selections.patchedEyes.LeftEye.SetColorIris(color);
             else 
                 selections.patchedEyes.RightEye.SetColorIris(color);
-
-            Plugin.Spam($"Updated player's iris color");
         }
 
         FileManager.UpdateWrite = true;

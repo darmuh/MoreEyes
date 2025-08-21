@@ -7,7 +7,6 @@ using System.Linq;
 using UnityEngine;
 
 namespace MoreEyes.EyeManagement;
-
 internal class CustomEyeManager
 {
     public static List<CustomPupilType> AllPupilTypes { get; internal set; } = [];
@@ -55,37 +54,15 @@ internal class CustomEyeManager
                 GetAllTypes(asset);
             });
 
-            Plugin.Spam("CustomEyeManager Initialized!");
             FileManager.ReadTextFile();
         }
-    }
-
-    //not used but may be useful at some point
-    private static Transform RecursiveFindMatchingChild(Transform parent, string childName)
-    {
-        foreach (Transform child in parent)
-        {
-            if (child.name.Contains(childName, System.StringComparison.InvariantCultureIgnoreCase))
-            {
-                return child;
-            }
-            else
-            {
-                Transform found = RecursiveFindMatchingChild(child, childName);
-                if (found != null)
-                {
-                    return found;
-                }
-            }
-        }
-        return null;
     }
 
     internal static void GetAllTypes(LoadedAsset loadedAsset)
     {
         if(loadedAsset.Bundle == null)
         {
-            Plugin.logger.LogWarning("Unable to get all types from loadedAsset, bundle is not loaded");
+            Loggers.Warning("Unable to get all types from loadedAsset, bundle is not loaded");
             return;
         }
 
@@ -93,7 +70,7 @@ internal class CustomEyeManager
         var scriptableObjects = loadedAsset.Bundle.LoadAllAssets<ScriptableObject>();
         loadedAsset.ModInfo = scriptableObjects.FirstOrDefault(p => p is MoreEyesMod) as MoreEyesMod;
         if (loadedAsset.ModInfo == null)
-            Plugin.logger.LogError($"Mod info is null for {loadedAsset.Bundle.name}!");
+            Loggers.Error($"Mod info is null for {loadedAsset.Bundle.name}!");
         List<GameObject> prefabsLoaded = [];
 
         List<string> allAssets = [.. loadedAsset.Bundle.GetAllAssetNames()];

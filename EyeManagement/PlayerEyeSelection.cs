@@ -6,7 +6,6 @@ using System.Linq;
 using UnityEngine;
 
 namespace MoreEyes.EyeManagement;
-
 internal class PlayerEyeSelection
 {
     internal static PlayerEyeSelection LocalCache = null!;
@@ -161,7 +160,7 @@ internal class PlayerEyeSelection
     {
         if(pupil == null)
         {
-            Plugin.WARNING("Cannot get color of NULL pupil");
+            Loggers.Warning("Cannot get color of NULL pupil");
             return Color.black;
         }
         if (pupil == pupilLeft)
@@ -169,7 +168,7 @@ internal class PlayerEyeSelection
         if (pupil == pupilRight)
             return PupilRightColor;
 
-        Plugin.WARNING($"Pupil {pupil.Name} is not assigned to player!");
+        Loggers.Warning($"Pupil {pupil.Name} is not assigned to player!");
         return Color.black;
     }
 
@@ -177,7 +176,7 @@ internal class PlayerEyeSelection
     {
         if (iris == null)
         {
-            Plugin.WARNING("Cannot get color of NULL iris");
+            Loggers.Warning("Cannot get color of NULL iris");
             return Color.black;
         }
         if (iris == irisLeft)
@@ -185,19 +184,18 @@ internal class PlayerEyeSelection
         if (iris == irisRight)
             return IrisRightColor;
 
-        Plugin.WARNING($"Iris {iris.Name} is not assigned to player!");
+        Loggers.Warning($"Iris {iris.Name} is not assigned to player!");
         return Color.black;
     }
 
     public void GetSavedSelection()
     {
-        //Wait until we have vanilla prefabs
         if (!CustomEyeManager.VanillaPupilsExist)
             return;
 
         if (!FileManager.PlayerSelections.ContainsKey(playerID))
         {
-            Plugin.logger.LogMessage($"Unable to get saved selection for [ {playerID} ]");
+            Loggers.Message($"Unable to get saved selection for [ {playerID} ]");
             return;
         }
 
@@ -216,68 +214,66 @@ internal class PlayerEyeSelection
                 if(TryGetPupil(s.Value, out CustomPupilType saved))
                     pupilLeft = saved;
                 else
-                    Plugin.logger.LogWarning($"Selected left pupil, \"{s.Value}\" could not be found in AllPupilTypes");
+                    Loggers.Warning($"Selected left pupil, \"{s.Value}\" could not be found in AllPupilTypes");
             }
             else if (s.Key == "pupilRight")
             {
                 if (TryGetPupil(s.Value, out CustomPupilType saved))
                     pupilRight = saved;
                 else
-                    Plugin.logger.LogWarning($"Selected right pupil, \"{s.Value}\" could not be found in AllPupilTypes");
+                    Loggers.Warning($"Selected right pupil, \"{s.Value}\" could not be found in AllPupilTypes");
             }
             else if (s.Key == "irisLeft")
             {
                 if (TryGetIris(s.Value, out CustomIrisType saved))
                     irisLeft = saved;
                 else
-                    Plugin.logger.LogWarning($"Selected left iris, \"{s.Value}\" could not be found in AllIrisTypes");
+                    Loggers.Warning($"Selected left iris, \"{s.Value}\" could not be found in AllIrisTypes");
             }
             else if (s.Key == "irisRight")
             {
                 if (TryGetIris(s.Value, out CustomIrisType saved))
                     irisRight = saved;
                 else
-                    Plugin.logger.LogWarning($"Selected right iris, \"{s.Value}\" could not be found in AllIrisTypes");
+                    Loggers.Warning($"Selected right iris, \"{s.Value}\" could not be found in AllIrisTypes");
             }
             else if (s.Key == "pupilLeftColor")
             {
                 if (ColorUtility.TryParseHtmlString($"#{s.Value}", out Color color))
                     PupilLeftColor = color;
                 else
-                    Plugin.WARNING($"Failed to parse color from saved value! ({s.Value})");
+                    Loggers.Warning($"Failed to parse color from saved value! ({s.Value})");
             }
             else if (s.Key == "pupilRightColor")
             {
                 if (ColorUtility.TryParseHtmlString($"#{s.Value}", out Color color))
                     PupilRightColor = color;
                 else
-                    Plugin.WARNING($"Failed to parse color from saved value! ({s.Value})");
+                    Loggers.Warning($"Failed to parse color from saved value! ({s.Value})");
             }
             else if (s.Key == "irisLeftColor")
             {
                 if (ColorUtility.TryParseHtmlString($"#{s.Value}", out Color color))
                     IrisLeftColor = color;
                 else
-                    Plugin.WARNING($"Failed to parse color from saved value! ({s.Value})");
+                    Loggers.Warning($"Failed to parse color from saved value! ({s.Value})");
             }
             else if (s.Key == "irisRightColor")
             {
                 if (ColorUtility.TryParseHtmlString($"#{s.Value}", out Color color))
                     IrisRightColor = color;
                 else
-                    Plugin.WARNING($"Failed to parse color from saved value! ({s.Value})");
+                    Loggers.Warning($"Failed to parse color from saved value! ({s.Value})");
             }
             else
             {
-                Plugin.logger.LogWarning($"Unexpected key in saved selections: {s.Key}");
+                Loggers.Warning($"Unexpected key in saved selections: {s.Key}");
             }
         });
     }
 
     internal void PlayerEyesSpawn()
     {
-        Plugin.Spam($"Setting {patchedEyes.Player.playerName}'s eyes!");
-
         patchedEyes.SelectPupil(pupilLeft, true);
         patchedEyes.SelectPupil(pupilRight, false);
 
@@ -289,7 +285,21 @@ internal class PlayerEyeSelection
         if (Menu.MoreEyesMenu.menuPage != null)
             Menu.UpdateButtons();
 
-        Plugin.logger.LogMessage($"Updated {patchedEyes.Player} selection!\n\npupilLeft: {pupilRight.Name}\npupilRight: {pupilLeft.Name}\nirisLeft: {irisLeft.Name}\nirisRight: {irisRight.Name}\nPupilLeftColor: {PupilLeftColor}\nPupilRightColor: {PupilRightColor}\nIrisLeftColor: {IrisLeftColor}\nIrisRightColor: {IrisRightColor}");
+        // This only logs when you open the menu and wont send a new message when you select a new color, new eye etc. and is kinda big
+        /*
+            [Message:  MoreEyes] Updated Player Avatar Controller (PlayerAvatar) selection!
+            pupilLeft: Standard
+            pupilRight: x_pupil_left
+            irisLeft: diamond_iris_left
+            irisRight: heart_iris_right
+            PupilLeftColor: RGBA(0.004, 0.075, 0.937, 1.000)
+            PupilRightColor: RGBA(0.216, 0.980, 0.773, 1.000)
+            IrisLeftColor: RGBA(0.647, 0.600, 0.059, 1.000)
+            IrisRightColor: RGBA(0.612, 0.580, 0.918, 1.000)
+            [Message:  MoreEyes] Updating saved selections!
+            [Message:  MoreEyes] Updated Player Avatar Controller (PlayerAvatar) selection!
+         */
+        //Loggers.Message($"Updated {patchedEyes.Player} selection!\n\npupilLeft: {pupilRight.Name}\npupilRight: {pupilLeft.Name}\nirisLeft: {irisLeft.Name}\nirisRight: {irisRight.Name}\nPupilLeftColor: {PupilLeftColor}\nPupilRightColor: {PupilRightColor}\nIrisLeftColor: {IrisLeftColor}\nIrisRightColor: {IrisRightColor}");
     }
 
     public void ForceColors()

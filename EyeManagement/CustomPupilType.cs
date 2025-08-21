@@ -7,7 +7,6 @@ using UnityEngine;
 using static MoreEyes.EyeManagement.CustomEyeManager;
 
 namespace MoreEyes.EyeManagement;
-
 internal class CustomPupilType
 {
     internal string ModName = string.Empty;
@@ -67,13 +66,12 @@ internal class CustomPupilType
 
         MyBundle.LoadAssetGameObject(AssetPath, out Prefab);
         if (Prefab == null)
-            Plugin.logger.LogWarning($"PUPIL IS NULL FOR ASSETNAME - [ {Name} ]");
+            Loggers.Warning($"PUPIL IS NULL FOR ASSETNAME - [ {Name} ]");
         Prefab.SetActive(false);
         UnityEngine.Object.DontDestroyOnLoad(Prefab);
 
         AllPupilTypes.Add(this);
         AllPupilTypes.Distinct();
-        Plugin.Spam($"AllPupilTypes count - {AllPupilTypes.Count}");
     }
 
     internal void VanillaSetup(bool isLeft, GameObject original)
