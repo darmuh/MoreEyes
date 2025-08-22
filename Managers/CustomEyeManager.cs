@@ -1,12 +1,14 @@
 ﻿using BepInEx;
 using HarmonyLib;
+using MoreEyes.Collections;
+using MoreEyes.Components;
 using MoreEyes.Core;
 using MoreEyes.SDK;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace MoreEyes.EyeManagement;
+namespace MoreEyes.Managers;
 internal class CustomEyeManager
 {
     public static List<CustomPupilType> AllPupilTypes { get; internal set; } = [];
@@ -24,13 +26,7 @@ internal class CustomEyeManager
     public static CustomIrisType VanillaIris;
     public static bool VanillaPupilsExist => VanillaPupilLeft?.Prefab != null && VanillaPupilRight?.Prefab != null;
 
-    public enum Sides
-    {
-        Left,
-        Right,
-        Both
-    }
-
+   
     internal static void ClearLists()
     {
         AllPupilTypes.Clear();
@@ -48,7 +44,7 @@ internal class CustomEyeManager
             //Moved this out of the loop so only one vanilla iris is set
             VanillaIris = new();
             VanillaIris.VanillaSetup();
-            Core.AssetManager.LoadedAssets.Do(asset =>
+            EyesAssetManager.LoadedAssets.Do(asset =>
             {
                 //This will go through any assets that have been registered with MoreEyesMod scriptable objects
                 GetAllTypes(asset);

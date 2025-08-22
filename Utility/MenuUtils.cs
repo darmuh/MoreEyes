@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using MenuLib.MonoBehaviors;
+using MoreEyes.Components;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -8,7 +9,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using Image = UnityEngine.UI.Image;
 
-namespace MoreEyes.Menus;
+namespace MoreEyes.Utility;
 internal static class MenuUtils
 {
     private static Coroutine zoomCoroutine;
@@ -170,7 +171,7 @@ internal static class MenuUtils
                         break;
 
                     case "Bar Text":
-                        foreach (var text in t.GetComponentsInChildren<TMPro.TextMeshProUGUI>(true))
+                        foreach (var text in t.GetComponentsInChildren<TextMeshProUGUI>(true))
                             if (text != null)
                             {
                                 float brightness = 0.299f * compColor.r + 0.587f * compColor.g + 0.114f * compColor.b;
@@ -185,7 +186,7 @@ internal static class MenuUtils
                         break;
 
                     case "Bar Text (1)":
-                        foreach (var raw in t.GetComponentsInChildren<TMPro.TextMeshProUGUI>(true))
+                        foreach (var raw in t.GetComponentsInChildren<TextMeshProUGUI>(true))
                             if (raw != null)
                                 raw.color = Color.black;
                         break;
@@ -242,71 +243,5 @@ internal static class MenuUtils
         }
 
         return result;
-    }
-
-    //Scrolling element made for Iris/Pupil selections
-    internal class HorizontalTextScroller : MonoBehaviour
-    {
-        internal float scrollSpeed = 14f; //how fast the text scrolls, can be configurable
-        internal float widthOfText = 180f; //text area to scroll
-
-        internal TextMeshProUGUI textMesh;
-        private RectTransform textRect;
-
-        private float scrollPos = 0f;
-        private float xOffset = 0f;
-        internal Vector3 startPos = Vector3.zero;
-        private bool ready = false;
-        private bool shouldScroll = false;
-
-        //MenuButtonRef
-        private MenuButton _button = null!;
-
-        void Awake()
-        {
-            textMesh = GetComponent<TextMeshProUGUI>();
-            textRect = GetComponent<RectTransform>();
-        }
-
-        void Start()
-        {
-            xOffset = textRect.localPosition.x * -1f;
-            scrollPos = textRect.localPosition.x - (xOffset);
-            ready = true;
-            
-        }
-
-        
-        void LateUpdate()
-        {
-            if (textMesh == null || !ready)
-                return;
-
-            shouldScroll = textMesh.preferredWidth > 85f; //if text is large enough, make it scroll
-
-            if (shouldScroll && _button != null) //added so that text only scrolls if the button is hovered
-                shouldScroll = _button.hovering;
-
-            if (!shouldScroll)
-            {
-                textRect.localPosition = startPos;
-                scrollPos = textRect.localPosition.x - (xOffset);
-                textMesh.horizontalAlignment = HorizontalAlignmentOptions.Center;
-                return;
-            }
-
-            textRect.localPosition = new(scrollPos % WidthMultiplier() + (xOffset), startPos.y, startPos.z);
-            scrollPos -= scrollSpeed * Time.deltaTime;
-        }
-
-        private float WidthMultiplier()
-        {
-            return textMesh.preferredWidth * 1.5f;
-        }
-
-        internal void SetButtonRef(MenuButton button)
-        {
-            _button = button;
-        }
     }
 }

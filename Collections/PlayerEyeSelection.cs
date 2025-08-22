@@ -1,11 +1,13 @@
 ﻿using HarmonyLib;
+using MoreEyes.Components;
 using MoreEyes.Core;
-using MoreEyes.Menus;
+using MoreEyes.Managers;
+using MoreEyes.Utility;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace MoreEyes.EyeManagement;
+namespace MoreEyes.Collections;
 internal class PlayerEyeSelection
 {
     internal static PlayerEyeSelection LocalCache = null!;
@@ -188,30 +190,21 @@ internal class PlayerEyeSelection
         return Color.black;
     }
 
-    public void GetSavedSelection()
+    internal void GetCachedSelections()
     {
         if (!CustomEyeManager.VanillaPupilsExist)
             return;
 
-        if (!FileManager.PlayerSelections.ContainsKey(playerID))
-        {
-            Loggers.Message($"Unable to get saved selection for [ {playerID} ]");
-            return;
-        }
+        SetSelectionsFromPairs(FileManager.GetSelectionPairsFromFile(playerID));
+    }
 
-        Dictionary<string, string> selectionPairs = [];
-        string selections = FileManager.PlayerSelections[playerID];
-
-        selectionPairs = selections.Split(',')
-                .Select(item => item.Trim())
-                .Select(item => item.Split('='))
-                .ToDictionary(pair => pair[0].Trim(), pair => pair[1].Trim());
-
+    internal void SetSelectionsFromPairs(Dictionary<string, string> selectionPairs)
+    {
         selectionPairs.Do(s =>
         {
             if (s.Key == "pupilLeft")
             {
-                if(TryGetPupil(s.Value, out CustomPupilType saved))
+                if (TryGetPupil(s.Value, out CustomPupilType saved))
                     pupilLeft = saved;
                 else
                     Loggers.Warning($"Selected left pupil, \"{s.Value}\" could not be found in AllPupilTypes");
@@ -272,6 +265,14 @@ internal class PlayerEyeSelection
         });
     }
 
+    internal string GetSelectionsString()
+    {
+        if(FileManager.PlayerSelections.ContainsKey(playerID))
+            return FileManager.PlayerSelections[playerID];
+        else
+            return string.Empty;
+    }
+
     internal void PlayerEyesSpawn()
     {
         patchedEyes.SelectPupil(pupilLeft, true);
@@ -284,22 +285,6 @@ internal class PlayerEyeSelection
 
         if (Menu.MoreEyesMenu.menuPage != null)
             Menu.UpdateButtons();
-
-        // This only logs when you open the menu and wont send a new message when you select a new color, new eye etc. and is kinda big
-        /*
-            [Message:  MoreEyes] Updated Player Avatar Controller (PlayerAvatar) selection!
-            pupilLeft: Standard
-            pupilRight: x_pupil_left
-            irisLeft: diamond_iris_left
-            irisRight: heart_iris_right
-            PupilLeftColor: RGBA(0.004, 0.075, 0.937, 1.000)
-            PupilRightColor: RGBA(0.216, 0.980, 0.773, 1.000)
-            IrisLeftColor: RGBA(0.647, 0.600, 0.059, 1.000)
-            IrisRightColor: RGBA(0.612, 0.580, 0.918, 1.000)
-            [Message:  MoreEyes] Updating saved selections!
-            [Message:  MoreEyes] Updated Player Avatar Controller (PlayerAvatar) selection!
-         */
-        //Loggers.Message($"Updated {patchedEyes.Player} selection!\n\npupilLeft: {pupilRight.Name}\npupilRight: {pupilLeft.Name}\nirisLeft: {irisLeft.Name}\nirisRight: {irisRight.Name}\nPupilLeftColor: {PupilLeftColor}\nPupilRightColor: {PupilRightColor}\nIrisLeftColor: {IrisLeftColor}\nIrisRightColor: {IrisRightColor}");
     }
 
     public void ForceColors()

@@ -1,10 +1,12 @@
-﻿using MoreEyes.Core;
+﻿using MoreEyes.Collections;
+using MoreEyes.Core;
+using MoreEyes.Managers;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
-using static MoreEyes.EyeManagement.CustomEyeManager;
+using static MoreEyes.Managers.CustomEyeManager;
 
-namespace MoreEyes.EyeManagement;
+namespace MoreEyes.Components;
 //Each player should have their own PatchedEyes component
 internal class PatchedEyes : MonoBehaviour
 {
@@ -153,7 +155,7 @@ internal class PatchedEyes : MonoBehaviour
             return;
         }
 
-        playerChoices.GetSavedSelection();
+        playerChoices.GetCachedSelections();
     }
 
     internal void RandomizeEyes()

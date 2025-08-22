@@ -1,8 +1,10 @@
-﻿using MoreEyes.Core;
+﻿using MoreEyes.Collections;
+using MoreEyes.Core;
+using MoreEyes.Managers;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace MoreEyes.EyeManagement;
+namespace MoreEyes.Components;
 internal class EyeRef : MonoBehaviour
 {
     internal Transform EyePlayerPos { get; set; }
