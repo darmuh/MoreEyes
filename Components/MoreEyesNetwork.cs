@@ -106,6 +106,8 @@ internal class MoreEyesNetwork : MonoBehaviour
             selections.patchedEyes.SelectIris(selection, isLeft);
         }
 
+        selections.ForceColors();
+
         FileManager.UpdateWrite = true;
     }
 
@@ -147,5 +149,6 @@ internal class MoreEyesNetwork : MonoBehaviour
 
         playerSelections.SetSelectionsFromPairs(FileManager.GetPairsFromString(selectionsValue));
         playerSelections.PlayerEyesSpawn();
+        FileManager.WriteTextFile();
     }
 }
