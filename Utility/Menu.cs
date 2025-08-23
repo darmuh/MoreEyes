@@ -190,7 +190,6 @@ internal sealed class Menu
 
         MenuPageEsc.instance?.ButtonEventContinue();
 
-        //Update selections if there are unsaved changes when menu is closed 
         if (FileManager.UpdateWrite)
         {
             MoreEyesNetwork.SyncMoreEyesChanges();

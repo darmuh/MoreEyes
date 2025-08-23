@@ -3,51 +3,49 @@ using MoreEyes.Managers;
 using MoreEyes.SDK;
 using UnityEngine;
 
-namespace MoreEyes.Collections
+namespace MoreEyes.Collections;
+internal class LoadedAsset
 {
-    internal class LoadedAsset
+    public AssetBundle Bundle = null!;
+    internal string FilePath = string.Empty;
+    internal bool isLoaded = false;
+    internal MoreEyesMod ModInfo = null!;
+
+    public LoadedAsset(string assetPath)
     {
-        public AssetBundle Bundle = null!;
-        internal string FilePath = string.Empty;
-        internal bool isLoaded = false;
-        internal MoreEyesMod ModInfo = null!;
+        FilePath = assetPath;
+        LoadBundle();
+        EyesAssetManager.LoadedAssets.Add(this);
+    }
 
-        public LoadedAsset(string assetPath)
+    internal void LoadBundle()
+    {
+        if (isLoaded || Bundle != null)
+            return;
+
+        Bundle = AssetBundle.LoadFromFile(FilePath);
+        isLoaded = true;
+    }
+
+    internal void UnloadBundle()
+    {
+        if (Bundle == null)
+            return;
+
+        Bundle.Unload(true);
+        Bundle = null!;
+        isLoaded = false;
+    }
+
+    internal void LoadAssetGameObject(string name, out GameObject gameObject)
+    {
+        gameObject = null!;
+        if (Bundle == null)
         {
-            FilePath = assetPath;
-            LoadBundle();
-            EyesAssetManager.LoadedAssets.Add(this);
+            Loggers.Error("Unable to loadasset, Bundle is null!");
+            return;
         }
 
-        internal void LoadBundle()
-        {
-            if (isLoaded || Bundle != null)
-                return;
-
-            Bundle = AssetBundle.LoadFromFile(FilePath);
-            isLoaded = true;
-        }
-
-        internal void UnloadBundle()
-        {
-            if (Bundle == null)
-                return;
-
-            Bundle.Unload(true);
-            Bundle = null!;
-            isLoaded = false;
-        }
-
-        internal void LoadAssetGameObject(string name, out GameObject gameObject)
-        {
-            gameObject = null!;
-            if (Bundle == null)
-            {
-                Loggers.Error("Unable to loadasset, Bundle is null!");
-                return;
-            }
-
-            gameObject = Bundle.LoadAsset<GameObject>(name);
-        }
+        gameObject = Bundle.LoadAsset<GameObject>(name);
     }
 }

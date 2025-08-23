@@ -15,6 +15,18 @@ internal class Plugin : BaseUnityPlugin
 {
     internal static System.Random Rand = new();
     internal static new ManualLogSource Logger { get; private set; }
+
+    internal const string moreEyesAscii = @$"
+ _   .-')                _  .-')     ('-.           ('-.                 ('-.    .-')    
+( '.( OO )_             ( \( -O )  _(  OO)        _(  OO)              _(  OO)  ( OO ).  
+ ,--.   ,--.).-'),-----. ,------. (,------.      (,------. ,--.   ,--.(,------.(_)---\_) 
+ |   `.'   |( OO'  .-.  '|   /`. ' |  .---'       |  .---'  \  `.'  /  |  .---'/    _ |  
+ |         |/   |  | |  ||  /  | | |  |           |  |    .-')     /   |  |    \  :` `.  
+ |  |'.'|  |\_) |  |\|  ||  |_.' |(|  '--.       (|  '--.(OO  \   /   (|  '--.  '..`''.) 
+ |  |   |  |  \ |  | |  ||  .  '.' |  .--'        |  .--' |   /  /\_   |  .--' .-._)   \ 
+ |  |   |  |   `'  '-'  '|  |\  \  |  `---.       |  `---.`-./  /.__)  |  `---.\       / 
+ `--'   `--'     `-----' `--' '--' `------'       `------'  `--'       `------' `-----'  
+";
     public void Awake()
     {
         Logger = BepInEx.Logging.Logger.CreateLogSource(MyPluginInfo.PLUGIN_GUID);
@@ -25,6 +37,7 @@ internal class Plugin : BaseUnityPlugin
         CustomEyeManager.Init();
 
         Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
-        Logger.LogMessage($"{MyPluginInfo.PLUGIN_NAME} has been loaded with version - {MyPluginInfo.PLUGIN_VERSION}");
+        Loggers.Message($"{MyPluginInfo.PLUGIN_NAME} has been loaded with version - {MyPluginInfo.PLUGIN_VERSION}");
+        Loggers.Message(moreEyesAscii);
     }
 }
