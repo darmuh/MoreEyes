@@ -63,7 +63,7 @@ internal class CustomEyeManager
         }
 
         //Get Mod Info from loaded asset
-        var scriptableObjects = loadedAsset.Bundle.LoadAllAssets<ScriptableObject>();
+        ScriptableObject[] scriptableObjects = loadedAsset.Bundle.LoadAllAssets<ScriptableObject>();
         loadedAsset.ModInfo = scriptableObjects.FirstOrDefault(p => p is MoreEyesMod) as MoreEyesMod;
         if (loadedAsset.ModInfo == null)
             Loggers.Error($"Mod info is null for {loadedAsset.Bundle.name}!");

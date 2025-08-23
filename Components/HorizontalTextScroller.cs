@@ -20,13 +20,13 @@ internal class HorizontalTextScroller : MonoBehaviour
     //MenuButtonRef
     private MenuButton _button = null!;
 
-    void Awake()
+    private void Awake()
     {
         textMesh = GetComponent<TextMeshProUGUI>();
         textRect = GetComponent<RectTransform>();
     }
 
-    void Start()
+    private void Start()
     {
         xOffset = textRect.localPosition.x * -1f;
         scrollPos = textRect.localPosition.x - xOffset;
@@ -35,7 +35,7 @@ internal class HorizontalTextScroller : MonoBehaviour
     }
 
 
-    void LateUpdate()
+    private void LateUpdate()
     {
         if (textMesh == null || !ready)
             return;
@@ -57,13 +57,7 @@ internal class HorizontalTextScroller : MonoBehaviour
         scrollPos -= ModConfig.MenuItemScrollSpeed.Value * Time.deltaTime;
     }
 
-    private float WidthMultiplier()
-    {
-        return textMesh.preferredWidth * 1.5f;
-    }
+    private float WidthMultiplier() => textMesh.preferredWidth * 1.5f;
 
-    internal void SetButtonRef(MenuButton button)
-    {
-        _button = button;
-    }
+    internal void SetButtonRef(MenuButton button) => _button = button;
 }

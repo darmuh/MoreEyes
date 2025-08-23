@@ -36,7 +36,7 @@ internal class PatchedEyes : MonoBehaviour
     {
         get
         {
-            if(PlayerEyeSelection.TryGetSelections(playerID, out var selections))
+            if(PlayerEyeSelection.TryGetSelections(playerID, out PlayerEyeSelection selections))
                 return selections;
             else
             {

@@ -41,7 +41,7 @@ internal class EyeRef : MonoBehaviour
         PupilMenu.RemoveAll(x => x == null);
         if (PupilMenu.Count > 0)
         {
-            foreach(var pupil in PupilMenu)
+            foreach(GameObject pupil in PupilMenu)
             {
                 if(pupil != null)
                     pupil.GetComponentInChildren<MeshRenderer>()?.material.SetColor("_EmissionColor", color);
@@ -59,7 +59,7 @@ internal class EyeRef : MonoBehaviour
         IrisMenu.RemoveAll(x => x == null);
         if (IrisMenu.Count > 0)
         {
-            foreach (var iris in IrisMenu)
+            foreach (GameObject iris in IrisMenu)
             {
                 iris.GetComponentInChildren<MeshRenderer>()?.material.SetColor("_EmissionColor", color);
             }
@@ -93,11 +93,11 @@ internal class EyeRef : MonoBehaviour
         }
 
         
-        foreach(var eye in EyeMenuPos)
+        foreach(Transform eye in EyeMenuPos)
         {
             if(eye == null)
                 continue;
-            var pupil = Instantiate(selection.Prefab, eye);
+            GameObject pupil = Instantiate(selection.Prefab, eye);
             PupilMenu.Add(pupil);
             SetTransformAndActive(pupil, selection.isVanilla);
         }
@@ -149,9 +149,9 @@ internal class EyeRef : MonoBehaviour
 
         //creating the iris as child of static objects that will NOT be deleted
         EyeMenuPos.RemoveAll(x => x == null);
-        foreach (var eye in EyeMenuPos)
+        foreach (Transform eye in EyeMenuPos)
         {
-            var iris = Instantiate(selection.Prefab, eye);
+            GameObject iris = Instantiate(selection.Prefab, eye);
             IrisMenu.Add(iris);
             SetTransformAndActive(iris, selection.isVanilla);
         }

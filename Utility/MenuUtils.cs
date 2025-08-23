@@ -105,7 +105,7 @@ internal static class MenuUtils
             t.overrideButtonSize = new Vector2(75f, 20f);
             t.labelTMP.fontSize = 18f;
             GameObject maskParent = new($"{t.name} Mask Object");
-            var image = maskParent.AddComponent<Image>();
+            Image image = maskParent.AddComponent<Image>();
             image.color = new(0, 0, 0, 0.05f);
             maskParent.AddComponent<Mask>();
             maskParent.transform.SetParent(t.transform);
@@ -146,7 +146,7 @@ internal static class MenuUtils
                 switch (t.name)
                 {
                     case "SliderBG":
-                        foreach (var raw in t.GetComponentsInChildren<RawImage>(true))
+                        foreach (RawImage raw in t.GetComponentsInChildren<RawImage>(true))
                             if (raw != null)
                             {
                                 Color zeroAlpha = raw.color;
@@ -171,7 +171,7 @@ internal static class MenuUtils
                         break;
 
                     case "Bar Text":
-                        foreach (var text in t.GetComponentsInChildren<TextMeshProUGUI>(true))
+                        foreach (TextMeshProUGUI text in t.GetComponentsInChildren<TextMeshProUGUI>(true))
                             if (text != null)
                             {
                                 float brightness = 0.299f * compColor.r + 0.587f * compColor.g + 0.114f * compColor.b;

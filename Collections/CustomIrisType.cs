@@ -23,7 +23,7 @@ internal class CustomIrisType
                 return MenuUtils.CleanName(Name);
             else
             {
-                var setting = ModConfig.ModNamesInMenu.Value;
+                ModInMenuDisplay setting = ModConfig.ModNamesInMenu.Value;
                 if (setting == ModInMenuDisplay.Never)
                     return MenuUtils.CleanName(Name);
                 else if (setting == ModInMenuDisplay.Duplicates && !DuplicateNameExists)

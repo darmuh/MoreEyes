@@ -106,7 +106,7 @@ internal sealed class Menu
 
     internal static void UpdateButtons()
     {
-        var currentSelections = PatchedEyes.Local.CurrentSelections;
+        PlayerEyeSelection currentSelections = PatchedEyes.Local.CurrentSelections;
 
         pupilLeft.labelTMP.text = MenuUtils.ApplyGradient(currentSelections.pupilLeft.MenuName, true);
         pupilRight.labelTMP.text = MenuUtils.ApplyGradient(currentSelections.pupilRight.MenuName, true);
@@ -204,7 +204,7 @@ internal sealed class Menu
             return;
         }
 
-        var currentSelections = PatchedEyes.Local.CurrentSelections;
+        PlayerEyeSelection currentSelections = PatchedEyes.Local.CurrentSelections;
 
         MoreEyesMenu = MenuAPI.CreateREPOPopupPage(MenuUtils.ApplyGradient("More Eyes"), false, true, 0f, new Vector2(-150f, 5f));
         
