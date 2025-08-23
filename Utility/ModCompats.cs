@@ -1,6 +1,6 @@
 ﻿using BepInEx.Bootstrap;
 
-namespace MoreEyes.Core;
+namespace MoreEyes.Utility;
 internal static class ModCompats
 {
     internal const string MenuLib_PLUGIN_GUID = "nickklmao.menulib";

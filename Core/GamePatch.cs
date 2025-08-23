@@ -1,7 +1,7 @@
 ﻿using HarmonyLib;
-using MenuLib.MonoBehaviors;
-using MoreEyes.EyeManagement;
-using MoreEyes.Menus;
+using MoreEyes.Collections;
+using MoreEyes.Components;
+using MoreEyes.Utility;
 using Unity.VisualScripting;
 using UnityEngine;
 
@@ -19,7 +19,6 @@ internal class NetworkComponentPatch
     }
 }
 
-//This patch actually hooks in to replace all default eyes
 [HarmonyPatch(typeof(PlayerAvatarVisuals), nameof(PlayerAvatarVisuals.Start))]
 internal class LocalPlayerMenuPatch
 {
@@ -35,7 +34,6 @@ internal class LocalPlayerMenuPatch
     }
 }
 
-//Moved to PlayerEyes Start because well, we're only worried about eyes lol
 [HarmonyPatch(typeof(PlayerAvatar), nameof(PlayerAvatar.SpawnRPC))]
 internal class PlayerSpawnPatch
 {

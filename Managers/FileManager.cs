@@ -1,12 +1,12 @@
 ﻿using HarmonyLib;
-using MoreEyes.EyeManagement;
+using MoreEyes.Core;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEngine;
 
-namespace MoreEyes.Core;
+namespace MoreEyes.Managers;
 internal class FileManager
 {
     //cache this for reading/writing changes
@@ -73,6 +73,39 @@ internal class FileManager
                 PlayerSelections.Add(a.playerID, selections);
             }   
         });
+    }
+
+    internal static Dictionary<string, string> GetPairsFromString(string selections)
+    {
+        return selections.Split(',')
+                .Select(item => item.Trim())
+                .Select(item => item.Split('='))
+                .ToDictionary(pair => pair[0].Trim(), pair => pair[1].Trim());
+    }
+
+    internal static Dictionary<string, string> GetSelectionPairsFromFile(string playerID)
+    {
+        Dictionary<string, string> pairs = [];
+        if (!CustomEyeManager.VanillaPupilsExist)
+            return pairs;
+
+        string selections = GetPlayerSelections(playerID);
+        
+        if (string.IsNullOrEmpty(selections))
+        {
+            Loggers.Info($"Unable to get saved selection for [ {playerID} ]");
+            return pairs;
+        }
+
+        return GetPairsFromString(selections);
+
+    }
+    private static string GetPlayerSelections(string steamID)
+    {
+        if (PlayerSelections.ContainsKey(steamID))
+            return PlayerSelections[steamID];
+        else
+            return "";
     }
 
     internal static void WriteTextFile()

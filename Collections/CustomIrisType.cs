@@ -1,12 +1,14 @@
 ﻿using MoreEyes.Core;
-using MoreEyes.Menus;
 using MoreEyes.SDK;
+using MoreEyes.Utility;
 using System;
 using System.Linq;
 using UnityEngine;
-using static MoreEyes.EyeManagement.CustomEyeManager;
+using static MoreEyes.Managers.CustomEyeManager;
+using static MoreEyes.Utility.Enums;
 
-namespace MoreEyes.EyeManagement;
+
+namespace MoreEyes.Collections;
 internal class CustomIrisType
 {
     internal string ModName = string.Empty;
@@ -20,12 +22,29 @@ internal class CustomIrisType
             if (string.IsNullOrEmpty(ModName))
                 return MenuUtils.CleanName(Name);
             else
-                return $"[{ModName}]" + $" {MenuUtils.CleanName(Name)}";
+            {
+                var setting = ModConfig.ModNamesInMenu.Value;
+                if (setting == ModInMenuDisplay.Never)
+                    return MenuUtils.CleanName(Name);
+                else if (setting == ModInMenuDisplay.Duplicates && !DuplicateNameExists)
+                    return MenuUtils.CleanName(Name);
+                else
+                    return $"[{ModName}]" + $" {MenuUtils.CleanName(Name)}";
+            }
         }
     }
-    internal GameObject Prefab = null!; //This object is used to instantiate the actual iris object and is re-used by all players
+
+    internal bool DuplicateNameExists
+    {
+        get
+        {
+            return AllPupilTypes.Count(i => MenuUtils.CleanName(i.Name) == MenuUtils.CleanName(Name) && i.AllowedPos == AllowedPos) > 1;
+        }
+    }
+
+    internal GameObject Prefab = null!;
     internal LoadedAsset MyBundle = null!;
-    internal Sides AllowedPos = Sides.Both;
+    internal PrefabSide AllowedPos = PrefabSide.Both;
     internal bool isVanilla = false;
     internal bool inUse = false;
 
@@ -52,15 +71,15 @@ internal class CustomIrisType
 
         if (Name.EndsWith("_right", StringComparison.OrdinalIgnoreCase))
         {
-            AllowedPos = Sides.Right;
+            AllowedPos = PrefabSide.Right;
         }
         else if (Name.EndsWith("_left", StringComparison.OrdinalIgnoreCase))
         {
-            AllowedPos = Sides.Left;
+            AllowedPos = PrefabSide.Left;
         }
         else
         {
-            AllowedPos = Sides.Both;
+            AllowedPos = PrefabSide.Both;
         }
 
         MyBundle.LoadAssetGameObject(AssetPath, out Prefab);

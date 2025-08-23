@@ -1,12 +1,15 @@
 ﻿using MenuLib;
 using MenuLib.MonoBehaviors;
+using MoreEyes.Collections;
+using MoreEyes.Components;
 using MoreEyes.Core;
-using MoreEyes.EyeManagement;
+using MoreEyes.Managers;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
+using static MoreEyes.Utility.Enums;
 
-namespace MoreEyes.Menus;
+namespace MoreEyes.Utility;
 internal sealed class Menu
 {
     internal static REPOPopupPage MoreEyesMenu = new();
@@ -42,16 +45,7 @@ internal sealed class Menu
 
     internal static bool SlidersOn { get; private set; } = false;
 
-    internal enum EyePart
-    {
-        Pupil,
-        Iris
-    }
-    internal enum EyeSide
-    {
-        Left,
-        Right
-    }
+    
     private static string GetEyePartName(EyePart part)
     {
         return part switch
@@ -92,7 +86,7 @@ internal sealed class Menu
         float yOffsetStart = 22f;
         float yOffsetPlus = 35f;
 
-        Vector2 buttonPos = new(595f, yOffsetStart + (yOffsetPlus * modCount));
+        Vector2 buttonPos = new(595f, yOffsetStart + yOffsetPlus * modCount);
 
         MenuAPI.AddElementToMainMenu(p => MenuAPI.CreateREPOButton("More Eyes", CreatePopupMenu, p, buttonPos));
         MenuAPI.AddElementToLobbyMenu(p => MenuAPI.CreateREPOButton("More Eyes", CreatePopupMenu, p, new Vector2(600f, 22f)));
@@ -388,9 +382,9 @@ internal sealed class Menu
             List<CustomPupilType> options = [];
 
             if (side == EyeSide.Left)
-                options = CustomEyeManager.AllPupilTypes.FindAll(i => i.AllowedPos != CustomEyeManager.Sides.Right);
+                options = CustomEyeManager.AllPupilTypes.FindAll(i => i.AllowedPos != PrefabSide.Right);
             else
-                options = CustomEyeManager.AllPupilTypes.FindAll(i => i.AllowedPos != CustomEyeManager.Sides.Left);
+                options = CustomEyeManager.AllPupilTypes.FindAll(i => i.AllowedPos != PrefabSide.Left);
 
             options.DistinctBy(p => p.Prefab);
 
@@ -412,9 +406,9 @@ internal sealed class Menu
             List<CustomIrisType> options = [];
 
             if (side == EyeSide.Left)
-                options = CustomEyeManager.AllIrisTypes.FindAll(i => i.AllowedPos != CustomEyeManager.Sides.Right);
+                options = CustomEyeManager.AllIrisTypes.FindAll(i => i.AllowedPos != PrefabSide.Right);
             else
-                options = CustomEyeManager.AllIrisTypes.FindAll(i => i.AllowedPos != CustomEyeManager.Sides.Left);
+                options = CustomEyeManager.AllIrisTypes.FindAll(i => i.AllowedPos != PrefabSide.Left);
 
             options.DistinctBy(p => p.Prefab);
 

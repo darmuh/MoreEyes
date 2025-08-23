@@ -1,9 +1,11 @@
-﻿using MoreEyes.EyeManagement;
+﻿using MoreEyes.Collections;
+using MoreEyes.Core;
+using MoreEyes.Managers;
 using Photon.Pun;
 using System.Linq;
 using UnityEngine;
 
-namespace MoreEyes.Core;
+namespace MoreEyes.Components;
 internal class MoreEyesNetwork : MonoBehaviour
 {
     internal static MoreEyesNetwork instance;
@@ -15,6 +17,19 @@ internal class MoreEyesNetwork : MonoBehaviour
         photonView = GetComponent<PhotonView>();
     }
 
+    private void Start()
+    {
+        if (PhotonNetwork.MasterClient == null)
+            return;
+
+        Loggers.Debug($"MoreEyesNetwork Start: Sending other clients my selections");
+        //Sync choices with others on Start
+        var local = PatchedEyes.Local.CurrentSelections;
+
+        //Objects
+        instance.photonView.RPC("SetSelectionsByText",RpcTarget.OthersBuffered, local.playerID, local.GetSelectionsString());
+    }
+
     //To minimize network traffic being sent, only sync when the player leaves the Menu
     internal static void SyncMoreEyesChanges()
     {
@@ -23,41 +38,42 @@ internal class MoreEyesNetwork : MonoBehaviour
         if (PhotonNetwork.MasterClient == null || old == null)
             return;
 
+        Loggers.Debug($"SyncMoreEyesChanges: Sending other clients my changes (if any)");
         var local = PatchedEyes.Local.CurrentSelections;
 
         // -- Check Pupil for prefab changes
 
         if (old.pupilLeft != local.pupilLeft)
-            instance.photonView.RPC("SetPlayerSelection", RpcTarget.OthersBuffered, local.playerID, true, true, local.pupilLeft.UID);
+            instance.photonView.RPC("SetSingleSelection", RpcTarget.OthersBuffered, local.playerID, true, true, local.pupilLeft.UID);
 
         if (old.pupilRight != local.pupilRight)
-            instance.photonView.RPC("SetPlayerSelection", RpcTarget.OthersBuffered, local.playerID, false, true, local.pupilRight.UID);
+            instance.photonView.RPC("SetSingleSelection", RpcTarget.OthersBuffered, local.playerID, false, true, local.pupilRight.UID);
 
         // -- Check Iris for prefab changes
 
         if (old.irisLeft != local.irisLeft)
-            instance.photonView.RPC("SetPlayerSelection", RpcTarget.OthersBuffered, local.playerID, true, false, local.irisLeft.UID);
+            instance.photonView.RPC("SetSingleSelection", RpcTarget.OthersBuffered, local.playerID, true, false, local.irisLeft.UID);
 
         if (old.irisRight != local.irisRight)
-            instance.photonView.RPC("SetPlayerSelection", RpcTarget.OthersBuffered, local.playerID, false, false, local.irisRight.UID);
+            instance.photonView.RPC("SetSingleSelection", RpcTarget.OthersBuffered, local.playerID, false, false, local.irisRight.UID);
 
         // --- Color changes must follow any prefab changes!! --- //
 
         // -- Check Pupil for color changes
 
         if (old.PupilLeftColor != local.PupilLeftColor)
-            instance.photonView.RPC("SetPlayerColorSelection", RpcTarget.OthersBuffered, local.playerID, true, true, ColorToVector(local.PupilLeftColor));
+            instance.photonView.RPC("SetSingleColorSelection", RpcTarget.OthersBuffered, local.playerID, true, true, ColorToVector(local.PupilLeftColor));
 
         if (old.PupilRightColor != local.PupilRightColor)
-            instance.photonView.RPC("SetPlayerColorSelection", RpcTarget.OthersBuffered, local.playerID, false, true, ColorToVector(local.PupilRightColor));
+            instance.photonView.RPC("SetSingleColorSelection", RpcTarget.OthersBuffered, local.playerID, false, true, ColorToVector(local.PupilRightColor));
 
         // -- Check Iris for color changes
 
         if (old.IrisLeftColor != local.IrisLeftColor)
-            instance.photonView.RPC("SetPlayerColorSelection", RpcTarget.OthersBuffered, local.playerID, true, false, ColorToVector(local.IrisLeftColor));
+            instance.photonView.RPC("SetSingleColorSelection", RpcTarget.OthersBuffered, local.playerID, true, false, ColorToVector(local.IrisLeftColor));
 
         if (old.IrisRightColor != local.IrisRightColor)
-            instance.photonView.RPC("SetPlayerColorSelection", RpcTarget.OthersBuffered, local.playerID, false, false, ColorToVector(local.IrisRightColor));
+            instance.photonView.RPC("SetSingleColorSelection", RpcTarget.OthersBuffered, local.playerID, false, false, ColorToVector(local.IrisRightColor));
     }
 
     //no alpha info but that's okay
@@ -67,12 +83,13 @@ internal class MoreEyesNetwork : MonoBehaviour
     }
 
     [PunRPC]
-    internal void SetPlayerSelection(string playerID, bool isLeft, bool isPupil, string uniqueID)
+    internal void SetSingleSelection(string playerID, bool isLeft, bool isPupil, string uniqueID)
     {
         if (!PlayerEyeSelection.TryGetSelections(playerID, out PlayerEyeSelection selections))
             return;
 
-        if(isPupil)
+        Loggers.Debug($"--- [SetSingleSelection RPC]\n{playerID}:L-{isLeft}:P-{isPupil}:UID-{uniqueID}");
+        if (isPupil)
         {
             CustomPupilType selection = CustomEyeManager.AllPupilTypes.FirstOrDefault(x => x.UID == uniqueID);
             if (selection == null)
@@ -89,17 +106,20 @@ internal class MoreEyesNetwork : MonoBehaviour
             selections.patchedEyes.SelectIris(selection, isLeft);
         }
 
+        selections.ForceColors();
+
         FileManager.UpdateWrite = true;
     }
 
     [PunRPC]
-    internal void SetPlayerColorSelection(string playerID, bool isLeft, bool isPupil, Vector3 colorVector)
+    internal void SetSingleColorSelection(string playerID, bool isLeft, bool isPupil, Vector3 colorVector)
     {
         if (!PlayerEyeSelection.TryGetSelections(playerID, out PlayerEyeSelection selections))
             return;
 
         //https://discussions.unity.com/t/syncing-color-materials-pun/557222/10
         var color = new Color(colorVector.x, colorVector.y, colorVector.z);
+        Loggers.Debug($"--- [SetSingleColorSelection RPC]\n{playerID}:L-{isLeft}:P-{isPupil}:C-{color}");
 
         if (isPupil)
         {
@@ -117,5 +137,18 @@ internal class MoreEyesNetwork : MonoBehaviour
         }
 
         FileManager.UpdateWrite = true;
+    }
+
+    [PunRPC]
+    private void SetSelectionsByText(string playerID, string selectionsValue)
+    {
+        var playerSelections = PlayerEyeSelection.GetPlayerEyeSelection(playerID);
+
+        if (playerSelections == null)
+            return;
+
+        playerSelections.SetSelectionsFromPairs(FileManager.GetPairsFromString(selectionsValue));
+        playerSelections.PlayerEyesSpawn();
+        FileManager.WriteTextFile();
     }
 }

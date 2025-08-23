@@ -1,8 +1,8 @@
 ﻿using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
-using MoreEyes.EyeManagement;
-using MoreEyes.Menus;
+using MoreEyes.Managers;
+using MoreEyes.Utility;
 using System.Reflection;
 
 namespace MoreEyes.Core;
@@ -18,11 +18,13 @@ internal class Plugin : BaseUnityPlugin
     public void Awake()
     {
         Logger = BepInEx.Logging.Logger.CreateLogSource(MyPluginInfo.PLUGIN_GUID);
+        ModConfig.BindConfigItems(Config);
 
-        AssetManager.InitBundles();
+        EyesAssetManager.InitBundles();
         Menu.Initialize();
         CustomEyeManager.Init();
 
         Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
+        Logger.LogMessage($"{MyPluginInfo.PLUGIN_NAME} has been loaded with version - {MyPluginInfo.PLUGIN_VERSION}");
     }
 }
