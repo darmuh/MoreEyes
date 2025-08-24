@@ -115,7 +115,7 @@ internal class FileManager
         UpdatePlayerSelections();
         //use appdata location with folder name `moreEyes`
         string filePath = Path.Combine(@"%userprofile%\appdata\locallow\semiwork\Repo", "moreEyes");
-        Loggers.Message($"Location: {filePath}");
+        Loggers.Debug($"Location: {filePath}");
         //expands the %userprofile% to the actual location on the machine
         filePath = Environment.ExpandEnvironmentVariables(filePath);
 
