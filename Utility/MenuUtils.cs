@@ -197,7 +197,7 @@ internal static class MenuUtils
 
     public static string CleanName(string fileName)
     {
-        string[] toRemove = ["pupil", "pupils", "iris", "irises", "left", "right"];
+        string[] toRemove = ["pupil", "pupils", "iris", "irises", "left", "right", "both"];
         string cleaned = fileName.Replace('_', ' ');
 
         foreach (var word in toRemove)
