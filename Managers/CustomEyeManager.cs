@@ -4,6 +4,7 @@ using MoreEyes.Collections;
 using MoreEyes.Components;
 using MoreEyes.Core;
 using MoreEyes.SDK;
+using MoreEyes.Utility;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -26,7 +27,7 @@ internal class CustomEyeManager
     public static CustomIrisType VanillaIris;
     public static bool VanillaPupilsExist => VanillaPupilLeft?.Prefab != null && VanillaPupilRight?.Prefab != null;
 
-   
+   //Unused
     internal static void ClearLists()
     {
         AllPupilTypes.Clear();
@@ -37,6 +38,8 @@ internal class CustomEyeManager
     {
         AllIrisTypes = [];
         //Add vanilla pupils here to avoid any duplicates
+        VanillaPupilLeft.isVanilla = true;
+        VanillaPupilRight.isVanilla = true;
         AllPupilTypes = [VanillaPupilLeft, VanillaPupilRight];
 
         if (!isInitialized)
@@ -50,6 +53,7 @@ internal class CustomEyeManager
                 GetAllTypes(asset);
             });
 
+            ModConfig.GenerateConfigItems();
             FileManager.ReadTextFile();
         }
     }

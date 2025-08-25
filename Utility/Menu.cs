@@ -5,7 +5,6 @@ using MoreEyes.Components;
 using MoreEyes.Core;
 using MoreEyes.Managers;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 using static MoreEyes.Utility.Enums;
 
@@ -135,12 +134,12 @@ internal sealed class Menu
         if (selection is CustomPupilType pupil)
         {
             ColorSelection = selection;
-            color = PatchedEyes.Local.CurrentSelections.GetColorOf(pupil);
+            color = PatchedEyes.Local.CurrentSelections.GetColorForMenu(pupil);
         }        
         else if (selection is CustomIrisType iris)
         {
             ColorSelection = selection;
-            color = PatchedEyes.Local.CurrentSelections.GetColorOf(iris);
+            color = PatchedEyes.Local.CurrentSelections.GetColorForMenu(iris);
         }
         else
         {
@@ -166,9 +165,9 @@ internal sealed class Menu
         Color newColor = new(currentRed / 255f, currentGreen / 255f, currentBlue / 255f);
 
         if (ColorSelection is CustomPupilType pupil)
-            PatchedEyes.Local.CurrentSelections.UpdateColorOf(pupil, newColor);
+            PatchedEyes.Local.CurrentSelections.UpdateColorInMenu(pupil, newColor);
         else if (ColorSelection is CustomIrisType iris)
-            PatchedEyes.Local.CurrentSelections.UpdateColorOf(iris, newColor);
+            PatchedEyes.Local.CurrentSelections.UpdateColorInMenu(iris, newColor);
         else
             Loggers.Warning("Unable to set color of current selection! Invalid type!");
     }
@@ -376,23 +375,13 @@ internal sealed class Menu
 
     private static void NewSelection(EyeSide side, EyePart part, int dir)
     {
+        PlayerEyeSelection current = PatchedEyes.Local.CurrentSelections;
         if (part == EyePart.Pupil)
         {
-            List<CustomPupilType> options = [];
+            List<CustomPupilType> options = CustomPupilType.GetListing(side, current);
+            MenuUtils.OrderListBy(ref options, ModConfig.MenuListOrder.Value);
 
-            if (side == EyeSide.Left)
-                options = CustomEyeManager.AllPupilTypes.FindAll(i => i.AllowedPos != PrefabSide.Right);
-            else
-                options = CustomEyeManager.AllPupilTypes.FindAll(i => i.AllowedPos != PrefabSide.Left);
-
-            options.DistinctBy(p => p.Prefab);
-
-            int currentIndex;
-
-            if(side == EyeSide.Left)
-                currentIndex = options.IndexOf(PatchedEyes.Local.CurrentSelections.pupilLeft);
-            else
-                currentIndex = options.IndexOf(PatchedEyes.Local.CurrentSelections.pupilRight);
+            int currentIndex = CustomPupilType.IndexOf(side, options, current);
 
             int selected = CycleIndex(currentIndex + dir, 0, options.Count - 1);
 
@@ -402,21 +391,10 @@ internal sealed class Menu
         }
         else
         {
-            List<CustomIrisType> options = [];
+            List<CustomIrisType> options = CustomIrisType.GetListing(side, current);
+            MenuUtils.OrderListBy(ref options, ModConfig.MenuListOrder.Value);
 
-            if (side == EyeSide.Left)
-                options = CustomEyeManager.AllIrisTypes.FindAll(i => i.AllowedPos != PrefabSide.Right);
-            else
-                options = CustomEyeManager.AllIrisTypes.FindAll(i => i.AllowedPos != PrefabSide.Left);
-
-            options.DistinctBy(p => p.Prefab);
-
-            int currentIndex;
-
-            if (side == EyeSide.Left)
-                currentIndex = options.IndexOf(PatchedEyes.Local.CurrentSelections.irisLeft);
-            else
-                currentIndex = options.IndexOf(PatchedEyes.Local.CurrentSelections.irisRight);
+            int currentIndex = CustomIrisType.IndexOf(side, options, current);
 
             int selected = CycleIndex(currentIndex + dir, 0, options.Count - 1);
 
