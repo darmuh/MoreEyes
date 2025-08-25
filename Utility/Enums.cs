@@ -14,6 +14,13 @@ internal class Enums
         Duplicates,
         Always
     }
+    internal enum MenuOrderBy
+    {
+        NameOnly,
+        ModNameOnly,
+        ModNameAndName,
+        None
+    }
 
     //from Menu.cs
     internal enum EyePart

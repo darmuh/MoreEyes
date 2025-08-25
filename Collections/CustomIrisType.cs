@@ -1,7 +1,9 @@
-﻿using MoreEyes.Core;
+﻿using BepInEx.Configuration;
+using MoreEyes.Core;
 using MoreEyes.SDK;
 using MoreEyes.Utility;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using static MoreEyes.Managers.CustomEyeManager;
@@ -47,6 +49,17 @@ internal class CustomIrisType
     internal PrefabSide AllowedPos = PrefabSide.Both;
     internal bool isVanilla = false;
     internal bool inUse = false;
+    internal ConfigEntry<bool> ConfigToggle { get; set; } = null!;
+    internal bool IsEnabled
+    {
+        get
+        {
+            if (ConfigToggle == null || isVanilla)
+                return true;
+
+            return ConfigToggle.Value;
+        }
+    }
 
     //easier to go through lists in UnityExplorer
     public override string ToString() => Name;
@@ -90,5 +103,43 @@ internal class CustomIrisType
 
         AllIrisTypes.Add(this);
         AllIrisTypes.Distinct();
+    }
+
+    internal static List<CustomIrisType> GetListing(EyeSide side, PlayerEyeSelection selected)
+    {
+        List<CustomIrisType> listing = [];
+        if (side == EyeSide.Left)
+        {
+            listing.Add(selected.irisLeft); //get current selection
+            listing.AddRange(AllIrisTypes.FindAll(i => i.AllowedPos != PrefabSide.Right)); //don't get any right-only
+            listing.RemoveAll(i => !i.IsEnabled && i != selected.irisLeft); //remove any that are disabled that is not the current selection
+            return listing;
+        }
+        else
+        {
+            listing.Add(selected.irisRight); //get current selection
+            listing.AddRange(AllIrisTypes.FindAll(i => i.AllowedPos != PrefabSide.Left)); //don't get any left-only
+            listing.RemoveAll(i => !i.IsEnabled && i != selected.irisLeft); //remove any that are disabled that is not the current selection
+            return listing;
+        }
+    }
+
+    //safely get index and always return 0 if indexof fails
+    internal static int IndexOf(EyeSide side, List<CustomIrisType> options, PlayerEyeSelection selected)
+    {
+        int index;
+        if (side == EyeSide.Left)
+            index = options.IndexOf(selected.irisLeft);
+        else
+            index = options.IndexOf(selected.irisRight);
+
+        if (index < 0)
+        {
+            Loggers.Warning($"Failed to get index of current selections! Setting index to 0.\nSide:{side}\noptionCount:{options.Count}");
+            index = 0;
+        }
+
+        Loggers.Debug($"Index of Iris from {side} {options.Count} is {index}");
+        return index;
     }
 }

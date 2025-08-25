@@ -1,12 +1,15 @@
 ﻿using HarmonyLib;
 using MenuLib.MonoBehaviors;
+using MoreEyes.Collections;
 using MoreEyes.Components;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using static MoreEyes.Utility.Enums;
 using Image = UnityEngine.UI.Image;
 
 namespace MoreEyes.Utility;
@@ -197,13 +200,62 @@ internal static class MenuUtils
 
     public static string CleanName(string fileName)
     {
-        string[] toRemove = ["pupil", "pupils", "iris", "irises", "left", "right"];
+        string[] toRemove = ["pupil", "pupils", "iris", "irises", "left", "right", "both"];
         string cleaned = fileName.Replace('_', ' ');
 
         foreach (var word in toRemove)
             cleaned = cleaned.Replace(word, "", StringComparison.OrdinalIgnoreCase);
 
         return string.Join(' ', cleaned.Split(' ', StringSplitOptions.RemoveEmptyEntries));
+    }
+
+    public static void OrderListBy(ref List<CustomPupilType> List, MenuOrderBy config)
+    {
+        if (config == MenuOrderBy.None)
+            return;
+
+        if (config == MenuOrderBy.NameOnly)
+        {
+            List.OrderBy(L => L.Name);
+            return;
+        }
+
+        if (config == MenuOrderBy.ModNameOnly)
+        {
+            List.OrderBy(L => L.ModName);
+            return;
+        }
+
+        if (config == MenuOrderBy.ModNameAndName)
+        {
+            List.OrderBy(L => L.ModName).ThenBy(L => L.Name);
+            return;
+        }
+
+    }
+
+    public static void OrderListBy(ref List<CustomIrisType> List, MenuOrderBy config)
+    {
+        if (config == MenuOrderBy.None)
+            return;
+
+        if (config == MenuOrderBy.NameOnly)
+        {
+            List.OrderBy(L => L.Name);
+            return;
+        }
+
+        if (config == MenuOrderBy.ModNameOnly)
+        {
+            List.OrderBy(L => L.ModName);
+            return;
+        }
+
+        if (config == MenuOrderBy.ModNameAndName)
+        {
+            List.OrderBy(L => L.ModName).ThenBy(L => L.Name);
+            return;
+        }
     }
 
     public static string ApplyGradient(string input, bool inverse = false, float minBrightness = 0.15f)

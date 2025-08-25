@@ -130,60 +130,60 @@ internal class PlayerEyeSelection
         return CustomEyeManager.AllPlayerSelections.FirstOrDefault(p => p.playerID == steamID);
     }
 
-    public void UpdateColorOf(CustomPupilType pupil, Color color)
+    public void UpdateColorInMenu(CustomPupilType pupil, Color color)
     {
-        if (pupil == pupilLeft)
+        if (pupil == pupilLeft && Menu.CurrentEyeSide == Enums.EyeSide.Left)
         {
             LocalCache.PupilLeftColor = PupilLeftColor;
             PupilLeftColor = color;
         }   
-        else if(pupil == pupilRight)
+        else if(pupil == pupilRight && Menu.CurrentEyeSide == Enums.EyeSide.Right)
         {
             LocalCache.PupilRightColor = PupilRightColor;
             PupilRightColor = color;
         }
     }
 
-    public void UpdateColorOf(CustomIrisType iris, Color color)
+    public void UpdateColorInMenu(CustomIrisType iris, Color color)
     {
-        if (iris == irisLeft)
+        if (iris == irisLeft && Menu.CurrentEyeSide == Enums.EyeSide.Left)
         {
             LocalCache.IrisLeftColor = IrisLeftColor;
             IrisLeftColor = color;
         }    
-        else if (iris == irisRight)
+        else if (iris == irisRight && Menu.CurrentEyeSide == Enums.EyeSide.Left)
         {
             LocalCache.IrisRightColor = IrisRightColor;
             IrisRightColor = color;
         }     
     }
 
-    public Color GetColorOf(CustomPupilType pupil)
+    public Color GetColorForMenu(CustomPupilType pupil)
     {
         if(pupil == null)
         {
             Loggers.Warning("Cannot get color of NULL pupil");
             return Color.black;
         }
-        if (pupil == pupilLeft)
+        if (pupil == pupilLeft && Menu.CurrentEyeSide == Enums.EyeSide.Left)
             return PupilLeftColor;
-        if (pupil == pupilRight)
+        if (pupil == pupilRight && Menu.CurrentEyeSide == Enums.EyeSide.Right)
             return PupilRightColor;
 
         Loggers.Warning($"Pupil {pupil.Name} is not assigned to player!");
         return Color.black;
     }
 
-    public Color GetColorOf(CustomIrisType iris)
+    public Color GetColorForMenu(CustomIrisType iris)
     {
         if (iris == null)
         {
             Loggers.Warning("Cannot get color of NULL iris");
             return Color.black;
         }
-        if (iris == irisLeft)
+        if (iris == irisLeft && Menu.CurrentEyeSide == Enums.EyeSide.Left)
             return IrisLeftColor;
-        if (iris == irisRight)
+        if (iris == irisRight && Menu.CurrentEyeSide == Enums.EyeSide.Right)
             return IrisRightColor;
 
         Loggers.Warning($"Iris {iris.Name} is not assigned to player!");
