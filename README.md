@@ -1,3 +1,46 @@
 # MoreEyes
 
- !!! We need a complete rewrite before release - SDK needs the info about creating mods using this API !!!
+**MoreEyes** is a mod for **R.E.P.O** that expands character eye customization.  
+This is an ***API*** that lets modders create **custom irises and pupils**, but also includes a basic package.
+
+---
+
+## ✨ Features
+
+- **Custom Menu**  
+  - Select irises and pupils for **left and right eyes** independently.  
+  - Color each eye separately.  
+  - Zoom in/out on your player avatar.  
+  - Accessible from **Main Menu**, **Lobby Menu**, and **Escape Menu**.  
+  - Change your eye selections **mid-game**.  
+  - Menu text uses your chosen player’s color with a gradient shift (darker for bright colors, brighter for dark colors).  
+  - Color sliders use a complementary color.
+
+- **Configuration Options**  
+  - **Menu prefix display:** Always, Duplicates, Never.  
+  - **Alphabetical sorting:** None, Name Only, Mod Name Only, Mod Name & Name.  
+  - **Auto-scroll speed:** Horizontally scrolls text (useful when prefix is present).  
+  - **Client log level:** Standard, Debug, Warnings Only.  
+  - **Generated config:** Toggle pupil/iris pairs per mod (supports left/right selections or individual toggles).
+
+<details>
+<summary> <b>📸 Previews</b> </summary>
+
+![Preview 1](https://trello.com/1/cards/68acbaf47857addc263fe80c/attachments/68acbb0426608489f9368483/download/image.png)  
+![Preview 2](https://trello.com/1/cards/68acbaf47857addc263fe80c/attachments/68acbb5b7d9cf554dd7a0a06/download/image.png)  
+![Preview 3](https://trello.com/1/cards/68acbaf47857addc263fe80c/attachments/68acbbccce267045733f2537/download/image.png)  
+![Preview 4](https://trello.com/1/cards/68acbaf47857addc263fe80c/attachments/68acbc669b0ad9775274934b/download/image.png)  
+![Preview 5](https://trello.com/1/cards/68acbaf47857addc263fe80c/attachments/68acc1567c4581e6f8eb353f/download/image.png)  
+![Preview 6](https://trello.com/1/cards/68acbaf47857addc263fe80c/attachments/68acc211f5aae2a0fd59e653/download/image.png)  
+![Preview 7](https://trello.com/1/cards/68acbaf47857addc263fe80c/attachments/68acc2431a3572cd2eeb5f8f/download/image.png)
+
+</details>
+
+---
+
+## 📚 For Developers
+
+Want to make your own iris or pupil mods?  
+Check out the **MoreEyes SDK** for detailed documentation, setup, and examples:
+
+👉 [Learn more in the SDK](https://github.com/darmuh/MoreEyesSDK)
