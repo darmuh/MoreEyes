@@ -17,6 +17,7 @@ internal class CustomPupilType
     internal string Name = string.Empty;
     internal string AssetPath = string.Empty;
     internal string UID = string.Empty;
+    internal string PairName = string.Empty;
     internal string MenuName
     {
         get
@@ -78,6 +79,8 @@ internal class CustomPupilType
         ModName = mod.name;
 
         Name = assetName[(assetName.LastIndexOf('/') + 1)..].Replace(".prefab", "");
+        string cleanedName = MenuUtils.CleanName(Name);
+        PairName = char.ToUpper(cleanedName[0]) + cleanedName[1..] + " Pupil(s)";
 
         UID = Name + "-" + mod.Name + "-" + mod.Author + "-" + mod.Version;
 

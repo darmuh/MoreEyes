@@ -1,10 +1,9 @@
 ﻿using BepInEx.Configuration;
-using HarmonyLib;
 using MoreEyes.Managers;
+using System.Linq;
 using static MoreEyes.Utility.Enums;
 
 namespace MoreEyes.Utility;
-//Client configuration items
 internal class ModConfig
 {
     internal static ConfigEntry<ModLogLevel> ClientLogLevel { get; private set; }
@@ -28,18 +27,30 @@ internal class ModConfig
         if (ConfigFile == null)
             return;
 
-        CustomEyeManager.AllPupilTypes.Do(p =>
+        foreach (var group in CustomEyeManager.AllPupilTypes
+          .Where(p => !p.isVanilla)
+          .GroupBy(p => p.PairName))
         {
-            if (p.isVanilla)
-                return;
-            p.ConfigToggle = ConfigFile.Bind($"{p.ModName} Pupils", p.Name, true, $"Enable/Disable pupil - {p.Name}");
-        });
+            var config = ConfigFile.Bind($"{group.First().ModName} Pupils",
+                                         group.Key,
+                                         true,
+                                         $"Enable/Disable pupil{(group.Count() > 1 ? " pair" : "")} - {group.Key}");
 
-        CustomEyeManager.AllIrisTypes.Do(i =>
+            foreach (var pupil in group)
+                pupil.ConfigToggle = config;
+        }
+
+        foreach (var group in CustomEyeManager.AllIrisTypes
+            .Where(i => !i.isVanilla)
+            .GroupBy(i => i.PairName))
         {
-            if (i.isVanilla)
-                return;
-            i.ConfigToggle = ConfigFile.Bind($"{i.ModName} Irises", i.Name, true, $"Enable/Disable iris - {i.Name}");
-        });
+            var config = ConfigFile.Bind($"{group.First().ModName} Irises",
+                                         group.Key,
+                                         true,
+                                         $"Enable/Disable iris{(group.Count() > 1 ? " pair" : "")} - {group.Key}");
+
+            foreach (var iris in group)
+                iris.ConfigToggle = config;
+        }
     }
 }
