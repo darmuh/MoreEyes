@@ -46,3 +46,9 @@ Want to make your own iris or pupil mods?
 Check out the **MoreEyes SDK** for detailed documentation, setup, and examples:
 
 👉 [Learn more in the SDK](https://github.com/darmuh/MoreEyesSDK)
+
+### Known little problems
+
+- Spamming mousewheel to scroll back and forth to zoom in and out on the playeravatar is a bit iffy, it'll need some more work but its not a big issue
+- On the right pupil's next button `>` specifically on standard pupil on the first try it'll not do anything, just on the second click, this is a weird small issue - will look into it
+- Interacting with valuables where you eyeselections' sizes are overridden will make them clip thru eyelids, this is something thats a very specific scenario, very small issue but we'd like to fix this as well
