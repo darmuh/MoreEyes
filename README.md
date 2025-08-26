@@ -47,6 +47,8 @@ Check out the **MoreEyes SDK** for detailed documentation, setup, and examples:
 
 👉 [Learn more in the SDK](https://github.com/darmuh/MoreEyesSDK)
 
+---
+
 ### Known little problems
 
 - Spamming mousewheel to scroll back and forth to zoom in and out on the playeravatar is a bit iffy, it'll need some more work but its not a big issue
