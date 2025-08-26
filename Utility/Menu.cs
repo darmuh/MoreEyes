@@ -156,8 +156,8 @@ internal sealed class Menu
         BlueSlider(blue);
 
         SetSliders(currentRed, currentGreen, currentBlue);
-
     }
+
     private static void UpdateMaterialColor()
     {
         if (ColorSelection == null) return;

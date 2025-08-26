@@ -41,39 +41,58 @@ internal class MoreEyesNetwork : MonoBehaviour
         Loggers.Debug($"SyncMoreEyesChanges: Sending other clients my changes (if any)");
         var local = PatchedEyes.Local.CurrentSelections;
 
+        bool prefabChanged = false;
         // -- Check Pupil for prefab changes
 
         if (old.pupilLeft != local.pupilLeft)
+        {
             instance.photonView.RPC("SetSingleSelection", RpcTarget.OthersBuffered, local.playerID, true, true, local.pupilLeft.UID);
+            prefabChanged = true;
+        }
 
         if (old.pupilRight != local.pupilRight)
+        {
             instance.photonView.RPC("SetSingleSelection", RpcTarget.OthersBuffered, local.playerID, false, true, local.pupilRight.UID);
+            prefabChanged = true;
+        }
 
         // -- Check Iris for prefab changes
 
         if (old.irisLeft != local.irisLeft)
+        {
             instance.photonView.RPC("SetSingleSelection", RpcTarget.OthersBuffered, local.playerID, true, false, local.irisLeft.UID);
+            prefabChanged = true;
+        }
 
         if (old.irisRight != local.irisRight)
+        {
             instance.photonView.RPC("SetSingleSelection", RpcTarget.OthersBuffered, local.playerID, false, false, local.irisRight.UID);
+            prefabChanged = true;
+        }
 
-        // --- Color changes must follow any prefab changes!! --- //
-
-        // -- Check Pupil for color changes
+        // Color changes must follow any prefab changes
+        void SendColorInformation(bool isLeft, bool isPupil, Color color)
+        {
+            if (prefabChanged)
+                instance.StartCoroutine(DelayedColorRPC(local.playerID, isLeft, isPupil, color));
+            else
+                instance.photonView.RPC("SetSingleColorSelection", RpcTarget.OthersBuffered, local.playerID, isLeft, isPupil, ColorToVector(color));
+        }
 
         if (old.PupilLeftColor != local.PupilLeftColor)
-            instance.photonView.RPC("SetSingleColorSelection", RpcTarget.OthersBuffered, local.playerID, true, true, ColorToVector(local.PupilLeftColor));
-
+            SendColorInformation(true, true, local.PupilLeftColor);
         if (old.PupilRightColor != local.PupilRightColor)
-            instance.photonView.RPC("SetSingleColorSelection", RpcTarget.OthersBuffered, local.playerID, false, true, ColorToVector(local.PupilRightColor));
-
-        // -- Check Iris for color changes
-
+            SendColorInformation(false, true, local.PupilRightColor);
         if (old.IrisLeftColor != local.IrisLeftColor)
-            instance.photonView.RPC("SetSingleColorSelection", RpcTarget.OthersBuffered, local.playerID, true, false, ColorToVector(local.IrisLeftColor));
-
+            SendColorInformation(true, false, local.IrisLeftColor);
         if (old.IrisRightColor != local.IrisRightColor)
-            instance.photonView.RPC("SetSingleColorSelection", RpcTarget.OthersBuffered, local.playerID, false, false, ColorToVector(local.IrisRightColor));
+            SendColorInformation(false, false, local.IrisRightColor);
+    }
+
+    private static System.Collections.IEnumerator DelayedColorRPC(string playerID, bool isLeft, bool isPupil, Color color)
+    {
+        yield return null; // wait one frame
+        instance.photonView.RPC("SetSingleColorSelection", RpcTarget.OthersBuffered, playerID, isLeft, isPupil, ColorToVector(color));
     }
 
     //no alpha info but that's okay
