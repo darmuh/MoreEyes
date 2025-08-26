@@ -26,13 +26,15 @@ This is an ***API*** that lets modders create **custom irises and pupils**, but 
 <details>
 <summary> <b>📸 Previews</b> </summary>
 
-![Preview 1](https://trello.com/1/cards/68acbaf47857addc263fe80c/attachments/68acbb0426608489f9368483/download/image.png)  
-![Preview 2](https://trello.com/1/cards/68acbaf47857addc263fe80c/attachments/68acbb5b7d9cf554dd7a0a06/download/image.png)  
-![Preview 3](https://trello.com/1/cards/68acbaf47857addc263fe80c/attachments/68acbbccce267045733f2537/download/image.png)  
-![Preview 4](https://trello.com/1/cards/68acbaf47857addc263fe80c/attachments/68acbc669b0ad9775274934b/download/image.png)  
-![Preview 5](https://trello.com/1/cards/68acbaf47857addc263fe80c/attachments/68acc1567c4581e6f8eb353f/download/image.png)  
-![Preview 6](https://trello.com/1/cards/68acbaf47857addc263fe80c/attachments/68acc211f5aae2a0fd59e653/download/image.png)  
-![Preview 7](https://trello.com/1/cards/68acbaf47857addc263fe80c/attachments/68acc2431a3572cd2eeb5f8f/download/image.png)
+![](https://trello.com/1/cards/68acbaf47857addc263fe80c/attachments/68acbb0426608489f9368483/download/image.png)  
+![](https://trello.com/1/cards/68acbaf47857addc263fe80c/attachments/68acbb5b7d9cf554dd7a0a06/download/image.png)  
+![](https://trello.com/1/cards/68acbaf47857addc263fe80c/attachments/68acbbccce267045733f2537/download/image.png)  
+![](https://trello.com/1/cards/68acbaf47857addc263fe80c/attachments/68acbc669b0ad9775274934b/download/image.png)  
+![](https://trello.com/1/cards/68acbaf47857addc263fe80c/attachments/68acc1567c4581e6f8eb353f/download/image.png)  
+![](https://trello.com/1/cards/68acbaf47857addc263fe80c/attachments/68acc211f5aae2a0fd59e653/download/image.png)  
+![](https://trello.com/1/cards/68acbaf47857addc263fe80c/attachments/68acc2431a3572cd2eeb5f8f/download/image.png)
+![](https://trello.com/1/cards/68acbaf47857addc263fe80c/attachments/68ada3be923441525c3ed32d/download/image.png)
+![](https://trello.com/1/cards/68acbaf47857addc263fe80c/attachments/68ada3cc37eb097b738d685f/download/image.png)
 
 </details>
 
