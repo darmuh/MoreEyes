@@ -151,7 +151,7 @@ internal class PlayerEyeSelection
             LocalCache.IrisLeftColor = IrisLeftColor;
             IrisLeftColor = color;
         }    
-        else if (iris == irisRight && Menu.CurrentEyeSide == Enums.EyeSide.Left)
+        else if (iris == irisRight && Menu.CurrentEyeSide == Enums.EyeSide.Right)
         {
             LocalCache.IrisRightColor = IrisRightColor;
             IrisRightColor = color;

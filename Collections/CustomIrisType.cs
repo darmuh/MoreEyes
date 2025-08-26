@@ -5,6 +5,7 @@ using MoreEyes.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 using static MoreEyes.Managers.CustomEyeManager;
 using static MoreEyes.Utility.Enums;
@@ -110,16 +111,20 @@ internal class CustomIrisType
         List<CustomIrisType> listing = [];
         if (side == EyeSide.Left)
         {
-            listing.Add(selected.irisLeft); //get current selection
             listing.AddRange(AllIrisTypes.FindAll(i => i.AllowedPos != PrefabSide.Right)); //don't get any right-only
-            listing.RemoveAll(i => !i.IsEnabled && i != selected.irisLeft); //remove any that are disabled that is not the current selection
+            listing.RemoveAll(i => !i.IsEnabled); //remove any that are disabled that is not the current selection
+            if (!listing.Contains(selected.irisLeft)) //add current selection if it is not already in the list
+                listing.Add(selected.irisLeft);
+            listing.DistinctBy(i => i.UID); //don't include duplicates
             return listing;
         }
         else
         {
-            listing.Add(selected.irisRight); //get current selection
             listing.AddRange(AllIrisTypes.FindAll(i => i.AllowedPos != PrefabSide.Left)); //don't get any left-only
-            listing.RemoveAll(i => !i.IsEnabled && i != selected.irisLeft); //remove any that are disabled that is not the current selection
+            listing.RemoveAll(i => !i.IsEnabled && i != selected.irisLeft); //remove any that are disabled
+            if (!listing.Contains(selected.irisRight)) //add current selection if it is not already in the list
+                listing.Add(selected.irisRight);
+            listing.DistinctBy(i => i.UID); //don't include duplicates
             return listing;
         }
     }

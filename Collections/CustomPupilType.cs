@@ -138,7 +138,7 @@ internal class CustomPupilType
             listing.RemoveAll(p => !p.IsEnabled); //remove any that are disabled
             if(!listing.Contains(selected.pupilLeft)) //add current selection if it is not already in the list
                 listing.Add(selected.pupilLeft);
-            listing.DistinctBy(p => p.Prefab); //don't include duplicates
+            listing.DistinctBy(p => p.UID); //don't include duplicates
             return listing;
         }
         else
@@ -147,7 +147,7 @@ internal class CustomPupilType
             listing.RemoveAll(p => !p.IsEnabled); //remove any that are disabled
             if (!listing.Contains(selected.pupilRight)) //add current selection if it is not already in the list
                 listing.Add(selected.pupilRight);
-            listing.DistinctBy(p => p.Prefab); //don't include duplicates
+            listing.DistinctBy(p => p.UID); //don't include duplicates
             return listing;
         }
     }
