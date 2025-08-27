@@ -159,7 +159,7 @@ internal sealed class ExpressionMenu
     {
         if (toggledBinding == true)
         {
-            // swap for 5
+            // swap for clicked button, if you click 5 and click on an expression on the right you'll change the info on the left box next to 5
             toggledBinding = false;
         }
         else { CheckoutExpression(); }

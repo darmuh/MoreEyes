@@ -27,13 +27,6 @@ internal class CustomEyeManager
     public static CustomIrisType VanillaIris;
     public static bool VanillaPupilsExist => VanillaPupilLeft?.Prefab != null && VanillaPupilRight?.Prefab != null;
 
-   //Unused
-    internal static void ClearLists()
-    {
-        AllPupilTypes.Clear();
-        AllIrisTypes.Clear();
-    }
-
     internal static void Init()
     {
         AllIrisTypes = [];
