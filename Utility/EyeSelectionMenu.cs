@@ -9,7 +9,7 @@ using UnityEngine;
 using static MoreEyes.Utility.Enums;
 
 namespace MoreEyes.Utility;
-internal sealed class Menu
+internal sealed class EyeSelectionMenu
 {
     internal static REPOPopupPage MoreEyesMenu = new();
     internal static REPOAvatarPreview AvatarPreview;
@@ -41,6 +41,21 @@ internal sealed class Menu
     internal static string eyePart;
     internal static string eyeSide;
     internal static string eyeStyle;
+
+    internal static float yOffsetStart = 22f;
+    internal static float yOffsetPlus = 35f;
+
+    internal static int modCount = 0;
+    internal static Vector2 buttonPosMain;
+    internal static Vector2 buttonPosLobby = new(600f, 22f);
+    internal static Vector2 buttonPosEsc = new(600f, 22f);
+
+    internal static readonly Vector2 anchorOut = new(471.25f, 24.5f);
+    internal static readonly Vector2 anchorIn = new(471.25f, 156.5f);
+    internal static readonly Vector3 scaleOut = Vector3.one;
+    internal static readonly Vector3 scaleIn = new(2f, 2f, 2f);
+    internal static readonly Vector3 posOut = new(0f, -0.6f, 0f);
+    internal static readonly Vector3 posIn = new(0f, -3.5f, 0f);
 
     internal static bool SlidersOn { get; private set; } = false;
 
@@ -77,19 +92,15 @@ internal sealed class Menu
 
     internal static void Initialize()
     {
-        int modCount = 0;
         if (ModCompats.IsSpawnManagerPresent) modCount++;
         if (ModCompats.IsTwitchChatAPIPresent) modCount++;
         if (ModCompats.IsTwitchTrollingPresent) modCount++;
 
-        float yOffsetStart = 22f;
-        float yOffsetPlus = 35f;
+        buttonPosMain = new(595f, yOffsetStart + yOffsetPlus * modCount);
 
-        Vector2 buttonPos = new(595f, yOffsetStart + yOffsetPlus * modCount);
-
-        MenuAPI.AddElementToMainMenu(p => MenuAPI.CreateREPOButton("More Eyes", CreatePopupMenu, p, buttonPos));
-        MenuAPI.AddElementToLobbyMenu(p => MenuAPI.CreateREPOButton("More Eyes", CreatePopupMenu, p, new Vector2(600f, 22f)));
-        MenuAPI.AddElementToEscapeMenu(p => MenuAPI.CreateREPOButton("More Eyes", CreatePopupMenu, p, new Vector2(600f, 22f)));
+        MenuAPI.AddElementToMainMenu(p => MenuAPI.CreateREPOButton("More Eyes", CreatePopupMenu, p, buttonPosMain));
+        MenuAPI.AddElementToLobbyMenu(p => MenuAPI.CreateREPOButton("More Eyes", CreatePopupMenu, p, buttonPosLobby));
+        MenuAPI.AddElementToEscapeMenu(p => MenuAPI.CreateREPOButton("More Eyes", CreatePopupMenu, p, buttonPosEsc));
     }
 
     private static void RandomizeLocalEyeSelection()
@@ -205,17 +216,17 @@ internal sealed class Menu
 
         PlayerEyeSelection currentSelections = PatchedEyes.Local.CurrentSelections;
 
-        MoreEyesMenu = MenuAPI.CreateREPOPopupPage(MenuUtils.ApplyGradient("More Eyes"), false, true, 0f, new Vector2(-150f, 5f));
+        MoreEyesMenu = MenuAPI.CreateREPOPopupPage(MenuUtils.ApplyGradient("Eye Selections"), false, true, 0f, new Vector2(-150f, 5f));
         
         AvatarPreview = MenuAPI.CreateREPOAvatarPreview(MoreEyesMenu.transform, new Vector2(471.25f, 156.5f), false);
 
         AvatarPreview.previewSize = new Vector2(266.6667f, 500f); // original numbers (184, 345)
         AvatarPreview.rectTransform.sizeDelta = new Vector2(266.6667f, 210f); // original (184, 345) same way as previewSize
-        AvatarPreview.rigTransform.parent.localScale = new Vector3(2f, 2f, 2f); // original (1, 1, 1)
-        AvatarPreview.rigTransform.parent.localPosition = new Vector3(0f, -3.5f, 0f);
+        AvatarPreview.rigTransform.parent.localScale = scaleIn; // original (1, 1, 1)
+        AvatarPreview.rigTransform.parent.localPosition = posIn;
         MenuUtils.zoomLevel = 1f;
 
-        MenuUtils.HandleScrollZoom(AvatarPreview);
+        MenuUtils.HandleScrollZoom(AvatarPreview, anchorIn, anchorOut, scaleIn, scaleOut, posIn, posOut);
 
         zoomTip = MenuAPI.CreateREPOLabel("! Scroll to zoom", MoreEyesMenu.transform, new Vector2(480, 0));
 
@@ -238,14 +249,20 @@ internal sealed class Menu
 
         MenuUtils.SetHeaderTextStyling([pupilLeftHeader, pupilRightHeader, irisLeftHeader, irisRightHeader]);
 
-        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("<", LeftPupilPrev, pupilLeft.transform, new Vector2(-25f, -10f)));
-        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("<", RightPupilPrev, pupilRight.transform, new Vector2(-25f, -10f)));
-        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("<", LeftIrisPrev, irisLeft.transform, new Vector2(-25f, -10f)));
-        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton("<", RightIrisPrev, irisRight.transform, new Vector2(-25f, -10f)));
-        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton(">", LeftPupilNext, pupilLeft.transform, new Vector2(70f, -10f)));
-        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton(">", RightPupilNext, pupilRight.transform, new Vector2(70f, -10f)));
-        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton(">", LeftIrisNext, irisLeft.transform, new Vector2(70f, -10f)));
-        MoreEyesMenu.AddElement(e => MenuAPI.CreateREPOButton(">", RightIrisNext, irisRight.transform, new Vector2(70f, -10f)));
+        var buttons = new(REPOButton button, EyeSide side, EyePart part)[]
+        {
+            (pupilLeft, EyeSide.Left, EyePart.Pupil),
+            (pupilRight, EyeSide.Right, EyePart.Pupil),
+            (irisLeft, EyeSide.Left, EyePart.Iris),
+            (irisRight, EyeSide.Right, EyePart.Iris)
+        };
+
+        foreach (var (button, side, part) in buttons)
+        {
+            MenuAPI.CreateREPOButton("<", () => NewSelection(side, part, -1), button.transform, new Vector2(-25f, -10f));
+
+            MenuAPI.CreateREPOButton(">", () => NewSelection(side, part, 1), button.transform, new Vector2(70f, -10f));
+        }
 
         redSlider = MenuAPI.CreateREPOSlider(MenuUtils.ApplyGradient($"{eyeStyle}"), "<color=#FF0000>Red</color>", RedSlider, MoreEyesMenu.transform, new Vector2(205f, 180f), min: 0, max: 255, barBehavior: REPOSlider.BarBehavior.UpdateWithValue);
         greenSlider = MenuAPI.CreateREPOSlider(MenuUtils.ApplyGradient($"{eyePart}"), "<color=#00FF00>Green</color>", GreenSlider, MoreEyesMenu.transform, new Vector2(205f, 135f), min: 0, max: 255, barBehavior: REPOSlider.BarBehavior.UpdateWithValue);
@@ -303,74 +320,25 @@ internal sealed class Menu
         }
     }
 
-    private static void PupilLeftSliders()
-    {
-        CommonSliders(EyeSide.Left, EyePart.Pupil);
-    }
-    private static void PupilRightSliders()
-    {
-        CommonSliders(EyeSide.Right, EyePart.Pupil);
-    }
-    private static void IrisLeftSliders()
-    {
-        CommonSliders(EyeSide.Left, EyePart.Iris);
-    }
-    private static void IrisRightSliders()
-    {
-        CommonSliders(EyeSide.Right, EyePart.Iris);
-    }
+    private static void PupilLeftSliders() => CommonSliders(EyeSide.Left, EyePart.Pupil);
+    private static void PupilRightSliders() => CommonSliders(EyeSide.Right, EyePart.Pupil);
+    private static void IrisLeftSliders() => CommonSliders(EyeSide.Left, EyePart.Iris);
+    private static void IrisRightSliders() => CommonSliders(EyeSide.Right, EyePart.Iris);
 
     private static void RedSlider(int value)
     {
         currentRed = value;
         UpdateMaterialColor();
-
     }
     private static void GreenSlider(int value)
     {
         currentGreen = value;
         UpdateMaterialColor();
-
     }
     private static void BlueSlider(int value)
     {
         currentBlue = value;
         UpdateMaterialColor();
-    }
-
-    private static void LeftIrisNext()
-    {
-        NewSelection(EyeSide.Left, EyePart.Iris, 1);
-    }
-    private static void RightIrisNext()
-    {
-        NewSelection(EyeSide.Right, EyePart.Iris, 1);
-    }
-
-    private static void LeftIrisPrev()
-    {
-        NewSelection(EyeSide.Left, EyePart.Iris, -1);
-    }
-    private static void RightIrisPrev()
-    {
-        NewSelection(EyeSide.Right, EyePart.Iris, -1);
-    }
-
-    private static void LeftPupilNext()
-    {
-        NewSelection(EyeSide.Left, EyePart.Pupil, 1);
-    }
-    private static void RightPupilNext()
-    {
-        NewSelection(EyeSide.Right, EyePart.Pupil, 1);
-    }
-    private static void LeftPupilPrev()
-    {
-        NewSelection(EyeSide.Left, EyePart.Pupil, -1);
-    }
-    private static void RightPupilPrev()
-    {
-        NewSelection(EyeSide.Right, EyePart.Pupil, -1);
     }
 
     private static void NewSelection(EyeSide side, EyePart part, int dir)

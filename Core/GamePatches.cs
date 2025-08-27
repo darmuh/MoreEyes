@@ -50,7 +50,7 @@ internal class MenuEscPatch
     private static Transform playerAvatar;
     public static void Postfix(MenuPageEsc __instance)
     {
-        if (Menu.MoreEyesMenu.menuPage != null)
+        if (EyeSelectionMenu.MoreEyesMenu.menuPage != null)
         {
             if(playerTarget == null)
             {

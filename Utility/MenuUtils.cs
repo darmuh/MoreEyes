@@ -18,16 +18,16 @@ internal static class MenuUtils
     private static Coroutine zoomCoroutine;
     internal static float zoomLevel = 0f;
 
-    public static void HandleScrollZoom(REPOAvatarPreview preview)
+    public static void HandleScrollZoom(REPOAvatarPreview preview, Vector2 anchorIn, Vector2 anchorOut, Vector3 scaleIn, Vector3 scaleOut, Vector3 posIn, Vector3 posOut)
     {
         if (preview == null || preview.rigTransform == null)
             return;
 
         if (zoomCoroutine == null)
-            preview.StartCoroutine(AvatarZoomCoroutine(preview));
+            preview.StartCoroutine(AvatarZoomCoroutine(preview, anchorIn, anchorOut, scaleIn, scaleOut, posIn, posOut));
     }
 
-    private static IEnumerator AvatarZoomCoroutine(REPOAvatarPreview preview)
+    private static IEnumerator AvatarZoomCoroutine(REPOAvatarPreview preview, Vector2 anchorIn, Vector2 anchorOut, Vector3 scaleIn, Vector3 scaleOut, Vector3 posIn, Vector3 posOut)
     {
         while (preview != null && preview.rigTransform != null)
         {
@@ -45,7 +45,7 @@ internal static class MenuUtils
                         zoomCoroutine = null;
                     }
 
-                    zoomCoroutine = preview.StartCoroutine(AnimateZoom(preview, targetZoom));
+                    zoomCoroutine = preview.StartCoroutine(AnimateZoom(preview, targetZoom, anchorIn, anchorOut, scaleIn, scaleOut, posIn, posOut));
                     zoomLevel = targetZoom;
                 }
             }
@@ -53,22 +53,13 @@ internal static class MenuUtils
         }
     }
 
-    private static IEnumerator AnimateZoom(REPOAvatarPreview preview, float targetZoom)
+    private static IEnumerator AnimateZoom(REPOAvatarPreview preview, float targetZoom, Vector2 anchorIn, Vector2 anchorOut, Vector3 scaleIn, Vector3 scaleOut, Vector3 posIn, Vector3 posOut)
     {
         Vector2 sizeOut = new(182.4f, 342f);
         Vector2 sizeIn = new(266.6667f, 500f);
 
         Vector2 deltaOut = new(182.4f, 342f);
         Vector2 deltaIn = new(266.6667f, 210f);
-
-        Vector3 scaleOut = Vector3.one;
-        Vector3 scaleIn = new(2f, 2f, 2f);
-
-        Vector3 posOut = new(0f, -0.6f, 0f);
-        Vector3 posIn = new(0f, -3.5f, 0f);
-
-        Vector2 anchorOut = new(471.25f, 24.5f);
-        Vector2 anchorIn = new(471.25f, 156.5f);
 
         float startZoom = zoomLevel;
         float duration = 0.45f;
@@ -159,7 +150,7 @@ internal static class MenuUtils
                         break;
 
                     case "Bar":
-                        foreach (var raw in t.GetComponentsInChildren<RawImage>(true))
+                        foreach (RawImage raw in t.GetComponentsInChildren<RawImage>(true))
                             if (raw != null)
                             {
                                 float brightness = 0.299f * compColor.r + 0.587f * compColor.g + 0.114f * compColor.b;
@@ -189,7 +180,7 @@ internal static class MenuUtils
                         break;
 
                     case "Bar Text (1)":
-                        foreach (var raw in t.GetComponentsInChildren<TextMeshProUGUI>(true))
+                        foreach (TextMeshProUGUI raw in t.GetComponentsInChildren<TextMeshProUGUI>(true))
                             if (raw != null)
                                 raw.color = Color.black;
                         break;

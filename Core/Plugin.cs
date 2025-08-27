@@ -33,7 +33,8 @@ internal class Plugin : BaseUnityPlugin
         ModConfig.BindConfigItems(Config);
 
         EyesAssetManager.InitBundles();
-        Menu.Initialize();
+        EyeSelectionMenu.Initialize();
+        ExpressionMenu.Initialize();
         CustomEyeManager.Init();
 
         Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
