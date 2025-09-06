@@ -17,6 +17,8 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
 	<!-- Generating documentation for public consumption -->
 
+    <NoWarn>1591</NoWarn>
+    
 	<IncludeSymbols>true</IncludeSymbols>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>embedded</DebugType>

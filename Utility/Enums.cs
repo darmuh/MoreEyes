@@ -1,5 +1,5 @@
 ﻿namespace MoreEyes.Utility;
-internal class Enums
+public class Enums
 {
     internal enum ModLogLevel
     {
@@ -23,13 +23,13 @@ internal class Enums
     }
 
     //from Menu.cs
-    internal enum EyePart
+    public enum EyePart
     {
         Pupil,
         Iris
     }
     //from Menu.cs
-    internal enum EyeSide
+    public enum EyeSide
     {
         Left,
         Right
