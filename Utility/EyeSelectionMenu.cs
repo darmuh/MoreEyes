@@ -1,5 +1,6 @@
 ﻿using MenuLib;
 using MenuLib.MonoBehaviors;
+using MoreEyes.Addons;
 using MoreEyes.Collections;
 using MoreEyes.Components;
 using MoreEyes.Core;
@@ -370,7 +371,6 @@ internal sealed class EyeSelectionMenu
             PatchedEyes.Local.SelectIris(newSelection, side == EyeSide.Left);
             UpdateButtons();
         }
-
         CommonSliders(side, part);
     }
 

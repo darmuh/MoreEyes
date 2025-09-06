@@ -1,4 +1,5 @@
-﻿using MoreEyes.Collections;
+﻿using MoreEyes.Addons;
+using MoreEyes.Collections;
 using MoreEyes.Core;
 using MoreEyes.Managers;
 using Photon.Pun;
@@ -169,5 +170,32 @@ internal class MoreEyesNetwork : MonoBehaviour
         playerSelections.SetSelectionsFromPairs(FileManager.GetPairsFromString(selectionsValue));
         playerSelections.PlayerEyesSpawn();
         FileManager.WriteTextFile();
+    }
+    [PunRPC]
+    internal void RPC_SyncAnimatorParam(string playerID, string paramName, int paramTypeInt, object value)
+    {
+        var playerSelections = PlayerEyeSelection.GetPlayerEyeSelection(playerID);
+        if (playerSelections == null) return;
+
+        Animator animator = playerSelections.patchedEyes.GetComponent<Animator>();
+        if (animator == null) return;
+
+        var type = (NetworkedAnimationTrigger.ParamType)paramTypeInt;
+
+        switch (type)
+        {
+            case NetworkedAnimationTrigger.ParamType.Bool:
+                animator.SetBool(paramName, (bool)value);
+                break;
+            case NetworkedAnimationTrigger.ParamType.Trigger:
+                animator.SetTrigger(paramName);
+                break;
+            case NetworkedAnimationTrigger.ParamType.Float:
+                animator.SetFloat(paramName, (float)value);
+                break;
+            case NetworkedAnimationTrigger.ParamType.Int:
+                animator.SetInteger(paramName, (int)value);
+                break;
+        }
     }
 }
