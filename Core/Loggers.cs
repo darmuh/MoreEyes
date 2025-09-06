@@ -45,10 +45,10 @@ internal class Loggers
     }
     internal static void Error(object data)
     {
-        Log(LogLevel.Debug, data);
+        Log(LogLevel.Error, data);
     }
     internal static void Fatal(object data)
     {
-        Log(LogLevel.Debug, data);
+        Log(LogLevel.Fatal, data);
     }
 }
