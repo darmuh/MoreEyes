@@ -8,9 +8,9 @@
     <AssemblyName>com.github.s1ckboii.MoreEyes</AssemblyName> <!-- PLUGIN_GUID -->
     <Product>MoreEyes</Product>           <!-- PLUGIN_NAME -->
     <Version>1.0.0</Version>                           <!-- PLUGIN_VERSION -->
-    <Authors>s1ckboy, darmuh</Authors>
+    <Authors>s1ckboy &amp; darmuh</Authors>
     <Description></Description>
-    <Copyright>Copyright © 2025 s1ckboy</Copyright>
+    <Copyright>Copyright © 2025 s1ckboy &amp; darmuh</Copyright>
     
     <RootNamespace>$(MSBuildProjectName)</RootNamespace>
     
@@ -53,6 +53,18 @@
   
   <!-- Import settings from .csproj.user file -->
   <Import Project="$(MSBuildProjectFile).user" Condition="Exists('$(MSBuildProjectFile).user')" />
+  
+  <PropertyGroup>
+    <Product>MoreEyes</Product>
+    <Version>1.0.0</Version>
+    <Authors>s1ckboy &amp; darmuh</Authors>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+    <RepositoryUrl>https://github.com/s1ckboii/MoreEyes</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/s1ckboii/MoreEyes</PackageProjectUrl>
+    <RepositoryType>git</RepositoryType>
+    <Description>API for R.E.P.O eye customization</Description>
+  </PropertyGroup>
   
   <!-- Default values in case the .csproj.user file doesn't exist -->
   <PropertyGroup>
