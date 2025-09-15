@@ -5,6 +5,7 @@ using MoreEyes.Managers;
 using Photon.Pun;
 using System.Linq;
 using UnityEngine;
+using static MoreEyes.Addons.NetworkedAnimationTrigger;
 
 namespace MoreEyes.Components;
 internal class MoreEyesNetwork : MonoBehaviour
@@ -102,6 +103,16 @@ internal class MoreEyesNetwork : MonoBehaviour
         return new(color.r, color.g, color.b);
     }
 
+    internal static void SendNetwork(ParamType type, string name, object value = null)
+    {
+        if (SemiFunc.RunIsLevel() && instance != null && instance.photonView != null)
+        {
+            string playerID = PhotonNetwork.LocalPlayer.UserId;
+            Loggers.Debug($"[Network] Sending RPC_SyncAnimatorParam to others: playerID={playerID}, param={name}, type={type}, value={value}");
+            instance.photonView.RPC("RPC_SyncAnimatorParam", RpcTarget.Others, playerID, name, (int)type, value);
+        }
+    }
+
     [PunRPC]
     internal void SetSingleSelection(string playerID, bool isLeft, bool isPupil, string uniqueID)
     {
@@ -174,26 +185,29 @@ internal class MoreEyesNetwork : MonoBehaviour
     [PunRPC]
     internal void RPC_SyncAnimatorParam(string playerID, string paramName, int paramTypeInt, object value)
     {
+        Loggers.Debug($"[RPC] RPC_SyncAnimatorParam received for playerID={playerID}, param={paramName}, type={paramTypeInt}, value={value}");
+
         var playerSelections = PlayerEyeSelection.GetPlayerEyeSelection(playerID);
         if (playerSelections == null) return;
 
         Animator animator = playerSelections.patchedEyes.GetComponent<Animator>();
         if (animator == null) return;
 
-        var type = (NetworkedAnimationTrigger.ParamType)paramTypeInt;
+        var type = (ParamType)paramTypeInt;
 
         switch (type)
         {
-            case NetworkedAnimationTrigger.ParamType.Bool:
+            case ParamType.Bool:
                 animator.SetBool(paramName, (bool)value);
+                Loggers.Debug($"[RPC] Animator.SetBool({paramName}, {value})");
                 break;
-            case NetworkedAnimationTrigger.ParamType.Trigger:
+            case ParamType.Trigger:
                 animator.SetTrigger(paramName);
                 break;
-            case NetworkedAnimationTrigger.ParamType.Float:
+            case ParamType.Float:
                 animator.SetFloat(paramName, (float)value);
                 break;
-            case NetworkedAnimationTrigger.ParamType.Int:
+            case ParamType.Int:
                 animator.SetInteger(paramName, (int)value);
                 break;
         }

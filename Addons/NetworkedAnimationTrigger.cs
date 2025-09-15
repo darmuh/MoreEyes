@@ -50,32 +50,23 @@ namespace MoreEyes.Addons
                 case ParamType.Bool:
                     bool current = animator.GetBool(paramName);
                     animator.SetBool(paramName, !current);
-                    SendNetwork(paramType, paramName, !current);
+                    MoreEyesNetwork.SendNetwork(paramType, paramName, !current);
                     break;
 
                 case ParamType.Trigger:
                     animator.SetTrigger(paramName);
-                    SendNetwork(paramType, paramName);
+                    MoreEyesNetwork.SendNetwork(paramType, paramName);
                     break;
 
                 case ParamType.Float:
                     animator.SetFloat(paramName, floatValue);
-                    SendNetwork(paramType, paramName, floatValue);
+                    MoreEyesNetwork.SendNetwork(paramType, paramName, floatValue);
                     break;
 
                 case ParamType.Int:
                     animator.SetInteger(paramName, intValue);
-                    SendNetwork(paramType, paramName, intValue);
+                    MoreEyesNetwork.SendNetwork(paramType, paramName, intValue);
                     break;
-            }
-        }
-
-        private void SendNetwork(ParamType type, string name, object value = null)
-        {
-            if (SemiFunc.RunIsLevel() && MoreEyesNetwork.instance != null && MoreEyesNetwork.instance.photonView != null)
-            {
-                string playerID = PhotonNetwork.LocalPlayer.UserId;
-                MoreEyesNetwork.instance.photonView.RPC("RPC_SyncAnimatorParam", RpcTarget.Others, playerID, name, (int)type, value);
             }
         }
     }
