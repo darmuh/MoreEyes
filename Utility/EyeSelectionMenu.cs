@@ -1,6 +1,5 @@
 ﻿using MenuLib;
 using MenuLib.MonoBehaviors;
-using MoreEyes.Addons;
 using MoreEyes.Collections;
 using MoreEyes.Components;
 using MoreEyes.Core;
@@ -203,8 +202,9 @@ internal sealed class EyeSelectionMenu
 
         if (FileManager.UpdateWrite)
         {
-            MoreEyesNetwork.SyncMoreEyesChanges();
             FileManager.WriteTextFile();
+            MoreEyesNetwork.SyncMoreEyesChanges();
+            
         }       
     }
 

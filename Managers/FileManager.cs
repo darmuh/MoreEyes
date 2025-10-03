@@ -1,5 +1,7 @@
 ﻿using HarmonyLib;
+using MoreEyes.Collections;
 using MoreEyes.Core;
+using MoreEyes.Utility;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -58,11 +60,26 @@ internal class FileManager
         }
     }
 
+    public static string GetSelectionsText(string playerID)
+    {
+        if(PlayerSelections.TryGetValue(playerID, out var selection))
+            return selection;
+
+        return string.Empty;
+    }
+
+    public static string GetSelectionsText(PlayerEyeSelection player)
+    {
+        if(player == null) return string.Empty;
+
+        return $"pupilLeft={player.pupilLeft.UID},pupilLeftColor={ColorUtility.ToHtmlStringRGB(player.PupilLeftColor)},pupilRight={player.pupilRight.UID},pupilRightColor={ColorUtility.ToHtmlStringRGB(player.PupilRightColor)},irisLeft={player.irisLeft.UID},irisLeftColor={ColorUtility.ToHtmlStringRGB(player.IrisLeftColor)},irisRight={player.irisRight.UID},irisRightColor={ColorUtility.ToHtmlStringRGB(player.IrisRightColor)}";
+    }
+
     private static void UpdatePlayerSelections()
     {
         CustomEyeManager.AllPlayerSelections.Do(a =>
         {
-            string selections = $"pupilLeft={a.pupilLeft.UID},pupilLeftColor={ColorUtility.ToHtmlStringRGB(a.PupilLeftColor)},pupilRight={a.pupilRight.UID},pupilRightColor={ColorUtility.ToHtmlStringRGB(a.PupilRightColor)},irisLeft={a.irisLeft.UID},irisLeftColor={ColorUtility.ToHtmlStringRGB(a.IrisLeftColor)},irisRight={a.irisRight.UID},irisRightColor={ColorUtility.ToHtmlStringRGB(a.IrisRightColor)}";
+            string selections = GetSelectionsText(a);
 
             if (PlayerSelections.ContainsKey(a.playerID))
             {
@@ -132,5 +149,8 @@ internal class FileManager
             Directory.CreateDirectory(filePath);
 
         File.WriteAllText(filePath + "\\selections.txt", fileContents);
+
+        if (ModCompats.IsMoreHeadPresent())
+            MoreHeadCompat.WriteSaveFile();
     }
 }

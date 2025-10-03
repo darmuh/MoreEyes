@@ -267,10 +267,7 @@ internal class PlayerEyeSelection
 
     internal string GetSelectionsString()
     {
-        if(FileManager.PlayerSelections.ContainsKey(playerID))
-            return FileManager.PlayerSelections[playerID];
-        else
-            return string.Empty;
+        return FileManager.GetSelectionsText(playerID);
     }
 
     internal void PlayerEyesSpawn()

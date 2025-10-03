@@ -1,6 +1,7 @@
 ﻿using MoreEyes.Collections;
 using MoreEyes.Core;
 using MoreEyes.Managers;
+using MoreEyes.Utility;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -67,6 +68,9 @@ internal class PatchedEyes : MonoBehaviour
         SetPlayerSavedSelection(Player);
 
         AllPatchedEyes.Add(this);
+
+        if (ModCompats.IsMoreHeadPresent())
+            MoreHeadCompat.ReadSaveFile();
     }
 
     private void Start()
@@ -100,6 +104,13 @@ internal class PatchedEyes : MonoBehaviour
 
         SetPlayerSavedSelection(Player);
         CurrentSelections.PlayerEyesSpawn();
+    }
+
+    private void Update()
+    {
+        // Constantly update our morehead values if mod is present
+        if (ModCompats.IsMoreHeadPresent())
+            MoreHeadCompat.MenuCheck();
     }
 
     internal void SetMenuEyes(PlayerAvatarVisuals visuals)
